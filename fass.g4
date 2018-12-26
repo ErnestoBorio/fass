@@ -41,7 +41,7 @@ value: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK |
 hex_number: HEX_BIGEND | HEX_LITEND ;
 address: HEX_BIGEND;
 
-ADDRESS_KWD: ( [aA][dD][dD][rR][eE][sS][sS] );
+ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS];
 FILLER_KWD : [fF][iI][lL][lL][eE][rR] ;
 DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
 DATA_KWD : [dD][aA][tT][aA];

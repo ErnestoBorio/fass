@@ -1,33 +1,45 @@
 grammar fass;
 
 program: ( 
-	( statement | block | ) EOL )* // lines or blocks newline separated (line can be empty)
-	( statement | block )? // final line or block can lack newline
-	EOF;
+	( statement | block | ) EOL )*
+	( statement | block )?
+	EOF ;
 
 block: '<< to be implemented >>';
 
 statement:
 	address_stmt |
+	filler_stmt |
+	data_stmt |
 	const_stmt
 	;
 
-address_stmt: ADDRESS_KWRD ( HEX_NUMBER | DECIMAL_NUMBER );
-const_stmt:   CONST_KWRD /*IDENTIFIER*/ '=' VALUE;
+// address_stmt: ADDRESS_KWD ( DECIMAL_NUMBER | HEX_NUMBER ) ;
+address_stmt: ADDRESS_KWD HEX_NUMBER ;
+// filler_stmt: FILLER_KWD ( VALUE | DEFAULT_KWD ) ;
+filler_stmt: FILLER_KWD ( (DECIMAL_NUMBER | HEX_NUMBER | BINARY_NUMBER | STRING | BRK | NOP) | DEFAULT_KWD ) ;
+// data_stmt: DATA_KWD VALUE ( ',' VALUE )* ;
+data_stmt: DATA_KWD (DECIMAL_NUMBER | HEX_NUMBER | BINARY_NUMBER | STRING | BRK | NOP) 
+	( ',' (DECIMAL_NUMBER | HEX_NUMBER | BINARY_NUMBER | STRING | BRK | NOP) )* ;
+// const_stmt: CONST_KWD IDENTIFIER '=' VALUE ;
+const_stmt: CONST_KWD IDENTIFIER '=' (DECIMAL_NUMBER | HEX_NUMBER | BINARY_NUMBER | STRING | BRK | NOP) ;
 
-ADDRESS_KWRD: [aA][dD][dD][rR][eE][sS][sS];
-CONST_KWRD: [cC][oO][nN][sS][tT];
+ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS] ;
+FILLER_KWD : [fF][iI][lL][lL][eE][rR] ;
+DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
+DATA_KWD : [dD][aA][tT][aA] ;
+CONST_KWD: [cC][oO][nN][sS][tT] ;
 
-VALUE: DECIMAL_NUMBER | HEX_NUMBER | 
-	BINARY_NUMBER | STRING | NOP | BRK ;
-DECIMAL_NUMBER: [0-9]+;
-HEX_NUMBER: '$' [0-9a-fA-F]+;
-BINARY_NUMBER: '%' [01]+;
-STRING: '"' [^"]+ '"';
-NOP: [nN][oO][pP]; // equal to $EA
-BRK: [bB][rR][kK]; // equal to $00
+// VALUE: DECIMAL_NUMBER | HEX_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
+LTEND: 'L'; // Little endianness
+DECIMAL_NUMBER: [0-9]+ LTEND?;
+HEX_NUMBER: '$' [0-9a-fA-F]+ LTEND?;
+BINARY_NUMBER: '%' [01]+ LTEND?;
+STRING: '"' [^"]+ '"' ;
+BRK:  [bB][rR][kK] ; // equal to $00
+NOP:  [nN][oO][pP] ; // equal to $EA
 
-// IDENTIFIER: [_a-zA-Z] [_a-zA-Z0-9]*;
+IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
 
 WHITESPACE: [ \t]+ -> skip;
 

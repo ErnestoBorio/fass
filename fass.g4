@@ -29,12 +29,19 @@ nop_stmt:
 	NOP4 value?   // NOP for 4 cycles, optionally provide disposable argument
 	;
 
-brk_stmt: BRK; // jump to Break interrupt handler
-label_def_stmt: IDENTIFIER 'at' address; // ser a label on an address without changing current instructions addresses
+brk_stmt: BRK value?; // jump to Break interrupt handler, takes 2 bytes, argument is discarded
+
+label_def_stmt: IDENTIFIER 'at' address; // set a label on an address without changing current program counter
+
 assign_stmt: // assign values to and from labels or registers WIP
-	IDENTIFIER '=' REGISTER |
-	REGISTER '=' IDENTIFIER |
+	reference '=' REGISTER |
+	REGISTER '=' reference |
 	REGISTER '=' value
+	;
+
+reference:
+	value // Immediate
+	| IDENTIFIER // Direct
 	;
 
 value: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
@@ -61,10 +68,12 @@ NOP:  [nN][oO][pP] ; // equal to $EA
 NOP3: [nN][oO][pP]'3' ; // equal to $04, NOP that takes 3 cycles and 2 bytes, zeropage
 NOP4: [nN][oO][pP]'4' ; // equal to $14, NOP that takes 4 cycles and 2 bytes, zeropage, x
 
-REGISTER: A | X | Y ;
+REGISTER: A | X | Y | STACK; // | stack
 	A: [aA] ;
 	X: [xX] ;
-	Y: [yY];
+	Y: [yY] ;
+	STACK: [sS][tT][aA][cC][kK] ;
+
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
 
 WHITESPACE: [ \t]+ -> skip;

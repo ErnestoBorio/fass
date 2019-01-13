@@ -14,7 +14,7 @@ statement: // single line statements
 	const_stmt |
 	nop_stmt |
 	brk_stmt |
-	label_def_stmt |
+	remote_label_stmt |
 	assign_stmt
 	;
 
@@ -31,7 +31,7 @@ nop_stmt:
 
 brk_stmt: BRK value?; // jump to Break interrupt handler, takes 2 bytes, argument is discarded
 
-label_def_stmt: IDENTIFIER 'at' address; // set a label on an address without changing current program counter
+remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without changing current program counter
 
 assign_stmt: // assign values to and from labels or registers WIP
 	reference '=' REGISTER |
@@ -40,8 +40,7 @@ assign_stmt: // assign values to and from labels or registers WIP
 	;
 
 reference:
-	value // Immediate
-	| IDENTIFIER // Direct
+	IDENTIFIER // Direct, either zero page or absolute
 	;
 
 value: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;

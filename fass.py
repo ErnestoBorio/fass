@@ -1,10 +1,9 @@
 
-import sys
+from sys import argv
 from antlr4 import *
 from fassLexer import fassLexer
 from fassParser import fassParser
 from fassCompiler import fassCompiler
-from pprint import pprint
 
 def main(argv):
 	input = FileStream(argv[1])
@@ -18,4 +17,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-	main(sys.argv)
+	main(argv)

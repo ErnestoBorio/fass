@@ -24,9 +24,9 @@ data_stmt: DATA_KWD value ( ',' value )* ; // insert raw data into code
 const_stmt: CONST_KWD IDENTIFIER '=' value ; // define a named constant value
 
 nop_stmt: 
-	NOP | // do nothing for 2 cpu cycles
-	NOP3 value? | // NOP for 3 cycles, optionally provide disposable argument
-	NOP4 value?   // NOP for 4 cycles, optionally provide disposable argument
+	  NOP // do nothing for 2 cpu cycles
+	| NOP3 value? // NOP for 3 cycles, optionally provide disposable argument
+	| NOP4 value? // NOP for 4 cycles, optionally provide disposable argument
 	;
 
 brk_stmt: BRK value?; // jump to Break interrupt handler, takes 2 bytes, argument is discarded
@@ -34,9 +34,9 @@ brk_stmt: BRK value?; // jump to Break interrupt handler, takes 2 bytes, argumen
 remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without changing current program counter
 
 assign_stmt: // assign values to and from labels or registers WIP
-	reference '=' REGISTER |
-	REGISTER '=' reference |
-	REGISTER '=' value
+	  reference '=' REGISTER # assign_ref_reg
+	| REGISTER '=' reference # assign_reg_ref
+	| REGISTER '=' value     # assign_reg_val
 	;
 
 reference:

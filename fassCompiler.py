@@ -34,26 +34,7 @@ class fassCompiler(fassListener) :
 		STA: { ABS: 0x8D }
 	}
 
-	# decode value string as read by the parser into a typed value
-	def decode_value( self, value ):
-		match = re.match( r"\$([0-9a-fA-F]+)L?", value )
-		if match: # hex
-			ret = int( match[1], 16 )
-		else:
-			match = re.match( r"([0-9]+)L?", value )
-			if match: # decimal
-				ret = int( match[1] )
-			else:
-				match = re.match( r"%([01]+)L?", value )
-				if match: #binary
-					ret = int( match[1], 2 )
-				else:
-					raise Exception(f"Value expression `{value}` can't be decoded yet")
-		if value[-1] == 'L': # little endian
-			ret = self.little_endianize_int( ret )
-		return ret
-	
-	# assure address is between valid 6502 bounds
+	# ensure address is between valid 6502 bounds
 	def assert_address_valid( self, address ):
 		self.assert_value_16bits( address, "MOS 6502 has 64KB of memory, address must be between 0 and $FFFF" )
 
@@ -68,26 +49,63 @@ class fassCompiler(fassListener) :
 
 	def is_zeropage( self, address ):
 		return address < 0x100
-
-	def little_endianize_bytes( self, value ):
-		""" return the 16 bits value with its bytes swapped to little endian format, as a bytearray """
-		self.assert_value_16bits( value )
-		return bytearray([
-			value & 0xFF, # first, least significant byte
-			(value & 0xFF00) >>8 ]) # second, most significant byte
 	
-	def little_endianize_int( self, value ):
-		""" return the 16 bits value with its bytes swapped to little endian format, as an int """
-		self.assert_value_16bits( value )
-		return (value & 0xFF) | ((value & 0xFF00) >>8)
+	def get_output( self ):
+		return self.output
 
+	
+	# decode value string as read by the parser into a typed value. Don't pass values with L suffix
+	def decode_value( self, value ):
+		match = re.match( r"\$(.+)", value )
+		if match: # hex
+			return int( match[1], 16 )
+		else:
+			match = re.match( r"([0-9]+)", value )
+			if match: # decimal
+				return int( match[1] )
+			else:
+				match = re.match( r"%(.+)", value )
+				if match: #binary
+					return int( match[1], 2 )
+				else:
+					raise Exception(f"Value expression `{value}` can't be decoded yet")
+
+	def serialize( self, data ):
+		value = None
+		match = re.match( r"\$([a-fA-F0-9]+)L?", data )
+		if match: # hex
+			value = match[1]
+		else:
+			match = re.match( r"([0-9]+)L?", data )
+			if match: # decimal
+				value = "%X"%( int( match[1] ))
+			else:
+				match = re.match( r"%([01]+)L?", data )
+				if match: #binary
+					value = "%X"%( int( match[1], 2 ))
+		little_endian = True if (data[-1] == "L") else False
+		output = bytearray()
+		if value is None:
+			raise Exception(f"Data expression `{data}` can't be serialized yet")
+		else:
+			if len(value)%2 == 1: # give value even number of hex digits
+				value = "0"+ value 
+			for i in range( 0, len(value),2 ):
+				byte = int( value[i:i+2], 16)
+				if little_endian:
+					output.insert(0, byte)
+				else:
+					output.append(byte)
+		return output
+
+# Grammar rules listeners:
+	
 	# write arbitrary data to the output
 	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
-		value = ctx.children[1].children[0].symbol.text # WIP It's only parsing one value for now
-		value = self.decode_value(value)
-		self.assert_value_16bits(value)
-		output = bytes([ (value & 0xFF00)>>8, value & 0xFF ])
-		self.output += output
+		for token in ctx.children:
+			if isinstance( token, fassParser.ValueContext ):
+				value = token.children[0].symbol.text
+				self.output += self.serialize( value )
 
 	def enterAddress_stmt(self, ctx:fassParser.Address_stmtContext):
 		""" set current address for producing next output byte """

@@ -1,21 +1,24 @@
 grammar fass;
 
 program: ( 
-	( statement | block | ) EOL )*
-	( statement | block )?
+	( statement | block | ) EOL )* // optional statements or blocks ending in newlines
+	( statement | block )? // optional last line with no newline
 	EOF ;
 
 block: '<< to be implemented >>'; // block of statements
 
 statement: // single line statements
-	address_stmt |
-	filler_stmt |
-	data_stmt |
-	const_stmt |
-	nop_stmt |
-	brk_stmt |
-	remote_label_stmt |
-	assign_stmt
+	  address_stmt
+	| filler_stmt
+	| data_stmt
+	| const_stmt
+	| nop_stmt
+	| brk_stmt
+	| remote_label_stmt
+	| assign_stmt
+	| goto_stmt
+
+	| label statement?
 	;
 
 address_stmt: ADDRESS_KWD address ; // set memory address for next instruction
@@ -39,19 +42,24 @@ assign_stmt: // assign values to and from labels or registers WIP
 	| REGISTER '=' value     # assign_reg_val
 	;
 
+goto_stmt: GOTO_KWD IDENTIFIER ; // WIP should also support indirect addressing
+
+label: IDENTIFIER ':' ;
+
 reference:
 	IDENTIFIER // Direct, either zero page or absolute
 	;
 
 value: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
 hex_number: HEX_BIGEND | HEX_LITEND ;
-address: HEX_BIGEND;
+address: HEX_BIGEND ;
 
-ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS];
+ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS] ;
 FILLER_KWD : [fF][iI][lL][lL][eE][rR] ;
 DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
-DATA_KWD : [dD][aA][tT][aA];
+DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
+GOTO_KWD: [gG][oO][tT][oO] ;
 
 // Values:
 LITEND: 'L'; // Little endianness

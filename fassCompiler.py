@@ -31,7 +31,8 @@ class fassCompiler(fassListener) :
 		LDA: { IMM: 0xA9, ZP: 0xA5, ZPX: 0xB5, ABS: 0xAD, ABSX: 0xBD, ABSY: 0xB9, INDX: 0xA1, INDY: 0xB1 },
 		LDX: { IMM: 0xA2, ZP: 0xA6, ZPY: 0xB6, ABS: 0xAE, ABSY: 0xBE },
 		LDY: { IMM: 0xA0, ZP: 0xA4, ZPX: 0xB4, ABS: 0xAC, ABSX: 0xBC },
-		STA: { ABS: 0x8D }
+		STA: { ABS: 0x8D },
+		JMP: { ABS: 0x4C, IND: 0x6C }
 	}
 
 	# ensure address is between valid 6502 bounds
@@ -100,12 +101,20 @@ class fassCompiler(fassListener) :
 
 # Grammar rules listeners:
 	
+	def enterLabel(self, ctx:fassParser.LabelContext):
+		assert ctx.children[0].symbol.type == fassParser.IDENTIFIER
+		label = ctx.children[0].symbol.text
+		# WIP assert label hasn't been defined before
+		self.labels[ label ] = { "address": self.address }
+
 	# write arbitrary data to the output
 	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
-		for token in ctx.children:
+		for token in ctx.children[1:]:
 			if isinstance( token, fassParser.ValueContext ):
 				value = token.children[0].symbol.text
-				self.output += self.serialize( value )
+				data_bytes = self.serialize( value )
+				self.output += data_bytes
+				self.address += len(data_bytes)
 
 	def enterAddress_stmt(self, ctx:fassParser.Address_stmtContext):
 		""" set current address for producing next output byte """
@@ -156,6 +165,14 @@ class fassCompiler(fassListener) :
 			self.output.append((address & 0xFF00) >>8) # output address MSB
 			self.address += 2
 
+	def enterGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
+		label = ctx.children[1].symbol.text
+		assert label in self.labels # it's possibly a forward reference or an undefined label
+		self.output.append( self.opcodes[self.JMP][self.ABS] ) # output the opcode
+		address = str( self.labels[label]["address"]) + "L"
+		self.output += self.serialize( address )
+		self.address += 3
+	
 	def exitProgram(self, ctx:fassParser.ProgramContext):
 		debug = "stop here for final debug"
 		pass

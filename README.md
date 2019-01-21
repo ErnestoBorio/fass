@@ -1,2 +1,1 @@
-*Test*
-##Toast
+fass: Friendly Assembler, a more human-readable assembler for the 6502 processor.

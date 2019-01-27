@@ -1,11 +1,11 @@
 
 import re
-from fassLexer import fassLexer
+from fassLexer import fassLexer as lxr
 from fassParser import fassParser
 from fassListener import fassListener
 
 class fassCompiler(fassListener) :
-	address = 0
+	address = -1
 	labels = {}
 	output = bytearray()
 
@@ -26,24 +26,30 @@ class fassCompiler(fassListener) :
 	LSR = "LSR"; NOP = "NOP"; ORA = "ORA"; PHA = "PHA"; PHP = "PHP"; PLA = "PLA"; PLP = "PLP"; ROL = "ROL"
 	ROR = "ROR"; RTI = "RTI"; RTS = "RTS"; SBC = "SBC"; SEC = "SEC"; SED = "SED"; SEI = "SEI"; STA = "STA"
 	STX = "STX"; STY = "STY"; TAX = "TAX"; TAY = "TAY"; TSX = "TSX"; TXA = "TXA"; TXS = "TXS"; TYA = "TYA"
+	NOP3 = "NOP3"; NOP4 = "NOP4" # undocumented operations
 	
 	opcodes = {
-		LDA: { IMM: 0xA9, ZP: 0xA5, ZPX: 0xB5, ABS: 0xAD, ABSX: 0xBD, ABSY: 0xB9, INDX: 0xA1, INDY: 0xB1 },
-		LDX: { IMM: 0xA2, ZP: 0xA6, ZPY: 0xB6, ABS: 0xAE, ABSY: 0xBE },
-		LDY: { IMM: 0xA0, ZP: 0xA4, ZPX: 0xB4, ABS: 0xAC, ABSX: 0xBC },
-		STA: { ABS: 0x8D },
-		JMP: { ABS: 0x4C, IND: 0x6C }
+		LDA: { IMM:b"\xA9", ZP:b"\xA5", ZPX:b"\xB5", ABS:b"\xAD", ABSX:b"\xBD", 
+			ABSY:b"\xB9", INDX:b"\xA1", INDY:b"\xB1" },
+		LDX: { IMM:b"\xA2", ZP:b"\xA6", ZPY:b"\xB6", ABS:b"\xAE", ABSY:b"\xBE" },
+		LDY: { IMM:b"\xA0", ZP:b"\xA4", ZPX:b"\xB4", ABS:b"\xAC", ABSX:b"\xBC" },
+		STA: { ABS:b"\x8D" },
+		JMP: { ABS:b"\x4C", IND:b"\x6C" },
+		NOP:  b"\xEA",
+		NOP3: b"\x04", # Not really implied, but illegal opcodes, who cares the addressing anyway?
+		NOP4: b"\x14", # idem ^
+		BRK:  b"\x00"
 	}
 
 	# ensure address is between valid 6502 bounds
 	def assert_address_valid( self, address ):
 		self.assert_value_16bits( address, "MOS 6502 has 64KB of memory, address must be between 0 and $FFFF" )
 
-	def assert_value_16bits( self, value, message = "Value `{value}` should be between 0 and $FFFF" ):
-		assert ( 0 <= value <= 0xFFFF ), message
+	def assert_value_8bits( self, value, element ):
+		assert -128 <= value <= 0xFF, f"{element} should be 8 bits long, between -128 and 255($FF)"
 	
-	def assert_value_8bits( self, value, message = "Value `{value}` should be between 0 and $FF" ):
-		assert ( 0 <= value <= 0xFF ), message
+	def assert_value_16bits( self, value, element ):
+		assert 0 <= value <= 0xFFFF, f"{element} should be 16 bits long, between 0 and $FFFF"
 
 	def get_mnemonic( self, operation, register ):
 		return operation.upper() + register.upper()
@@ -89,7 +95,7 @@ class fassCompiler(fassListener) :
 		if value is None:
 			raise Exception(f"Data expression `{data}` can't be serialized yet")
 		else:
-			if len(value)%2 == 1: # give value even number of hex digits
+			if len(value)%2 == 1: # give value an even number of hex digits
 				value = "0"+ value 
 			for i in range( 0, len(value),2 ):
 				byte = int( value[i:i+2], 16)
@@ -98,6 +104,11 @@ class fassCompiler(fassListener) :
 				else:
 					output.append(byte)
 		return output
+
+	def append_output(self, output: bytearray):
+		assert self.address > -1, "Output started without setting an address"
+		self.output += output
+		self.address += len( output )
 
 # Grammar rules listeners:
 	
@@ -124,24 +135,26 @@ class fassCompiler(fassListener) :
 		self.address = address # set current address
 	
 	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
-		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020 """
+		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
+		    Doesn't produce output """
 		label = ctx.children[0].symbol.text
+		assert label not in self.labels
 		address = ctx.children[2].children[0].symbol.text
 		address = self.decode_value( address )
 		self.assert_address_valid( address )
-		# WIP assert label hasn't been defined before
 		self.labels[ label ] = { "address": address }
 
 	def enterAssign_reg_val(self, ctx:fassParser.Assign_reg_valContext):
 		""" Assign register = value. asm example: LDA #5 """
 		register = ctx.children[0].symbol.text
-		value = self.decode_value( ctx.children[2].children[0].symbol.text )
-		self.assert_value_8bits( value )
+		raw_value = ctx.children[2].children[0].symbol.text
+		value = self.decode_value( raw_value)
+		self.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
 		mnemonic = self.get_mnemonic( "LD", register )
 		addressing = self.IMM
-		opcode = self.opcodes[mnemonic][addressing]
-		self.output += ( bytearray([opcode, value]))
-		self.address += 2
+		output = bytearray( self.opcodes[mnemonic][addressing])
+		output += self.serialize( value)
+		self.append_output( output)
 
 	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
 		""" Assign a memory reference = register. asm example: STA $D020 """
@@ -172,7 +185,42 @@ class fassCompiler(fassListener) :
 		address = str( self.labels[label]["address"]) + "L"
 		self.output += self.serialize( address )
 		self.address += 3
+
+	def enterNop_stmt(self, ctx:fassParser.Nop_stmtContext):
+		op = ctx.children[0].symbol
+		output = bytearray()
+		if op.type == lxr.NOP:
+			output += self.opcodes[self.NOP]
+		else:
+			if op.type == lxr.NOP3:
+				output += self.opcodes[self.NOP3]
+			elif op.type == lxr.NOP4:
+				output += self.opcodes[self.NOP4]
+			else:
+				raise Exception(f"Unrecognized NOP `{op.text}`")
+			# it's either NOP3 or NOP4 so it needs a byte argument
+			if len(ctx.children) > 1:
+				argument = ctx.children[1].children[0].symbol.text
+				self.assert_value_8bits( 
+					self.decode_value( argument), "%s argument"%op.text )
+				argument = self.serialize( argument)
+			else:
+				argument = self.opcodes[self.NOP] # default argument will be NOP, just in case
+			output += argument
+		self.append_output( output )
 	
+	def enterBrk_stmt(self, ctx:fassParser.Brk_stmtContext):
+		output = bytearray(self.opcodes[self.BRK])
+		if len(ctx.children) > 1:
+			argument = ctx.children[1].children[0].symbol.text
+			self.assert_value_8bits( 
+				self.decode_value( argument), "BRK argument")
+			argument = self.serialize( argument)
+		else:
+			argument = self.opcodes[self.NOP] # default argument will be NOP, just in case
+		output += argument
+		self.append_output( output )
+
 	def exitProgram(self, ctx:fassParser.ProgramContext):
 		debug = "stop here for final debug"
 		pass

@@ -37,9 +37,11 @@ brk_stmt: BRK value?; // jump to Break interrupt handler, takes 2 bytes, argumen
 remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without changing current program counter
 
 assign_stmt: // assign values to and from labels or registers WIP
-	  reference '=' REGISTER # assign_ref_reg
-	| REGISTER '=' reference # assign_reg_ref
-	| REGISTER '=' value     # assign_reg_val
+	  reference '=' REGISTER  # assign_ref_reg
+	| REGISTER  '=' reference # assign_reg_ref
+	| REGISTER  '=' value     # assign_reg_val
+	| (STACK|X) '=' (STACK|X) # assign_stack_x
+	| FLAG '=' (BOOLEAN|'1'|'0') # assign_flag_val // CLC SEC CLV CLD SED CLI SEI
 	;
 
 goto_stmt: GOTO_KWD IDENTIFIER ; // WIP should also support indirect addressing
@@ -81,7 +83,17 @@ REGISTER: A | X | Y | STACK; // | stack
 	Y: [yY] ;
 	STACK: [sS][tT][aA][cC][kK] ;
 
-IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
+FLAG: CARRY | OVERFLOW | DECIMAL | DIS_INT ;
+	CARRY: [cC][aA][rR][rR][yY] ;
+	DECIMAL: [dD][eE][cC][iI][mM][aA][lL] ;
+	OVERFLOW: [oO][vV][eE][rR][fF][lL][oO][wW] ;
+	DIS_INT: [dD][iI][sS][aA][bB][lL][eE] ' '+ [iI][nN][tT][eE][rR][rR][uU][pP][tT] ;
+
+BOOLEAN: // true | false
+	  [tT][rR][uU][eE] 
+	| [fF][aA][lL][sS][eE] ;
+
+IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*; // the dot allows a dot-notation-like syntactic sugar
 
 WHITESPACE: [ \t]+ -> skip;
 

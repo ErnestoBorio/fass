@@ -1,11 +1,16 @@
 grammar fass;
 
 program: ( 
-	( statement | block | ) EOL )* // optional statements or blocks ending in newlines
-	( statement | block )? // optional last line with no newline
+	( meta_statement | block | ) EOL )* // optional statements or blocks ending in newlines
+	( meta_statement | block )? // optional last line with no newline
 	EOF ;
 
 block: '<< to be implemented >>'; // block of statements
+
+meta_statement:
+	  statement COMMENT?
+	| label statement? COMMENT?
+	;
 
 statement: // single line statements
 	  address_stmt
@@ -17,8 +22,6 @@ statement: // single line statements
 	| remote_label_stmt
 	| assign_stmt
 	| goto_stmt
-
-	| label statement?
 	;
 
 address_stmt: ADDRESS_KWD address ; // set memory address for next instruction
@@ -95,6 +98,8 @@ BOOLEAN: // true | false
 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*; // the dot allows a dot-notation-like syntactic sugar
 
+COMMENT: '//' (.*?) ; // WIP o sino: '//' [^\r\n]*
+
 WHITESPACE: [ \t]+ -> skip;
 
-EOL: '\r'? '\n';
+EOL: '\r'? '\n'; // WIP agregar | '\r' ?

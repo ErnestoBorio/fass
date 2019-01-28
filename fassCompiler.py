@@ -43,7 +43,7 @@ class fassCompiler(fassListener) :
 
 	# ensure address is between valid 6502 bounds
 	def assert_address_valid( self, address ):
-		self.assert_value_16bits( address, "MOS 6502 has 64KB of memory, address must be between 0 and $FFFF" )
+		self.assert_value_16bits( address, "The 6502 has 64KB of memory, address" )
 
 	def assert_value_8bits( self, value, element ):
 		assert -128 <= value <= 0xFF, f"{element} should be 8 bits long, between -128 and 255($FF)"
@@ -110,7 +110,7 @@ class fassCompiler(fassListener) :
 		self.output += output
 		self.address += len( output )
 
-# Grammar rules listeners:
+### Grammar rules listeners: ###
 	
 	def enterLabel(self, ctx:fassParser.LabelContext):
 		assert ctx.children[0].symbol.type == fassParser.IDENTIFIER
@@ -120,12 +120,12 @@ class fassCompiler(fassListener) :
 
 	# write arbitrary data to the output
 	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
+		output = bytearray()
 		for token in ctx.children[1:]:
 			if isinstance( token, fassParser.ValueContext ):
-				value = token.children[0].symbol.text
-				data_bytes = self.serialize( value )
-				self.output += data_bytes
-				self.address += len(data_bytes)
+				output += self.serialize(
+					token.children[0].symbol.text)
+		self.append_output( output)
 
 	def enterAddress_stmt(self, ctx:fassParser.Address_stmtContext):
 		""" set current address for producing next output byte """
@@ -152,8 +152,8 @@ class fassCompiler(fassListener) :
 		self.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
 		mnemonic = self.get_mnemonic( "LD", register )
 		addressing = self.IMM
-		output = bytearray( self.opcodes[mnemonic][addressing])
-		output += self.serialize( value)
+		output = self.opcodes[mnemonic][addressing]
+		output += self.serialize( raw_value)
 		self.append_output( output)
 
 	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
@@ -165,26 +165,22 @@ class fassCompiler(fassListener) :
 			label = reference
 			address = self.labels[ label ]["address"]
 			mnemonic = self.get_mnemonic( "ST", register )
-			
-			if self.is_zeropage(address):
-				addressing = self.ZP
-			else:
-				addressing = self.ABS
-				self.address += 1 # Absolute addressing takes one additional byte
-
+			addressing = ( self.ZP if self.is_zeropage(address) else self.ABS )
 			opcode = self.opcodes[mnemonic][addressing]
-			self.output.append( opcode )
-			self.output.append(address & 0xFF) # output address LSB
-			self.output.append((address & 0xFF00) >>8) # output address MSB
-			self.address += 2
+			address = str(address) + "L" # make it little endian
+			address = self.serialize( address)
+			self.append_output( opcode + address )
+		else:
+			raise Exception( f"Reference `{reference}` is either a yet unimplemented "+
+				"addressing mode, or a forward reference or an undefined label" )
 
 	def enterGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
 		label = ctx.children[1].symbol.text
 		assert label in self.labels # it's possibly a forward reference or an undefined label
-		self.output.append( self.opcodes[self.JMP][self.ABS] ) # output the opcode
+		opcode = self.opcodes[self.JMP][self.ABS] # WIP should support Relative addressing also
 		address = str( self.labels[label]["address"]) + "L"
-		self.output += self.serialize( address )
-		self.address += 3
+		address = self.serialize( address)
+		self.append_output( opcode + address)
 
 	def enterNop_stmt(self, ctx:fassParser.Nop_stmtContext):
 		op = ctx.children[0].symbol
@@ -210,16 +206,14 @@ class fassCompiler(fassListener) :
 		self.append_output( output )
 	
 	def enterBrk_stmt(self, ctx:fassParser.Brk_stmtContext):
+		""" if no argument follows BRK, output will have only BRK, so a normal interrupt process would skip next byte, be careful. """
 		output = bytearray(self.opcodes[self.BRK])
 		if len(ctx.children) > 1:
 			argument = ctx.children[1].children[0].symbol.text
 			self.assert_value_8bits( 
 				self.decode_value( argument), "BRK argument")
-			argument = self.serialize( argument)
-		else:
-			argument = self.opcodes[self.NOP] # default argument will be NOP, just in case
-		output += argument
-		self.append_output( output )
+			output += self.serialize( argument)
+		self.append_output( output)
 
 	def exitProgram(self, ctx:fassParser.ProgramContext):
 		debug = "stop here for final debug"

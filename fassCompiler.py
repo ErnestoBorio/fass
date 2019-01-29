@@ -6,6 +6,7 @@ from fassListener import fassListener
 
 class fassCompiler(fassListener) :
 	address = -1
+	filler = None
 	labels = {}
 	output = bytearray()
 
@@ -36,10 +37,13 @@ class fassCompiler(fassListener) :
 		STA: { ABS:b"\x8D" },
 		JMP: { ABS:b"\x4C", IND:b"\x6C" },
 		NOP:  b"\xEA",
-		NOP3: b"\x04", # Not really implied, but illegal opcodes, who cares the addressing anyway?
-		NOP4: b"\x14", # idem ^
+		NOP3: b"\x04",
+		NOP4: b"\x14",
 		BRK:  b"\x00"
 	}
+
+	def __init__(self):
+		self.filler = self.opcodes[self.NOP]
 
 	# ensure address is between valid 6502 bounds
 	def assert_address_valid( self, address ):
@@ -132,8 +136,22 @@ class fassCompiler(fassListener) :
 		address = ctx.children[1].children[0].symbol.text
 		address = self.decode_value( address )
 		self.assert_address_valid( address )
-		self.address = address # set current address
+		assert address >= self.address, f"Address {address} would overlap current address {self.address}"
+		if address > self.address and self.address >= 0: # have to fill output with filler byte
+			gap = address - self.address
+			self.output += self.filler * gap # fill the gap with the filler byte
+		self.address = address
 	
+	def enterFiller_stmt(self, ctx:fassParser.Filler_stmtContext):
+		filler = ctx.children[1]
+		if isinstance(filler, fassParser.ValueContext):
+			filler = ctx.children[1].children[0].symbol.text
+			self.assert_value_8bits( self.decode_value( filler), "Filler")
+			filler = self.serialize( filler)
+			self.filler = filler
+		else: # is default
+			self.filler = self.opcodes[self.NOP]
+
 	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
 		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
 		    Doesn't produce output """

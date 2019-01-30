@@ -118,9 +118,19 @@ class fassCompiler(fassListener) :
 	
 	def enterLabel(self, ctx:fassParser.LabelContext):
 		assert ctx.children[0].symbol.type == fassParser.IDENTIFIER
-		label = ctx.children[0].symbol.text
-		# WIP assert label hasn't been defined before
+		label = ctx.children[0].symbol.text.lower()
+		assert label not in self.labels
 		self.labels[ label ] = { "address": self.address }
+
+	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
+		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
+		    Doesn't produce output """
+		label = ctx.children[0].symbol.text.lower()
+		assert label not in self.labels
+		address = ctx.children[2].children[0].symbol.text
+		address = self.decode_value( address )
+		self.assert_address_valid( address )
+		self.labels[ label ] = { "address": address }
 
 	# write arbitrary data to the output
 	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
@@ -152,16 +162,6 @@ class fassCompiler(fassListener) :
 		else: # is default
 			self.filler = self.opcodes[self.NOP]
 
-	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
-		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
-		    Doesn't produce output """
-		label = ctx.children[0].symbol.text
-		assert label not in self.labels
-		address = ctx.children[2].children[0].symbol.text
-		address = self.decode_value( address )
-		self.assert_address_valid( address )
-		self.labels[ label ] = { "address": address }
-
 	def enterAssign_reg_val(self, ctx:fassParser.Assign_reg_valContext):
 		""" Assign register = value. asm example: LDA #5 """
 		register = ctx.children[0].symbol.text
@@ -170,8 +170,7 @@ class fassCompiler(fassListener) :
 		self.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
 		mnemonic = self.get_mnemonic( "LD", register )
 		addressing = self.IMM
-		output = self.opcodes[mnemonic][addressing]
-		output += self.serialize( raw_value)
+		output = self.opcodes[mnemonic][addressing] + self.serialize( raw_value)
 		self.append_output( output)
 
 	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):

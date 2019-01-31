@@ -14,9 +14,9 @@ statement: // single line statements
 	| const_stmt
 	| nop_stmt
 	| brk_stmt
-	| remote_label_stmt
-	| assign_stmt
 	| goto_stmt
+	| assign_stmt
+	| remote_label_stmt
 
 	| label statement?
 	;
@@ -24,7 +24,7 @@ statement: // single line statements
 address_stmt: ADDRESS_KWD address ; // set memory address for next instruction
 filler_stmt: FILLER_KWD ( value | DEFAULT_KWD ) ; // set filler for empty memory blocks
 data_stmt: DATA_KWD value ( ',' value )* ; // insert raw data into code
-const_stmt: CONST_KWD IDENTIFIER '=' value ; // define a named constant value
+const_stmt: CONST_KWD IDENTIFIER '=' value ; // define a named constant literal
 
 nop_stmt: 
 	  NOP // do nothing for 2 cpu cycles
@@ -36,21 +36,36 @@ brk_stmt: BRK value?; // jump to Break interrupt handler, takes 2 bytes, argumen
 
 remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without changing current program counter
 
-assign_stmt: // assign values to and from labels or registers WIP
-	  reference '=' REGISTER  # assign_ref_reg
-	| REGISTER  '=' reference # assign_reg_ref
-	| REGISTER  '=' value     # assign_reg_val
+// --> Assignments and References
+assign_stmt:
+	  assign_reg_lit // A = 5
+	| assign_reg_ref_const // A = const or A = label
+	| assign_ref_reg // label = X : STX label
+	| assign_reg_reg // X = Stack : TSX
+	| assign_ref_reg_ref // label1 = a = label2
 	;
+assign_reg_lit: REGISTER '=' literal ;
+assign_reg_ref_const: REGISTER  '=' IDENTIFIER ; // the identifier can be a reference or a constant
+assign_ref_reg: reference '=' REGISTER ;
+assign_reg_reg: REGISTER  '=' REGISTER ;
+assign_ref_reg_ref: reference '=' REGISTER '=' reference;
+	// synthesizes [ LDA label2; STA label1 ] with: label1 = a = label2
+	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
+
+reference: 
+	  ref_direct // label by itself
+	;
+ref_direct: IDENTIFIER ;
+
+// Assignments and References <--
 
 goto_stmt: GOTO_KWD IDENTIFIER ; // WIP should also support indirect addressing
 
 label: IDENTIFIER ':' ;
+constant: IDENTIFIER ;
+value: literal | constant ;
 
-reference:
-	IDENTIFIER // Direct, either zero page or absolute
-	;
-
-value: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
+literal: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
 hex_number: HEX_BIGEND | HEX_LITEND ;
 address: HEX_BIGEND ;
 
@@ -61,21 +76,24 @@ DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
 GOTO_KWD: [gG][oO][tT][oO] ;
 
-// Values:
-LITEND: 'L'; // Little endianness
+// literals:
+LITEND: 'L'; // Little endianness. 
+	// Possibly the only case sensitive token, to avoid confusion with the number 1
 HEX_BIGEND: '$' [0-9a-fA-F]+ ;
 HEX_LITEND: '$' [0-9a-fA-F]+ LITEND;
+	// TODO WIP maybe make hex_bigend a grammar rule and keep unified HEX_NUMBER as a token?
 DECIMAL_NUMBER: [0-9]+ LITEND?;
 BINARY_NUMBER: '%' [01]+ LITEND?;
 STRING: '"' .+? '"' ; // very basic definition of a string WIP
 BRK:  [bB][rR][kK] ; // equal to $00
 NOP:  [nN][oO][pP] ; // equal to $EA
+// NOP & BRK are both literals and statements
 
 // Undocumented NOPs: both read from zero page but discard the byte
 NOP3: [nN][oO][pP]'3' ; // equal to $04, NOP that takes 3 cycles and 2 bytes, zeropage
-NOP4: [nN][oO][pP]'4' ; // equal to $14, NOP that takes 4 cycles and 2 bytes, zeropage, x
+NOP4: [nN][oO][pP]'4' ; // equal to $14, NOP that takes 4 cycles and 2 bytes, zeropage,X
 
-REGISTER: A | X | Y | STACK; // | stack
+REGISTER: A | X | Y | STACK;
 	A: [aA] ;
 	X: [xX] ;
 	Y: [yY] ;

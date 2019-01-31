@@ -1,13 +1,15 @@
 
 import re
-from fassLexer import fassLexer as lxr
 from fassParser import fassParser
+from fassLexer import fassLexer as lxr
 from fassListener import fassListener
+psr = fassParser
 
 class fassCompiler(fassListener) :
 	address = -1
 	filler = None
 	labels = {}
+	consts = {}
 	output = bytearray()
 
 	# enum addressing modes:
@@ -115,32 +117,7 @@ class fassCompiler(fassListener) :
 		self.address += len( output )
 
 ### Grammar rules listeners: ###
-	
-	def enterLabel(self, ctx:fassParser.LabelContext):
-		assert ctx.children[0].symbol.type == fassParser.IDENTIFIER
-		label = ctx.children[0].symbol.text.lower()
-		assert label not in self.labels
-		self.labels[ label ] = { "address": self.address }
-
-	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
-		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
-		    Doesn't produce output """
-		label = ctx.children[0].symbol.text.lower()
-		assert label not in self.labels
-		address = ctx.children[2].children[0].symbol.text
-		address = self.decode_value( address )
-		self.assert_address_valid( address )
-		self.labels[ label ] = { "address": address }
-
-	# write arbitrary data to the output
-	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
-		output = bytearray()
-		for token in ctx.children[1:]:
-			if isinstance( token, fassParser.ValueContext ):
-				output += self.serialize(
-					token.children[0].symbol.text)
-		self.append_output( output)
-
+# ADDRESS
 	def enterAddress_stmt(self, ctx:fassParser.Address_stmtContext):
 		""" set current address for producing next output byte """
 		address = ctx.children[1].children[0].symbol.text
@@ -151,7 +128,32 @@ class fassCompiler(fassListener) :
 			gap = address - self.address
 			self.output += self.filler * gap # fill the gap with the filler byte
 		self.address = address
-	
+# LABEL
+	def enterLabel(self, ctx:fassParser.LabelContext):
+		assert ctx.children[0].symbol.type == fassParser.IDENTIFIER
+		label = ctx.children[0].symbol.text.lower()
+		assert label not in self.labels
+		self.labels[ label ] = { "address": self.address }
+# REMOTE LABEL
+	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
+		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
+		    Doesn't produce output """
+		label = ctx.children[0].symbol.text.lower()
+		assert label not in self.labels
+		address = ctx.children[2].children[0].symbol.text
+		address = self.decode_value( address )
+		self.assert_address_valid( address )
+		self.labels[ label ] = { "address": address }
+# DATA
+	# write arbitrary data to the output
+	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
+		output = bytearray()
+		for token in ctx.children[1:]:
+			if isinstance( token, fassParser.ValueContext ):
+				output += self.serialize(
+					token.children[0].symbol.text)
+		self.append_output( output)
+# FILLER
 	def enterFiller_stmt(self, ctx:fassParser.Filler_stmtContext):
 		filler = ctx.children[1]
 		if isinstance(filler, fassParser.ValueContext):
@@ -161,7 +163,7 @@ class fassCompiler(fassListener) :
 			self.filler = filler
 		else: # is default
 			self.filler = self.opcodes[self.NOP]
-
+# REG = VAL
 	def enterAssign_reg_val(self, ctx:fassParser.Assign_reg_valContext):
 		""" Assign register = value. asm example: LDA #5 """
 		register = ctx.children[0].symbol.text
@@ -172,10 +174,10 @@ class fassCompiler(fassListener) :
 		addressing = self.IMM
 		output = self.opcodes[mnemonic][addressing] + self.serialize( raw_value)
 		self.append_output( output)
-
+# REF = REG
 	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
-		""" Assign a memory reference = register. asm example: STA $D020 """
 		reference = ctx.children[0].children[0].symbol.text
+		""" Assign a memory reference = register. asm: STA $D020 """
 		register = ctx.children[2].symbol.text
 		
 		if reference in self.labels: # WIP this only accounts for direct addressings
@@ -190,7 +192,7 @@ class fassCompiler(fassListener) :
 		else:
 			raise Exception( f"Reference `{reference}` is either a yet unimplemented "+
 				"addressing mode, or a forward reference or an undefined label" )
-
+# GOTO
 	def enterGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
 		label = ctx.children[1].symbol.text
 		assert label in self.labels # it's possibly a forward reference or an undefined label
@@ -198,7 +200,7 @@ class fassCompiler(fassListener) :
 		address = str( self.labels[label]["address"]) + "L"
 		address = self.serialize( address)
 		self.append_output( opcode + address)
-
+# NOP
 	def enterNop_stmt(self, ctx:fassParser.Nop_stmtContext):
 		op = ctx.children[0].symbol
 		output = bytearray()
@@ -221,7 +223,7 @@ class fassCompiler(fassListener) :
 				argument = self.opcodes[self.NOP] # default argument will be NOP, just in case
 			output += argument
 		self.append_output( output )
-	
+# BRK	
 	def enterBrk_stmt(self, ctx:fassParser.Brk_stmtContext):
 		""" if no argument follows BRK, output will have only BRK, so a normal interrupt process would skip next byte, be careful. """
 		output = bytearray(self.opcodes[self.BRK])

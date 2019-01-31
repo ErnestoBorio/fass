@@ -39,24 +39,35 @@ remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without
 // --> Assignments and References
 assign_stmt:
 	  assign_reg_lit // A = 5
-	| assign_reg_ref_const // A = const or A = label
-	| assign_ref_reg // label = X : STX label
+	| assign_reg_dir_const // A = const or A = label
+	| assign_dir_reg // label = A
+	| assign_reg_ref // A = label[X] ; Any addressing that's not direct
+	| assign_ref_reg // label[Y] = X : STX label,Y
 	| assign_reg_reg // X = Stack : TSX
 	| assign_ref_reg_ref // label1 = a = label2
 	;
-assign_reg_lit: REGISTER '=' literal ;
-assign_reg_ref_const: REGISTER  '=' IDENTIFIER ; // the identifier can be a reference or a constant
-assign_ref_reg: reference '=' REGISTER ;
-assign_reg_reg: REGISTER  '=' REGISTER ;
-assign_ref_reg_ref: reference '=' REGISTER '=' reference;
+assign_reg_lit: register '=' literal ;
+assign_reg_dir_const: register  '=' IDENTIFIER ; // the identifier can be a reference or a constant
+assign_dir_reg: IDENTIFIER '=' register ; // const = register will fall here, catch it.
+assign_reg_ref: register '=' reference ;
+assign_ref_reg: reference '=' register ;
+assign_reg_reg: register  '=' register ;
+assign_ref_reg_ref: reference '=' register '=' reference;
 	// synthesizes [ LDA label2; STA label1 ] with: label1 = a = label2
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
 
 reference: 
-	  ref_direct // label by itself
+	//   ref_direct // label by itself
+	| ref_indirect
+	| ref_indexed
+	| ref_indirect_x
+	| ref_indirect_y
 	;
-ref_direct: IDENTIFIER ;
-
+// ref_direct: IDENTIFIER ;
+ref_indirect: '(' IDENTIFIER ')' ;
+ref_indexed: IDENTIFIER '[' (X|Y) ']' ;
+ref_indirect_x: '(' IDENTIFIER ')' '[' X ']' ;
+ref_indirect_y: '(' IDENTIFIER '[' Y ']' ')' ;
 // Assignments and References <--
 
 goto_stmt: GOTO_KWD IDENTIFIER ; // WIP should also support indirect addressing
@@ -64,6 +75,8 @@ goto_stmt: GOTO_KWD IDENTIFIER ; // WIP should also support indirect addressing
 label: IDENTIFIER ':' ;
 constant: IDENTIFIER ;
 value: literal | constant ;
+
+register: A | X | Y | STACK;
 
 literal: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
 hex_number: HEX_BIGEND | HEX_LITEND ;
@@ -93,11 +106,11 @@ NOP:  [nN][oO][pP] ; // equal to $EA
 NOP3: [nN][oO][pP]'3' ; // equal to $04, NOP that takes 3 cycles and 2 bytes, zeropage
 NOP4: [nN][oO][pP]'4' ; // equal to $14, NOP that takes 4 cycles and 2 bytes, zeropage,X
 
-REGISTER: A | X | Y | STACK;
-	A: [aA] ;
-	X: [xX] ;
-	Y: [yY] ;
-	STACK: [sS][tT][aA][cC][kK] ;
+// registers
+A: [aA] ;
+X: [xX] ;
+Y: [yY] ;
+STACK: [sS][tT][aA][cC][kK] ;
 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*; // the dot allows a dot-notation-like syntactic sugar
 

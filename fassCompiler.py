@@ -115,6 +115,10 @@ class fassCompiler(fassListener) :
 		assert self.address > -1, "Output started without setting an address"
 		self.output += output
 		self.address += len( output )
+	
+	def is_name_unique(self, name):
+		name = name.lower()
+		return not( name in self.consts or name in self.labels )
 
 ### Grammar rules listeners: ###
 # ADDRESS
@@ -204,6 +208,24 @@ class fassCompiler(fassListener) :
 				self.decode_value( argument), "BRK argument")
 			output += self.serialize( argument)
 		self.append_output( output)
+# CONST
+	def enterConst_stmt(self, ctx:fassParser.Const_stmtContext):
+		const = ctx.children[1].symbol.text.lower()
+		assert self.is_name_unique( const), f"Name `{const}` was previously declared, can't redeclare"
+		value = ctx.children[3].children[0]
+		raw_value = value.children[0].symbol.text
+		if isinstance( value, prs.LiteralContext ):
+			value = self.decode_value( raw_value)
+			self.assert_value_8bits( value, "Constants value") # For now constants will only be 1 byte wide
+			value = self.serialize( raw_value) # WIP TODO should we store the value or serialized?
+			self.consts[ const ] = value
+		elif isinstance( value, prs.ConstantContext ):
+			rhs_const = raw_value.lower()
+			assert rhs_const in self.consts, f"Const `{rhs_const}` must be declared before being assigned to const `{const}`" # WIP TODO add forward const reference?
+			self.consts[ const] = self.consts[ rhs_const]
+		stop_debug = 1
+
+
 ## ASSIGNMENTS
 
 # REGISTER = LITERAL

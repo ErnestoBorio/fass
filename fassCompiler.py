@@ -3,7 +3,7 @@ import re
 from fassParser import fassParser
 from fassLexer import fassLexer as lxr
 from fassListener import fassListener
-psr = fassParser
+prs = fassParser
 
 class fassCompiler(fassListener) :
 	address = -1
@@ -163,35 +163,6 @@ class fassCompiler(fassListener) :
 			self.filler = filler
 		else: # is default
 			self.filler = self.opcodes[self.NOP]
-# REG = VAL
-	def enterAssign_reg_val(self, ctx:fassParser.Assign_reg_valContext):
-		""" Assign register = value. asm example: LDA #5 """
-		register = ctx.children[0].symbol.text
-		raw_value = ctx.children[2].children[0].symbol.text
-		value = self.decode_value( raw_value)
-		self.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
-		mnemonic = self.get_mnemonic( "LD", register )
-		addressing = self.IMM
-		output = self.opcodes[mnemonic][addressing] + self.serialize( raw_value)
-		self.append_output( output)
-# REF = REG
-	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
-		reference = ctx.children[0].children[0].symbol.text
-		""" Assign a memory reference = register. asm: STA $D020 """
-		register = ctx.children[2].symbol.text
-		
-		if reference in self.labels: # WIP this only accounts for direct addressings
-			label = reference
-			address = self.labels[ label ]["address"]
-			mnemonic = self.get_mnemonic( "ST", register )
-			addressing = ( self.ZP if self.is_zeropage(address) else self.ABS )
-			opcode = self.opcodes[mnemonic][addressing]
-			address = str(address) + "L" # make it little endian
-			address = self.serialize( address)
-			self.append_output( opcode + address )
-		else:
-			raise Exception( f"Reference `{reference}` is either a yet unimplemented "+
-				"addressing mode, or a forward reference or an undefined label" )
 # GOTO
 	def enterGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
 		label = ctx.children[1].symbol.text
@@ -233,6 +204,42 @@ class fassCompiler(fassListener) :
 				self.decode_value( argument), "BRK argument")
 			output += self.serialize( argument)
 		self.append_output( output)
+## ASSIGNMENTS
+
+# REGISTER = LITERAL
+	def enterAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
+		""" Assign register = value. asm example: LDA #5 """
+		register = ctx.children[0].symbol.text
+		raw_value = ctx.children[2].children[0].symbol.text
+		value = self.decode_value( raw_value)
+		self.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
+		mnemonic = self.get_mnemonic( "LD", register )
+		addressing = self.IMM
+		output = self.opcodes[mnemonic][addressing] + self.serialize( raw_value)
+		self.append_output( output)
+
+# REG = DIRECT REF or REG = CONSTANT
+	def enterAssign_reg_dir_const(self, ctx:fassParser.Assign_reg_dir_constContext):
+		""" Both a direct addressing reference and a contant name are identifiers so the parser can't tell them apart """
+
+# REF = REG
+	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
+		reference = ctx.children[0].children[0].symbol.text
+		""" Assign a memory reference = register. asm: STA $D020 """
+		register = ctx.children[2].symbol.text
+		
+		if reference in self.labels: # WIP this only accounts for direct addressings
+			label = reference
+			address = self.labels[ label ]["address"]
+			mnemonic = self.get_mnemonic( "ST", register )
+			addressing = ( self.ZP if self.is_zeropage(address) else self.ABS )
+			opcode = self.opcodes[mnemonic][addressing]
+			address = str(address) + "L" # make it little endian
+			address = self.serialize( address)
+			self.append_output( opcode + address )
+		else:
+			raise Exception( f"Reference `{reference}` is either a yet unimplemented "+
+				"addressing mode, or a forward reference or an undefined label" )
 
 	def exitProgram(self, ctx:fassParser.ProgramContext):
 		debug = "stop here for final debug"

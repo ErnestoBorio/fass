@@ -3,11 +3,16 @@ import re
 from fassParser import fassParser
 from fassLexer import fassLexer as lxr
 from fassListener import fassListener
+from antlr4.tree.Tree import TerminalNodeImpl
+from antlr4.ParserRuleContext import ParserRuleContext
 prs = fassParser
 
 class fassCompiler(fassListener) :
-	address = -1
+	address = None
+	offset = 0 # output byte count
 	filler = None
+	address_2B_defined = b"\x2B\xDF" # to be defined, forward or undefined reference
+	pending_references = [] # forward or undefined references
 	labels = {}
 	consts = {}
 	output = bytearray()
@@ -112,13 +117,48 @@ class fassCompiler(fassListener) :
 		return output
 
 	def append_output(self, output: bytearray):
-		assert self.address > -1, "Output started without setting an address"
+		assert self.address is not None, "Output started without setting an address"
 		self.output += output
 		self.address += len( output )
+		self.offset += len( output )
 	
 	def is_name_unique(self, name):
 		name = name.lower()
 		return not( name in self.consts or name in self.labels )
+
+	def add_pending_reference(self, name: str):
+		""" When an unknown label is referenced, just store $2BDF as the operation's address and keep
+		record of where it was for when the label is found and the correct address can be overwritten """
+		self.pending_references.append({
+			"name": name, 
+			"offset": self.offset+1 }) # skip the opcode and keep the offset for the address to be corrected
+		""" WIP TODO quizas guardar también la referencia de línea del source por si no se encuentra el label """
+	
+	def find_node(self,  ctx: ParserRuleContext, token_type: int = None, context_type: type = None):
+		""" Find a node of the specified type within given context, regardless of tree structure and depth.
+			Either a token or context type should be given, to search for. If both are given, whichever is
+			found first will be returned """
+		def traverse_tree( item ):
+			# found the node yet?
+			try:
+				if context_type is type(item):				
+					return item # if it's a context, return it as is
+				elif item.symbol.type == token_type:
+					return item.symbol.text # if it's a terminal, return its text
+				# else it's not the item we're searching for, keep searching
+			except AttributeError:
+				pass # item.symbol.* failed, not a TerminalNode, keep going
+			
+			# haven't found it yet, keep searching:
+			if hasattr( item, "children" ): # No EAFP way is suitable here
+				for child in item.children:
+					ret = traverse_tree( child )
+					if ret is not None:
+						return ret
+			return None
+		return traverse_tree( ctx )
+	""" WIP TODO this could be optimized by searching for a set of item types, instead of just one at a time.
+		collect the first of each type found and return them when the list is complete """
 
 ### Grammar rules listeners: ###
 # ADDRESS
@@ -127,17 +167,19 @@ class fassCompiler(fassListener) :
 		address = ctx.children[1].children[0].symbol.text
 		address = self.decode_value( address )
 		self.assert_address_valid( address )
-		assert address >= self.address, f"Address {address} would overlap current address {self.address}"
-		if address > self.address and self.address >= 0: # have to fill output with filler byte
+		assert (self.address is None) or (address >= self.address), f"Address {address} would overlap current address {self.address}"
+		if self.address is not None and address > self.address : # have to fill output with filler byte
 			gap = address - self.address
 			self.output += self.filler * gap # fill the gap with the filler byte
 		self.address = address
+
 # LABEL
 	def enterLabel(self, ctx:fassParser.LabelContext):
-		assert ctx.children[0].symbol.type == fassParser.IDENTIFIER
+		assert self.address is not None, "Can't declare a label before an address has been set"
 		label = ctx.children[0].symbol.text.lower()
 		assert label not in self.labels
 		self.labels[ label ] = { "address": self.address }
+
 # REMOTE LABEL
 	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
 		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
@@ -148,6 +190,7 @@ class fassCompiler(fassListener) :
 		address = self.decode_value( address )
 		self.assert_address_valid( address )
 		self.labels[ label ] = { "address": address }
+
 # DATA
 	# write arbitrary data to the output
 	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
@@ -167,14 +210,28 @@ class fassCompiler(fassListener) :
 			self.filler = filler
 		else: # is default
 			self.filler = self.opcodes[self.NOP]
+		
 # GOTO
 	def enterGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
-		label = ctx.children[1].symbol.text
-		assert label in self.labels # it's possibly a forward reference or an undefined label
-		opcode = self.opcodes[self.JMP][self.ABS] # WIP should support Relative addressing also
-		address = str( self.labels[label]["address"]) + "L"
-		address = self.serialize( address)
+		indirect = self.find_node( ctx, context_type = prs.Ref_indirectContext)
+		label = self.find_node( ctx, token_type = lxr.IDENTIFIER).lower()
+
+		if indirect: # indirect addressing
+			opcode = self.opcodes[self.JMP][self.IND]
+		else: # direct addressing
+			opcode = self.opcodes[self.JMP][self.ABS]
+
+		# WIP TODO factor out the checking of forward references for reuse, resolve_reference()
+		if label in self.labels:
+			address = self.labels[label]['address']
+			address = str(address) + "L" # make it little endian
+			address = self.serialize( address)
+		else:
+			address = self.address_2B_defined
+			self.add_pending_reference( label)
+		
 		self.append_output( opcode + address)
+
 # NOP
 	def enterNop_stmt(self, ctx:fassParser.Nop_stmtContext):
 		op = ctx.children[0].symbol
@@ -209,7 +266,7 @@ class fassCompiler(fassListener) :
 			output += self.serialize( argument)
 		self.append_output( output)
 # CONST
-	def enterConst_stmt(self, ctx:fassParser.Const_stmtContext):
+	def enterConst_stmt(self, ctx:fassParser.Const_stmtContext): # WIP TODO arreglar
 		const = ctx.children[1].symbol.text.lower()
 		assert self.is_name_unique( const), f"Name `{const}` was previously declared, can't redeclare"
 		value = ctx.children[3].children[0]
@@ -229,7 +286,7 @@ class fassCompiler(fassListener) :
 ## ASSIGNMENTS
 
 # REGISTER = LITERAL
-	def enterAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
+	def enterAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext): # WIP TODO arreglar
 		""" Assign register = value. asm example: LDA #5 """
 		register = ctx.children[0].symbol.text
 		raw_value = ctx.children[2].children[0].symbol.text
@@ -242,10 +299,10 @@ class fassCompiler(fassListener) :
 
 # REG = DIRECT REF or REG = CONSTANT
 	def enterAssign_reg_dir_const(self, ctx:fassParser.Assign_reg_dir_constContext):
-		""" Both a direct addressing reference and a contant name are identifiers so the parser can't tell them apart """
+		""" Both a direct addressing reference and a constant name are identifiers so the parser can't tell them apart """
 
 # REF = REG
-	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
+	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext): # WIP TODO arreglar
 		reference = ctx.children[0].children[0].symbol.text
 		""" Assign a memory reference = register. asm: STA $D020 """
 		register = ctx.children[2].symbol.text

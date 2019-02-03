@@ -57,20 +57,18 @@ assign_ref_reg_ref: reference '=' register '=' reference;
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
 
 reference: 
-	//   ref_direct // label by itself
-	| ref_indirect
+	  ref_indirect
 	| ref_indexed
 	| ref_indirect_x
 	| ref_indirect_y
 	;
-// ref_direct: IDENTIFIER ;
 ref_indirect: '(' IDENTIFIER ')' ;
 ref_indexed: IDENTIFIER '[' (X|Y) ']' ;
 ref_indirect_x: '(' IDENTIFIER ')' '[' X ']' ;
 ref_indirect_y: '(' IDENTIFIER '[' Y ']' ')' ;
 // Assignments and References <--
 
-goto_stmt: GOTO_KWD IDENTIFIER ; // WIP should also support indirect addressing
+goto_stmt: GOTO_KWD ( IDENTIFIER | ref_indirect ) ; // WIP should also support indirect addressing
 
 label: IDENTIFIER ':' ;
 constant: IDENTIFIER ;

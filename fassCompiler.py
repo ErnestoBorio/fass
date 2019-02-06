@@ -59,27 +59,27 @@ class fassCompiler(fassListener) :
 		my.output = bytearray()
 
 	# ensure address is between valid 6502 bounds
-	def assert_address_valid( self, address ):
-		self.assert_value_16bits( address, "The 6502 has 64KB of memory, address" )
+	def assert_address_valid( my, address ):
+		my.assert_value_16bits( address, "The 6502 has 64KB of memory, address" )
 
-	def assert_value_8bits( self, value, element ):
+	def assert_value_8bits( my, value, element ):
 		assert -128 <= value <= 0xFF, f"{element} should be 8 bits long, between -128 and 255($FF)"
 	
-	def assert_value_16bits( self, value, element ):
+	def assert_value_16bits( my, value, element ):
 		assert 0 <= value <= 0xFFFF, f"{element} should be 16 bits long, between 0 and $FFFF"
 
-	def get_mnemonic( self, operation, register ):
+	def get_mnemonic( my, operation, register ):
 		return operation.upper() + register.upper()
 
-	def is_zeropage( self, address ):
+	def is_zeropage( my, address ):
 		return address < 0x100
 	
-	def get_output( self ):
-		return self.output
+	def get_output( my ):
+		return my.output
 
 	
 	# decode value string as read by the parser into a typed value. Don't pass values with L suffix
-	def decode_value( self, value ):
+	def decode_value( my, value ):
 		match = re.match( r"\$(.+)", value )
 		if match: # hex
 			return int( match[1], 16 )
@@ -94,7 +94,7 @@ class fassCompiler(fassListener) :
 				else:
 					raise Exception(f"Value expression `{value}` can't be decoded yet")
 
-	def serialize( self, data ):
+	def serialize( my, data ):
 		value = None
 		match = re.match( r"\$([a-fA-F0-9]+)L?", data )
 		if match: # hex
@@ -122,25 +122,25 @@ class fassCompiler(fassListener) :
 					output.append(byte)
 		return output
 
-	def append_output(self, output: bytearray):
-		assert self.address is not None, "Output started without setting an address"
-		self.output += output
-		self.address += len( output )
-		self.offset += len( output )
+	def append_output(my, output: bytearray):
+		assert my.address is not None, "Output started without setting an address"
+		my.output += output
+		my.address += len( output )
+		my.offset += len( output )
 	
-	def is_name_unique(self, name):
+	def is_name_unique(my, name):
 		name = name.lower()
-		return not( name in self.consts or name in self.labels )
+		return not( name in my.consts or name in my.labels )
 
-	def add_pending_reference(self, name: str, offset: int):
+	def add_pending_reference(my, name: str, offset: int):
 		""" When an unknown label is referenced, just store $2BDF as the operation's address and keep
 		record of where it was for when the label is found and the correct address can be overwritten """
-		self.pending_refs.append({
+		my.pending_refs.append({
 			"name": name, 
 			"offset": offset+1 }) # skip the opcode and keep the offset for the address to be corrected
 		""" WIP TODO quizas guardar también la referencia de línea del source por si no se encuentra el label """
 	
-	def find_node(self,  ctx: ParserRuleContext, token_type: int = None, context_type: type = None):
+	def find_node(my,  ctx: ParserRuleContext, token_type: int = None, context_type: type = None):
 		""" Find a node of the specified type within given context, regardless of tree structure and depth.
 			Either a token or context type should be given, to search for. If both are given, whichever is
 			found first will be returned """
@@ -166,210 +166,210 @@ class fassCompiler(fassListener) :
 	""" WIP TODO this could be optimized by searching for a set of item types, instead of just one at a time.
 		collect the first of each type found and return them when the list is complete """
 
-	def __repr__(self):
+	def __repr__(my):
 		return {
-			"address": hex(self.address),
-			"offset": self.offset,
-			"labels": self.labels,
-			"consts": self.consts,
-			"pending_refs": self.pending_refs,
-			"cur_ref": self.cur_ref,
-			"output": self.output.hex().upper()
+			"address": hex(my.address),
+			"offset": my.offset,
+			"labels": my.labels,
+			"consts": my.consts,
+			"pending_refs": my.pending_refs,
+			"cur_ref": my.cur_ref,
+			"output": my.output.hex().upper()
 		}
 
 ### Grammar rules listeners: ###
 # ADDRESS
-	def enterAddress_stmt(self, ctx:fassParser.Address_stmtContext):
+	def enterAddress_stmt(my, ctx:fassParser.Address_stmtContext):
 		""" set current address for producing next output byte """
 		address = ctx.children[1].children[0].symbol.text
-		address = self.decode_value( address )
-		self.assert_address_valid( address )
-		assert (self.address is None) or (address >= self.address), f"Address {address} would overlap current address {self.address}"
-		if self.address is not None and address > self.address : # have to fill output with filler byte
-			gap = address - self.address
-			self.output += self.filler * gap # fill the gap with the filler byte
-		self.address = address
+		address = my.decode_value( address )
+		my.assert_address_valid( address )
+		assert (my.address is None) or (address >= my.address), f"Address {address} would overlap current address {my.address}"
+		if my.address is not None and address > my.address : # have to fill output with filler byte
+			gap = address - my.address
+			my.output += my.filler * gap # fill the gap with the filler byte
+		my.address = address
 
 # LABEL
-	def enterLabel(self, ctx:fassParser.LabelContext):
-		assert self.address is not None, "Can't declare a label before an address has been set"
+	def enterLabel(my, ctx:fassParser.LabelContext):
+		assert my.address is not None, "Can't declare a label before an address has been set"
 		label = ctx.children[0].symbol.text.lower()
-		assert label not in self.labels
-		self.labels[ label ] = { "address": self.address }
+		assert label not in my.labels
+		my.labels[ label ] = { "address": my.address }
 
 # REMOTE LABEL
-	def enterRemote_label_stmt(self, ctx:fassParser.Remote_label_stmtContext):
+	def enterRemote_label_stmt(my, ctx:fassParser.Remote_label_stmtContext):
 		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
 		    Doesn't produce output """
 		label = ctx.children[0].symbol.text.lower()
-		assert label not in self.labels
+		assert label not in my.labels
 		address = ctx.children[2].children[0].symbol.text
-		address = self.decode_value( address )
-		self.assert_address_valid( address )
-		self.labels[ label ] = { "address": address }
+		address = my.decode_value( address )
+		my.assert_address_valid( address )
+		my.labels[ label ] = { "address": address }
 
 # DATA
 	# write arbitrary data to the output
-	def enterData_stmt(self, ctx:fassParser.Data_stmtContext):
+	def enterData_stmt(my, ctx:fassParser.Data_stmtContext):
 		output = bytearray()
 		for token in ctx.children[1:]:
 			if isinstance( token, fassParser.ValueContext ):
-				output += self.serialize(
+				output += my.serialize(
 					token.children[0].symbol.text)
-		self.append_output( output)
+		my.append_output( output)
 # FILLER
-	def enterFiller_stmt(self, ctx:fassParser.Filler_stmtContext):
+	def enterFiller_stmt(my, ctx:fassParser.Filler_stmtContext):
 		filler = ctx.children[1]
 		if isinstance(filler, fassParser.ValueContext):
 			filler = ctx.children[1].children[0].symbol.text
-			self.assert_value_8bits( self.decode_value( filler), "Filler")
-			filler = self.serialize( filler)
-			self.filler = filler
+			my.assert_value_8bits( my.decode_value( filler), "Filler")
+			filler = my.serialize( filler)
+			my.filler = filler
 		else: # is default
-			self.filler = self.opcodes[self.NOP]
+			my.filler = my.opcodes[my.NOP]
 		
 # GOTO
-	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
-		opcode = self.opcodes[self.JMP][ self.cur_ref.addressing]
-		self.append_output( opcode + self.cur_ref.address)
+	def exitGoto_stmt(my, ctx:fassParser.Goto_stmtContext):
+		opcode = my.opcodes[my.JMP][ my.cur_ref.addressing]
+		my.append_output( opcode + my.cur_ref.address)
 
 # NOP
-	def enterNop_stmt(self, ctx:fassParser.Nop_stmtContext):
+	def enterNop_stmt(my, ctx:fassParser.Nop_stmtContext):
 		op = ctx.children[0].symbol
 		output = bytearray()
 		if op.type == lxr.NOP:
-			output += self.opcodes[self.NOP]
+			output += my.opcodes[my.NOP]
 		else:
 			if op.type == lxr.NOP3:
-				output += self.opcodes[self.NOP3]
+				output += my.opcodes[my.NOP3]
 			elif op.type == lxr.NOP4:
-				output += self.opcodes[self.NOP4]
+				output += my.opcodes[my.NOP4]
 			else:
 				raise Exception(f"Unrecognized NOP `{op.text}`")
 			# it's either NOP3 or NOP4 so it needs a byte argument
 			if len(ctx.children) > 1:
 				argument = ctx.children[1].children[0].symbol.text
-				self.assert_value_8bits( 
-					self.decode_value( argument), "%s argument"%op.text )
-				argument = self.serialize( argument)
+				my.assert_value_8bits( 
+					my.decode_value( argument), "%s argument"%op.text )
+				argument = my.serialize( argument)
 			else:
-				argument = self.opcodes[self.NOP] # default argument will be NOP, just in case
+				argument = my.opcodes[my.NOP] # default argument will be NOP, just in case
 			output += argument
-		self.append_output( output )
+		my.append_output( output )
 # BRK	
-	def enterBrk_stmt(self, ctx:fassParser.Brk_stmtContext):
+	def enterBrk_stmt(my, ctx:fassParser.Brk_stmtContext):
 		""" if no argument follows BRK, output will have only BRK, so a normal interrupt process would skip next byte, be careful. """
-		output = bytearray(self.opcodes[self.BRK])
+		output = bytearray(my.opcodes[my.BRK])
 		if len(ctx.children) > 1:
 			argument = ctx.children[1].children[0].symbol.text
-			self.assert_value_8bits( 
-				self.decode_value( argument), "BRK argument")
-			output += self.serialize( argument)
-		self.append_output( output)
+			my.assert_value_8bits( 
+				my.decode_value( argument), "BRK argument")
+			output += my.serialize( argument)
+		my.append_output( output)
 
 # CONST
-	def enterConst_stmt(self, ctx:fassParser.Const_stmtContext): # WIP TODO arreglar
+	def enterConst_stmt(my, ctx:fassParser.Const_stmtContext): # WIP TODO arreglar
 		const = ctx.children[1].symbol.text.lower()
-		assert self.is_name_unique( const), f"Name `{const}` was previously declared, can't redeclare"
+		assert my.is_name_unique( const), f"Name `{const}` was previously declared, can't redeclare"
 		value = ctx.children[3].children[0]
 		raw_value = value.children[0].symbol.text
 		if isinstance( value, prs.LiteralContext ):
-			value = self.decode_value( raw_value)
-			self.assert_value_8bits( value, "Constants value") # For now constants will only be 1 byte wide
-			value = self.serialize( raw_value) # WIP TODO should we store the value or serialized?
-			self.consts[ const ] = value
+			value = my.decode_value( raw_value)
+			my.assert_value_8bits( value, "Constants value") # For now constants will only be 1 byte wide
+			value = my.serialize( raw_value) # WIP TODO should we store the value or serialized?
+			my.consts[ const ] = value
 		elif isinstance( value, prs.ConstantContext ):
 			rhs_const = raw_value.lower()
-			assert rhs_const in self.consts, f"Const `{rhs_const}` must be declared before being assigned to const `{const}`" # WIP TODO add forward const reference?
-			self.consts[ const] = self.consts[ rhs_const]
+			assert rhs_const in my.consts, f"Const `{rhs_const}` must be declared before being assigned to const `{const}`" # WIP TODO add forward const reference?
+			my.consts[ const] = my.consts[ rhs_const]
 		stop_debug = 1
 
 ## ASSIGNMENTS
 
 # REGISTER = LITERAL
-	def enterAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext): # WIP TODO arreglar
+	def enterAssign_reg_lit(my, ctx:fassParser.Assign_reg_litContext): # WIP TODO arreglar
 		""" Assign register = value. asm example: LDA #5 """
 		register = ctx.children[0].symbol.text
 		raw_value = ctx.children[2].children[0].symbol.text
-		value = self.decode_value( raw_value)
-		self.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
-		mnemonic = self.get_mnemonic( "LD", register )
-		addressing = self.IMM
-		output = self.opcodes[mnemonic][addressing] + self.serialize( raw_value)
-		self.append_output( output)
+		value = my.decode_value( raw_value)
+		my.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
+		mnemonic = my.get_mnemonic( "LD", register )
+		addressing = my.IMM
+		output = my.opcodes[mnemonic][addressing] + my.serialize( raw_value)
+		my.append_output( output)
 
 # REG = DIRECT REF or REG = CONSTANT
-	def enterAssign_reg_dir_const(self, ctx:fassParser.Assign_reg_dir_constContext):
+	def enterAssign_reg_dir_const(my, ctx:fassParser.Assign_reg_dir_constContext):
 		""" Both a direct addressing reference and a constant name are identifiers so the parser can't tell them apart """
 
 # REF = REG
-	def enterAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext): # WIP TODO arreglar
+	def enterAssign_ref_reg(my, ctx:fassParser.Assign_ref_regContext): # WIP TODO arreglar
 		reference = ctx.children[0].children[0].symbol.text
 		""" Assign a memory reference = register. asm: STA $D020 """
 		register = ctx.children[2].symbol.text
 		
-		if reference in self.labels: # WIP this only accounts for direct addressings
+		if reference in my.labels: # WIP this only accounts for direct addressings
 			label = reference
-			address = self.labels[ label ]["address"]
-			mnemonic = self.get_mnemonic( "ST", register )
-			addressing = ( self.ZP if self.is_zeropage(address) else self.ABS )
-			opcode = self.opcodes[mnemonic][addressing]
+			address = my.labels[ label ]["address"]
+			mnemonic = my.get_mnemonic( "ST", register )
+			addressing = ( my.ZP if my.is_zeropage(address) else my.ABS )
+			opcode = my.opcodes[mnemonic][addressing]
 			address = str(address) + "L" # make it little endian
-			address = self.serialize( address)
-			self.append_output( opcode + address )
+			address = my.serialize( address)
+			my.append_output( opcode + address )
 		else:
 			raise Exception( f"Reference `{reference}` is either a yet unimplemented "+
 				"addressing mode, or a forward reference or an undefined label" )
 	
 
-	def resolve_label(self, label: str) -> (bytes, bool):
+	def resolve_label(my, label: str) -> (bytes, bool):
 		label = label.lower()
-		if label in self.labels:
-			address = self.labels[label]['address']
-			zeropage = self.is_zeropage( address)
+		if label in my.labels:
+			address = my.labels[label]['address']
+			zeropage = my.is_zeropage( address)
 			address = str(address) + "L" # make it little endian
-			address = self.serialize( address)
+			address = my.serialize( address)
 		else:
 			zeropage = False # if forward declaration, assume it's absolute. Zero page optimization is lost.
 				# Anyway, who puts code in the zero page? very unlikely.
-			address = self.address_2B_defined
-			self.add_pending_reference( label, self.offset)
+			address = my.address_2B_defined
+			my.add_pending_reference( label, my.offset)
 		return address, zeropage
 
-	def enterRef_direct(self, ctx:fassParser.Ref_directContext):
+	def enterRef_direct(my, ctx:fassParser.Ref_directContext):
 		""" Direct (ZP or ABS) is the only addressing mode not included in the reference rule, 
 			it's ambiguous because a constant name could be misrecognized as a direct reference. """
-		self.enterReference(ctx) # same base behavior
-		self.cur_ref.addressing = self.ZP if self.cur_ref.zeropage else self.ABS
+		my.enterReference(ctx) # same base behavior
+		my.cur_ref.addressing = my.ZP if my.cur_ref.zeropage else my.ABS
 
-	def enterRef_indirect(self, ctx:fassParser.Ref_indirectContext):
-		self.enterReference(ctx) # same base behavior
-		self.cur_ref.addressing = self.IND
+	def enterRef_indirect(my, ctx:fassParser.Ref_indirectContext):
+		my.enterReference(ctx) # same base behavior
+		my.cur_ref.addressing = my.IND
 
-	def enterReference(self, ctx:fassParser.ReferenceContext):
+	def enterReference(my, ctx:fassParser.ReferenceContext):
 		""" All references will have exactly one identifier, the label """
-		label = self.find_node(ctx, token_type= lxr.IDENTIFIER).lower()
-		address, zeropage = self.resolve_label( label)
-		self.cur_ref.label = label
-		self.cur_ref.address = address
-		self.cur_ref.zeropage = zeropage
+		label = my.find_node(ctx, token_type= lxr.IDENTIFIER).lower()
+		address, zeropage = my.resolve_label( label)
+		my.cur_ref.label = label
+		my.cur_ref.address = address
+		my.cur_ref.zeropage = zeropage
 		# WIP TODO if hardcoded addresses are added as references, watch out. But I see no need for that
 
-	def enterRef_indexed(self, ctx:fassParser.Ref_indexedContext):
-		self.cur_ref.addressing = self.ABSX
+	def enterRef_indexed(my, ctx:fassParser.Ref_indexedContext):
+		my.cur_ref.addressing = my.ABSX
 
-	def enterRef_indirect_x(self, ctx:fassParser.Ref_indirect_xContext):
-		self.cur_ref.addressing = self.INDX
+	def enterRef_indirect_x(my, ctx:fassParser.Ref_indirect_xContext):
+		my.cur_ref.addressing = my.INDX
 
-	def enterRef_indirect_y(self, ctx:fassParser.Ref_indirect_yContext):
-		self.cur_ref.addressing = self.INDY
+	def enterRef_indirect_y(my, ctx:fassParser.Ref_indirect_yContext):
+		my.cur_ref.addressing = my.INDY
 
 
-	def enterStatement(self, ctx:fassParser.StatementContext):
-		self.cur_ref = self.__class__.reference()
+	def enterStatement(my, ctx:fassParser.StatementContext):
+		my.cur_ref = my.__class__.reference()
 
-	def exitStatement(self, ctx:fassParser.StatementContext):
-		self.cur_ref = None
+	def exitStatement(my, ctx:fassParser.StatementContext):
+		my.cur_ref = None
 
-	def exitProgram(self, ctx:fassParser.ProgramContext):
+	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

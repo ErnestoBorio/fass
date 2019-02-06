@@ -8,14 +8,13 @@ from antlr4.ParserRuleContext import ParserRuleContext
 prs = fassParser
 
 class fassCompiler(fassListener) :
-	address = None
-	offset = 0 # output byte count
-	filler = None
-	address_2B_defined = b"\x2B\xDF" # to be defined, forward or undefined reference
-	pending_references = [] # forward or undefined references
-	labels = {}
-	consts = {}
-	output = bytearray()
+
+	class reference:
+		def __init__(my, label = None, address = None, addressing = None, zeropage = False ):
+			my.label = label
+			my.address = address
+			my.addressing = addressing
+			my.zeropage = zeropage
 
 	# enum addressing modes:
 	IMP = "IMP"; IMM = "IMM"; ZP = "ZP"; ZPX = "ZPX"; ZPY = "ZPY"; ABS = "ABS"
@@ -49,8 +48,16 @@ class fassCompiler(fassListener) :
 		BRK:  b"\x00"
 	}
 
-	def __init__(self):
-		self.filler = self.opcodes[self.NOP]
+	def __init__(my):
+		my.filler = my.opcodes[my.NOP]
+		my.cur_ref = None # holds current reference between enterStatement() and exitStatement() in a state machine fashion
+		my.address = None
+		my.offset = 0 # output byte current count
+		my.address_2B_defined = b"\x2B\xDF" # to be defined, forward or undefined reference. $2BDF ;)
+		my.pending_refs = [] # forward or undefined references
+		my.labels = {}
+		my.consts = {}
+		my.output = bytearray()
 
 	# ensure address is between valid 6502 bounds
 	def assert_address_valid( self, address ):

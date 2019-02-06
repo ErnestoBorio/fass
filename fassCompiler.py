@@ -36,8 +36,7 @@ class fassCompiler(fassListener) :
 	NOP3 = "NOP3"; NOP4 = "NOP4" # undocumented operations
 	
 	opcodes = {
-		LDA: { IMM:b"\xA9", ZP:b"\xA5", ZPX:b"\xB5", ABS:b"\xAD", ABSX:b"\xBD", 
-			ABSY:b"\xB9", INDX:b"\xA1", INDY:b"\xB1" },
+		LDA: { IMM:b"\xA9", ZP:b"\xA5", ZPX:b"\xB5", ABS:b"\xAD", ABSX:b"\xBD", ABSY:b"\xB9", INDX:b"\xA1", INDY:b"\xB1" },
 		LDX: { IMM:b"\xA2", ZP:b"\xA6", ZPY:b"\xB6", ABS:b"\xAE", ABSY:b"\xBE" },
 		LDY: { IMM:b"\xA0", ZP:b"\xA4", ZPX:b"\xB4", ABS:b"\xAC", ABSX:b"\xBC" },
 		STA: { ABS:b"\x8D" },
@@ -133,12 +132,12 @@ class fassCompiler(fassListener) :
 		name = name.lower()
 		return not( name in self.consts or name in self.labels )
 
-	def add_pending_reference(self, name: str):
+	def add_pending_reference(self, name: str, offset: int):
 		""" When an unknown label is referenced, just store $2BDF as the operation's address and keep
 		record of where it was for when the label is found and the correct address can be overwritten """
-		self.pending_references.append({
+		self.pending_refs.append({
 			"name": name, 
-			"offset": self.offset+1 }) # skip the opcode and keep the offset for the address to be corrected
+			"offset": offset+1 }) # skip the opcode and keep the offset for the address to be corrected
 		""" WIP TODO quizas guardar también la referencia de línea del source por si no se encuentra el label """
 	
 	def find_node(self,  ctx: ParserRuleContext, token_type: int = None, context_type: type = None):
@@ -166,6 +165,17 @@ class fassCompiler(fassListener) :
 		return traverse_tree( ctx )
 	""" WIP TODO this could be optimized by searching for a set of item types, instead of just one at a time.
 		collect the first of each type found and return them when the list is complete """
+
+	def __repr__(self):
+		return {
+			"address": hex(self.address),
+			"offset": self.offset,
+			"labels": self.labels,
+			"consts": self.consts,
+			"pending_refs": self.pending_refs,
+			"cur_ref": self.cur_ref,
+			"output": self.output.hex().upper()
+		}
 
 ### Grammar rules listeners: ###
 # ADDRESS
@@ -219,25 +229,9 @@ class fassCompiler(fassListener) :
 			self.filler = self.opcodes[self.NOP]
 		
 # GOTO
-	def enterGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
-		indirect = self.find_node( ctx, context_type = prs.Ref_indirectContext)
-		label = self.find_node( ctx, token_type = lxr.IDENTIFIER).lower()
-
-		if indirect: # indirect addressing
-			opcode = self.opcodes[self.JMP][self.IND]
-		else: # direct addressing
-			opcode = self.opcodes[self.JMP][self.ABS]
-
-		# WIP TODO factor out the checking of forward references for reuse, resolve_reference()
-		if label in self.labels:
-			address = self.labels[label]['address']
-			address = str(address) + "L" # make it little endian
-			address = self.serialize( address)
-		else:
-			address = self.address_2B_defined
-			self.add_pending_reference( label)
-		
-		self.append_output( opcode + address)
+	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
+		opcode = self.opcodes[self.JMP][ self.cur_ref.addressing]
+		self.append_output( opcode + self.cur_ref.address)
 
 # NOP
 	def enterNop_stmt(self, ctx:fassParser.Nop_stmtContext):
@@ -272,6 +266,7 @@ class fassCompiler(fassListener) :
 				self.decode_value( argument), "BRK argument")
 			output += self.serialize( argument)
 		self.append_output( output)
+
 # CONST
 	def enterConst_stmt(self, ctx:fassParser.Const_stmtContext): # WIP TODO arreglar
 		const = ctx.children[1].symbol.text.lower()
@@ -288,7 +283,6 @@ class fassCompiler(fassListener) :
 			assert rhs_const in self.consts, f"Const `{rhs_const}` must be declared before being assigned to const `{const}`" # WIP TODO add forward const reference?
 			self.consts[ const] = self.consts[ rhs_const]
 		stop_debug = 1
-
 
 ## ASSIGNMENTS
 
@@ -326,7 +320,56 @@ class fassCompiler(fassListener) :
 		else:
 			raise Exception( f"Reference `{reference}` is either a yet unimplemented "+
 				"addressing mode, or a forward reference or an undefined label" )
+	
+
+	def resolve_label(self, label: str) -> (bytes, bool):
+		label = label.lower()
+		if label in self.labels:
+			address = self.labels[label]['address']
+			zeropage = self.is_zeropage( address)
+			address = str(address) + "L" # make it little endian
+			address = self.serialize( address)
+		else:
+			zeropage = False # if forward declaration, assume it's absolute. Zero page optimization is lost.
+				# Anyway, who puts code in the zero page? very unlikely.
+			address = self.address_2B_defined
+			self.add_pending_reference( label, self.offset)
+		return address, zeropage
+
+	def enterRef_direct(self, ctx:fassParser.Ref_directContext):
+		""" Direct (ZP or ABS) is the only addressing mode not included in the reference rule, 
+			it's ambiguous because a constant name could be misrecognized as a direct reference. """
+		self.enterReference(ctx) # same base behavior
+		self.cur_ref.addressing = self.ZP if self.cur_ref.zeropage else self.ABS
+
+	def enterRef_indirect(self, ctx:fassParser.Ref_indirectContext):
+		self.enterReference(ctx) # same base behavior
+		self.cur_ref.addressing = self.IND
+
+	def enterReference(self, ctx:fassParser.ReferenceContext):
+		""" All references will have exactly one identifier, the label """
+		label = self.find_node(ctx, token_type= lxr.IDENTIFIER).lower()
+		address, zeropage = self.resolve_label( label)
+		self.cur_ref.label = label
+		self.cur_ref.address = address
+		self.cur_ref.zeropage = zeropage
+		# WIP TODO if hardcoded addresses are added as references, watch out. But I see no need for that
+
+	def enterRef_indexed(self, ctx:fassParser.Ref_indexedContext):
+		self.cur_ref.addressing = self.ABSX
+
+	def enterRef_indirect_x(self, ctx:fassParser.Ref_indirect_xContext):
+		self.cur_ref.addressing = self.INDX
+
+	def enterRef_indirect_y(self, ctx:fassParser.Ref_indirect_yContext):
+		self.cur_ref.addressing = self.INDY
+
+
+	def enterStatement(self, ctx:fassParser.StatementContext):
+		self.cur_ref = self.__class__.reference()
+
+	def exitStatement(self, ctx:fassParser.StatementContext):
+		self.cur_ref = None
 
 	def exitProgram(self, ctx:fassParser.ProgramContext):
-		debug = "stop here for final debug"
 		pass

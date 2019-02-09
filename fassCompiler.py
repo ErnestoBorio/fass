@@ -5,7 +5,11 @@ from fassLexer import fassLexer as lxr
 from fassListener import fassListener
 from antlr4.tree.Tree import TerminalNodeImpl
 from antlr4.ParserRuleContext import ParserRuleContext
-prs = fassParser
+prs = fassParser # just an alias
+
+# dummy class for adding attributes dynamically
+class obj(object):
+	pass
 
 class fassCompiler(fassListener) :
 
@@ -140,33 +144,31 @@ class fassCompiler(fassListener) :
 			"offset": offset+1 }) # skip the opcode and keep the offset for the address to be corrected
 		""" WIP TODO quizas guardar también la referencia de línea del source por si no se encuentra el label """
 	
-	def find_node(my,  ctx: ParserRuleContext, token_type: int = None, context_type: type = None):
-		""" Find a node of the specified type within given context, regardless of tree structure and depth.
-			Either a token or context type should be given, to search for. If both are given, whichever is
-			found first will be returned """
-		def traverse_tree( item ):
-			# found the node yet?
+	def find_ancestor(my, ctx: ParserRuleContext, context_type: type ) -> ParserRuleContext:
+		''' Find the closest ancestor of the given type '''
+		while type(ctx) is not context_type:
 			try:
-				if context_type is type(item):				
-					return item # if it's a context, return it as is
-				elif item.symbol.type == token_type:
-					return item.symbol.text # if it's a terminal, return its text
-				# else it's not the item we're searching for, keep searching
+				ctx = ctx.parentCtx
 			except AttributeError:
-				pass # item.symbol.* failed, not a TerminalNode, keep going
-			
-			# haven't found it yet, keep searching:
-			if hasattr( item, "children" ): # No EAFP way is suitable here
-				for child in item.children:
-					ret = traverse_tree( child )
-					if ret is not None:
-						return ret
-			return None
-		return traverse_tree( ctx )
-	""" WIP TODO this could be optimized by searching for a set of item types, instead of just one at a time.
-		collect the first of each type found and return them when the list is complete """
+				return None
 
-	def __repr__(my):
+	def resolve_label(my, label: str) -> (bytes, bool):
+		''' Get the address of a label or handle if it hasn't been yet defined. '''
+		label = label.lower()
+		if label in my.labels:
+			address = my.labels[label]['address']
+			zeropage = my.is_zeropage( address)
+			address = str(address) + "L" # make it little endian
+			address = my.serialize( address)
+		else:
+			zeropage = False # if forward declaration, assume it's absolute. Zero page optimization is lost.
+				# Anyway, who puts code in the zero page? very unlikely.
+			address = my.address_2B_defined # put a placeholder address in the output code to be later replaced.
+			my.add_pending_reference( label, my.offset)
+		return address, zeropage
+	
+	def as_dict(my):
+		''' A quick debug output of relevant properties. '''
 		return {
 			"address": hex(my.address),
 			"offset": my.offset,
@@ -286,56 +288,9 @@ class fassCompiler(fassListener) :
 
 ## ASSIGNMENTS
 
-# REGISTER = LITERAL
-	def enterAssign_reg_lit(my, ctx:fassParser.Assign_reg_litContext): # WIP TODO arreglar
-		""" Assign register = value. asm example: LDA #5 """
-		register = ctx.children[0].symbol.text
-		raw_value = ctx.children[2].children[0].symbol.text
-		value = my.decode_value( raw_value)
-		my.assert_value_8bits( value, f"Immediate value `{raw_value}`" )
-		mnemonic = my.get_mnemonic( "LD", register )
-		addressing = my.IMM
-		output = my.opcodes[mnemonic][addressing] + my.serialize( raw_value)
-		my.append_output( output)
-
-# REG = DIRECT REF or REG = CONSTANT
-	def enterAssign_reg_dir_const(my, ctx:fassParser.Assign_reg_dir_constContext):
-		""" Both a direct addressing reference and a constant name are identifiers so the parser can't tell them apart """
-
-# REF = REG
-	def enterAssign_ref_reg(my, ctx:fassParser.Assign_ref_regContext): # WIP TODO arreglar
-		reference = ctx.children[0].children[0].symbol.text
-		""" Assign a memory reference = register. asm: STA $D020 """
-		register = ctx.children[2].symbol.text
-		
-		if reference in my.labels: # WIP this only accounts for direct addressings
-			label = reference
-			address = my.labels[ label ]["address"]
-			mnemonic = my.get_mnemonic( "ST", register )
-			addressing = ( my.ZP if my.is_zeropage(address) else my.ABS )
-			opcode = my.opcodes[mnemonic][addressing]
-			address = str(address) + "L" # make it little endian
-			address = my.serialize( address)
-			my.append_output( opcode + address )
-		else:
-			raise Exception( f"Reference `{reference}` is either a yet unimplemented "+
-				"addressing mode, or a forward reference or an undefined label" )
+	def enterRegister(my, ctx:fassParser.RegisterContext):
+		pass
 	
-
-	def resolve_label(my, label: str) -> (bytes, bool):
-		label = label.lower()
-		if label in my.labels:
-			address = my.labels[label]['address']
-			zeropage = my.is_zeropage( address)
-			address = str(address) + "L" # make it little endian
-			address = my.serialize( address)
-		else:
-			zeropage = False # if forward declaration, assume it's absolute. Zero page optimization is lost.
-				# Anyway, who puts code in the zero page? very unlikely.
-			address = my.address_2B_defined
-			my.add_pending_reference( label, my.offset)
-		return address, zeropage
-
 	def enterRef_direct(my, ctx:fassParser.Ref_directContext):
 		""" Direct (ZP or ABS) is the only addressing mode not included in the reference rule, 
 			it's ambiguous because a constant name could be misrecognized as a direct reference. """

@@ -73,9 +73,6 @@ class fassCompiler(fassListener) :
 	def get_mnemonic( my, operation, register ):
 		return operation.upper() + register.upper()
 
-	def is_zeropage( my, address ):
-		return address < 0x100
-	
 	def get_output( my ):
 		return my.output
 
@@ -129,10 +126,6 @@ class fassCompiler(fassListener) :
 		my.output += output
 		my.address += len( output )
 		my.offset += len( output )
-	
-	def is_name_unique(my, name):
-		name = name.lower()
-		return not( name in my.consts or name in my.labels )
 
 	def add_pending_reference(my, name: str, offset: int):
 		""" When an unknown label is referenced, just store $2BDF as the operation's address and keep
@@ -151,7 +144,7 @@ class fassCompiler(fassListener) :
 				return None
 
 	def resolve_label(my, label: str) -> (bytes, bool):
-		''' Get the address of a label or handle it if it hasn't been yet defined. '''
+		''' Get the address of a label or handle it if it hasn't been yet defined '''
 		label = label.lower()
 		if label in my.labels:
 			address = my.labels[label]['address']

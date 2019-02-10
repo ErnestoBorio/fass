@@ -44,11 +44,11 @@ assign_stmt:
 	| assign_reg_reg // X = Stack -> TSX, TXS
 	| assign_ref_reg_ref // label1 = A = label2 -> LDA, LDX, LDY + STA, STX, STY
 	;
-assign_reg_lit: register  '=' literal ;
-assign_reg_ref: register  '=' reference ; // will also catch register = constant
-assign_ref_reg: reference '=' register ;
-assign_reg_reg: register  '=' register ;
-assign_ref_reg_ref: reference '=' register '=' reference;
+assign_reg_lit: REGISTER  '=' literal ;
+assign_reg_ref: REGISTER  '=' reference ; // will also catch register = constant
+assign_ref_reg: reference '=' REGISTER ;
+assign_reg_reg: (REGISTER|STACK) '=' (REGISTER|STACK) ;
+assign_ref_reg_ref: reference '=' REGISTER '=' reference;
 	// synthesizes [ LDA label2; STA label1 ] with: label1 = a = label2
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
 
@@ -59,20 +59,18 @@ reference:
 	| ref_indirect_y
 	;
 ref_direct: IDENTIFIER ; // will also catch constants
-ref_indexed: IDENTIFIER '[' (X|Y) ']' ;
-ref_indirect_x: '(' IDENTIFIER ')' '[' X ']' ;
-ref_indirect_y: '(' IDENTIFIER '[' Y ']' ')' ;
+ref_indexed: IDENTIFIER '[' REGISTER ']' ;
+ref_indirect_x: '(' IDENTIFIER ')' '[' REGISTER ']' ;
+ref_indirect_y: '(' IDENTIFIER '[' REGISTER ']' ')' ;
 // Assignments and References <--
 
 ref_indirect: '(' IDENTIFIER ')' ; // outside of reference because it's only used by goto/JMP
 
-goto_stmt: GOTO_KWD ( ref_direct | ref_indirect ) ;
+goto_stmt: GOTO_KWD ( IDENTIFIER | ref_indirect ) ;
 
 label: IDENTIFIER ':' ;
 constant: IDENTIFIER ;
 value: literal | constant ;
-
-register: A | X | Y | STACK;
 
 literal: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
 hex_number: HEX_BIGEND | HEX_LITEND ;
@@ -102,10 +100,7 @@ NOP:  [nN][oO][pP] ; // equal to $EA
 NOP3: [nN][oO][pP]'3' ; // equal to $04, NOP that takes 3 cycles and 2 bytes, zeropage
 NOP4: [nN][oO][pP]'4' ; // equal to $14, NOP that takes 4 cycles and 2 bytes, zeropage,X
 
-// registers
-A: [aA] ;
-X: [xX] ;
-Y: [yY] ;
+REGISTER: [aA] | [xX] | [yY] ;
 STACK: [sS][tT][aA][cC][kK] ;
 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*; // the dot allows a dot-notation-like syntactic sugar

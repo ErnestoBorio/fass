@@ -38,32 +38,33 @@ remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without
 
 // --> Assignments and References
 assign_stmt:
-	  assign_reg_lit // A = 5
-	| assign_reg_dir_const // A = const or A = label
-	| assign_dir_reg // label = A
-	| assign_reg_ref // A = label[X] ; Any addressing that's not direct
-	| assign_ref_reg // label[Y] = X : STX label,Y
-	| assign_reg_reg // X = Stack : TSX
-	| assign_ref_reg_ref // label1 = a = label2
+	  assign_reg_lit // A = 5 -> LDA, LDX, LDY
+	| assign_reg_ref // A = reference -> LDA, LDX, LDY
+	| assign_ref_reg // reference = A -> STA, STX, STY
+	| assign_reg_reg // X = Stack -> TSX, TXS
+	| assign_ref_reg_ref // label1 = A = label2 -> LDA, LDX, LDY + STA, STX, STY
 	;
-assign_reg_lit: register '=' literal ;
-assign_reg_dir_const: register  '=' IDENTIFIER ; // the identifier can be a reference or a constant
-assign_dir_reg: IDENTIFIER '=' register ; // const = register will fall here, catch it.
-assign_reg_ref: register '=' reference ;
+assign_reg_lit: register  '=' literal ;
+assign_reg_ref: register  '=' reference ; // will also catch register = constant
 assign_ref_reg: reference '=' register ;
 assign_reg_reg: register  '=' register ;
 assign_ref_reg_ref: reference '=' register '=' reference;
 	// synthesizes [ LDA label2; STA label1 ] with: label1 = a = label2
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
 
-reference: ref_indexed | ref_indirect_x | ref_indirect_y ;
-ref_indexed: IDENTIFIER '[' XY ']' ;
+reference:
+	  ref_direct
+	| ref_indexed
+	| ref_indirect_x
+	| ref_indirect_y
+	;
+ref_direct: IDENTIFIER ; // will also catch constants
+ref_indexed: IDENTIFIER '[' (X|Y) ']' ;
 ref_indirect_x: '(' IDENTIFIER ')' '[' X ']' ;
 ref_indirect_y: '(' IDENTIFIER '[' Y ']' ')' ;
 // Assignments and References <--
 
 ref_indirect: '(' IDENTIFIER ')' ; // outside of reference because it's only used by goto/JMP
-ref_direct: IDENTIFIER ; // outside of reference because it can be misrecongnized as a constant
 
 goto_stmt: GOTO_KWD ( ref_direct | ref_indirect ) ;
 
@@ -106,7 +107,6 @@ A: [aA] ;
 X: [xX] ;
 Y: [yY] ;
 STACK: [sS][tT][aA][cC][kK] ;
-XY: X | Y ; // Just a collective name for the index registers
 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*; // the dot allows a dot-notation-like syntactic sugar
 

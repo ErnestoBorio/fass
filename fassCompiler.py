@@ -9,7 +9,13 @@ prs = fassParser # just an alias
 
 # dummy class for adding attributes dynamically
 class obj(object):
-	pass
+	def __init__(my, init_values: set()):
+		''' Init the attributes with either a dict, a set or a list '''
+		if type(init_values) is dict:
+			my.__dict__ = init_values
+		else: # attributes from a set or a list will ref None
+			my.__dict__ = { key: None for key in init_values }
+
 
 class fassCompiler(fassListener) :
 
@@ -66,10 +72,10 @@ class fassCompiler(fassListener) :
 	def assert_address_valid( my, address ):
 		my.assert_value_16bits( address, "The 6502 has 64KB of memory, address" )
 
-	def assert_value_8bits( my, value, element ):
+	def assert_value_8bits( my, value, element: str = 'Value' ):
 		assert -128 <= value <= 0xFF, f"{element} should be 8 bits long, between -128 and 255($FF)"
 	
-	def assert_value_16bits( my, value, element ):
+	def assert_value_16bits( my, value, element: str = 'Value' ):
 		assert 0 <= value <= 0xFFFF, f"{element} should be 16 bits long, between 0 and $FFFF"
 
 	def get_mnemonic( my, operation, register ):
@@ -153,7 +159,7 @@ class fassCompiler(fassListener) :
 				return None
 
 	def resolve_label(my, label: str) -> (bytes, bool):
-		''' Get the address of a label or handle if it hasn't been yet defined. '''
+		''' Get the address of a label or handle it if it hasn't been yet defined. '''
 		label = label.lower()
 		if label in my.labels:
 			address = my.labels[label]['address']
@@ -282,11 +288,16 @@ class fassCompiler(fassListener) :
 			my.consts[ const ] = value
 		elif isinstance( value, prs.ConstantContext ):
 			rhs_const = raw_value.lower()
-			assert rhs_const in my.consts, f"Const `{rhs_const}` must be declared before being assigned to const `{const}`" # WIP TODO add forward const reference?
-			my.consts[ const] = my.consts[ rhs_const]
-		stop_debug = 1
+			try:
+				my.consts[ const] = my.consts[ rhs_const]
+			except Exception as exp:
+				raise Exception( f"Const `{rhs_const}` must be declared before being assigned to const `{const}`")
+				# WIP TODO add forward const reference? That would conflict with label forward references
 
 ## ASSIGNMENTS
+
+	def add_referece(my, ctx:fassParser.RegisterContext):
+		pass
 
 	def enterRegister(my, ctx:fassParser.RegisterContext):
 		pass
@@ -319,12 +330,32 @@ class fassCompiler(fassListener) :
 	def enterRef_indirect_y(my, ctx:fassParser.Ref_indirect_yContext):
 		my.cur_ref.addressing = my.INDY
 
-
 	def enterStatement(my, ctx:fassParser.StatementContext):
-		my.cur_ref = my.__class__.reference()
+		my.cur_ref = obj({ 'references':[], 'registers':[], 'literals':[], 'constants':[] })
 
 	def exitStatement(my, ctx:fassParser.StatementContext):
 		my.cur_ref = None
+	
+	def enterAssign_reg_lit(my, ctx:fassParser.Assign_reg_litContext):
+		''' A = $FF -> LDA $FF '''
+		register = ctx.register().children[0].symbol.text.upper()
+		literal = ctx.literal().children[0].symbol.text
+		my.assert_value_8bits( my.decode_value( literal))
+		operand = my.serialize( literal)
+		mnemonic = my.get_mnemonic( 'LD', register )
+		opcode = my.opcodes[ mnemonic][ my.IMM]
+		my.append_output( opcode + operand )
+
+	def enterAssign_reg_dir_const(my, ctx:fassParser.Assign_reg_dir_constContext):
+		''' The duality of direct addressing and constant is because both are just identifiers 
+			and the grammar parser can't tell them apart. 
+			X = name -> LDX name (if name is a constant, it will be replaced by its literal value) '''
+		register = ctx.register().children[0].symbol.text.upper()
+		name = ctx.IDENTIFIER().symbol.text.lower()
+		try: # is name a const?
+			value = my.consts[name]
+		except Exception as exp: # assume name is a label
+			address, zeropage = my.resolve_label( name )
 
 	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

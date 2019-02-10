@@ -147,10 +147,8 @@ class fassCompiler(fassListener) :
 		''' Get the address of a label or handle it if it hasn't been yet defined '''
 		label = label.lower()
 		if label in my.labels:
-			address = my.labels[label]['address']
-			zeropage = my.is_zeropage( address)
-			address = str(address) + "L" # make it little endian
-			address = my.serialize( address)
+			address = my.labels[label]
+			zeropage = (address[1] == 0) # address is little endian serialized
 		else:
 			zeropage = False # if forward declaration, assume it's absolute. Zero page optimization is lost.
 				# Anyway, who puts code in the zero page? very unlikely.
@@ -185,21 +183,23 @@ class fassCompiler(fassListener) :
 
 # LABEL
 	def enterLabel(my, ctx:fassParser.LabelContext):
+		# WIP TODO Doesn't handle zeropage addresses well
 		assert my.address is not None, "Can't declare a label before an address has been set"
 		label = ctx.children[0].symbol.text.lower()
-		assert label not in my.labels
-		my.labels[ label ] = { "address": my.address }
+		assert label not in my.labels, "Label `{label}` has already been declared"
+		my.labels[ label] = my.serialize( str(my.address)+"L")
 
 # REMOTE LABEL
 	def enterRemote_label_stmt(my, ctx:fassParser.Remote_label_stmtContext):
 		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
 		    Doesn't produce output """
-		label = ctx.children[0].symbol.text.lower()
+		# WIP TODO Doesn't handle zeropage addresses well
+		label = ctx.IDENTIFIER().text.lower()
 		assert label not in my.labels
-		address = ctx.children[2].children[0].symbol.text
-		address = my.decode_value( address )
+		raw_address = ctx.address().HEX_BIGEND().text.upper()
+		address = my.decode_value( raw_address )
 		my.assert_address_valid( address )
-		my.labels[ label ] = { "address": address }
+		my.labels[ label] = my.serialize( raw_address+"L")
 
 # DATA
 	# write arbitrary data to the output
@@ -223,8 +223,18 @@ class fassCompiler(fassListener) :
 		
 # GOTO
 	def exitGoto_stmt(my, ctx:fassParser.Goto_stmtContext):
-		opcode = my.opcodes[my.JMP][ my.cur_ref.addressing]
-		my.append_output( opcode + my.cur_ref.address)
+		''' WIP TODO Doesn't work for zeropage addresses '''
+		label = ctx.IDENTIFIER()
+		if label:
+			label = label.symbol.text.lower()
+			addressing = my.ABS
+		else:
+			label = ctx.ref_indirect().IDENTIFIER().symbol.text.lower()
+			addressing = my.IND
+		
+		opcode = my.opcodes[ my.JMP][ addressing]
+		address,_ = my.resolve_label( label)
+		my.append_output( opcode + address)
 
 # NOP
 	def enterNop_stmt(my, ctx:fassParser.Nop_stmtContext):
@@ -263,7 +273,7 @@ class fassCompiler(fassListener) :
 # CONST
 	def enterConst_stmt(my, ctx:fassParser.Const_stmtContext): # WIP TODO arreglar
 		const = ctx.children[1].symbol.text.lower()
-		assert my.is_name_unique( const), f"Name `{const}` was previously declared, can't redeclare"
+		assert const not in my.consts, f"Constant `{const}` was already declared"
 		value = ctx.children[3].children[0]
 		raw_value = value.children[0].symbol.text
 		if isinstance( value, prs.LiteralContext ):
@@ -281,30 +291,21 @@ class fassCompiler(fassListener) :
 
 ## ASSIGNMENTS
 
-	def add_referece(my, ctx:fassParser.RegisterContext):
-		pass
-
-	def enterRegister(my, ctx:fassParser.RegisterContext):
-		pass
+	def enterReference(my, ctx:fassParser.ReferenceContext):
+		""" All references will have exactly one identifier, the label """
+		label = ctx.children[0].IDENTIFIER().symbol.text
+		address, zeropage = my.resolve_label( label)
+		my.cur_ref.references.append( obj({
+			'label': label,
+			'address': address,
+			'zeropage': zeropage,
+			'addressing': None }))
 	
 	def enterRef_direct(my, ctx:fassParser.Ref_directContext):
 		""" Direct (ZP or ABS) is the only addressing mode not included in the reference rule, 
 			it's ambiguous because a constant name could be misrecognized as a direct reference. """
-		my.enterReference(ctx) # same base behavior
-		my.cur_ref.addressing = my.ZP if my.cur_ref.zeropage else my.ABS
-
-	def enterRef_indirect(my, ctx:fassParser.Ref_indirectContext):
-		my.enterReference(ctx) # same base behavior
-		my.cur_ref.addressing = my.IND
-
-	def enterReference(my, ctx:fassParser.ReferenceContext):
-		""" All references will have exactly one identifier, the label """
-		label = my.find_node(ctx, token_type= lxr.IDENTIFIER).lower()
-		address, zeropage = my.resolve_label( label)
-		my.cur_ref.label = label
-		my.cur_ref.address = address
-		my.cur_ref.zeropage = zeropage
-		# WIP TODO if hardcoded addresses are added as references, watch out. But I see no need for that
+		my.cur_ref.refereces[-1].addressing = my.ZP if my.cur_ref.refereces[-1].zeropage else my.ABS
+		pass
 
 	def enterRef_indexed(my, ctx:fassParser.Ref_indexedContext):
 		my.cur_ref.addressing = my.ABSX
@@ -323,24 +324,21 @@ class fassCompiler(fassListener) :
 	
 	def enterAssign_reg_lit(my, ctx:fassParser.Assign_reg_litContext):
 		''' A = $FF -> LDA $FF '''
-		register = ctx.register().children[0].symbol.text.upper()
 		literal = ctx.literal().children[0].symbol.text
 		my.assert_value_8bits( my.decode_value( literal))
 		operand = my.serialize( literal)
+		register = ctx.REGISTER().symbol.text.upper()
 		mnemonic = my.get_mnemonic( 'LD', register )
 		opcode = my.opcodes[ mnemonic][ my.IMM]
 		my.append_output( opcode + operand )
 
-	def enterAssign_reg_dir_const(my, ctx:fassParser.Assign_reg_dir_constContext):
-		''' The duality of direct addressing and constant is because both are just identifiers 
-			and the grammar parser can't tell them apart. 
-			X = name -> LDX name (if name is a constant, it will be replaced by its literal value) '''
-		register = ctx.register().children[0].symbol.text.upper()
-		name = ctx.IDENTIFIER().symbol.text.lower()
-		try: # is name a const?
-			value = my.consts[name]
-		except Exception as exp: # assume name is a label
-			address, zeropage = my.resolve_label( name )
+	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
+		''' A = reference ; with reference being a constant or any addressing except for indirect '''
+		register = ctx.REGISTER().symbol.text.upper()
+		
+	
+	def exitAssign_reg_reg(self, ctx:fassParser.Assign_reg_regContext):
+		pass
 
 	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

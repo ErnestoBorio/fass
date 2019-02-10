@@ -5,17 +5,9 @@ from fassLexer import fassLexer as lxr
 from fassListener import fassListener
 from antlr4.tree.Tree import TerminalNodeImpl
 from antlr4.ParserRuleContext import ParserRuleContext
+from petruza.misc import obj
+
 prs = fassParser # just an alias
-
-# dummy class for adding attributes dynamically
-class obj(object):
-	def __init__(my, init_values: set()):
-		''' Init the attributes with either a dict, a set or a list '''
-		if type(init_values) is dict:
-			my.__dict__ = init_values
-		else: # attributes from a set or a list will ref None
-			my.__dict__ = { key: None for key in init_values }
-
 
 class fassCompiler(fassListener) :
 

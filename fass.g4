@@ -53,12 +53,12 @@ assign_ref_reg_ref: reference '=' REGISTER '=' reference;
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
 
 reference:
-	  ref_direct
+	  ref_identifier
 	| ref_indexed
 	| ref_indirect_x
 	| ref_indirect_y
 	;
-ref_direct: IDENTIFIER ; // will also catch constants
+ref_identifier: IDENTIFIER ; // can be a label in direct addressing (ZP or ABS) or a constant
 ref_indexed: IDENTIFIER '[' REGISTER ']' ;
 ref_indirect_x: '(' IDENTIFIER ')' '[' REGISTER ']' ;
 ref_indirect_y: '(' IDENTIFIER '[' REGISTER ']' ')' ;

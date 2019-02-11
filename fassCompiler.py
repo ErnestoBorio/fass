@@ -304,8 +304,7 @@ class fassCompiler(fassListener) :
 	def enterRef_direct(my, ctx:fassParser.Ref_directContext):
 		""" Direct (ZP or ABS) is the only addressing mode not included in the reference rule, 
 			it's ambiguous because a constant name could be misrecognized as a direct reference. """
-		my.cur_ref.refereces[-1].addressing = my.ZP if my.cur_ref.refereces[-1].zeropage else my.ABS
-		pass
+		my.cur_ref.references[-1].addressing = my.ZP if my.cur_ref.references[-1].zeropage else my.ABS
 
 	def enterRef_indexed(my, ctx:fassParser.Ref_indexedContext):
 		my.cur_ref.addressing = my.ABSX

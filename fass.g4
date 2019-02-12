@@ -39,13 +39,15 @@ remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without
 // --> Assignments and References
 assign_stmt:
 	  assign_reg_lit // A = 5 -> LDA, LDX, LDY
+	| assign_reg_id  // A = const1 | A = label
 	| assign_reg_ref // A = reference -> LDA, LDX, LDY
 	| assign_ref_reg // reference = A -> STA, STX, STY
 	| assign_reg_reg // X = Stack -> TSX, TXS
 	| assign_ref_reg_ref // label1 = A = label2 -> LDA, LDX, LDY + STA, STX, STY
 	;
 assign_reg_lit: REGISTER  '=' literal ;
-assign_reg_ref: REGISTER  '=' reference ; // will also catch register = constant
+assign_reg_id:  REGISTER  '=' IDENTIFIER ; // IDENTIFIER can be a direct reference to a label, or a constant
+assign_reg_ref: REGISTER  '=' reference ;
 assign_ref_reg: reference '=' REGISTER ;
 assign_reg_reg: (REGISTER|STACK) '=' (REGISTER|STACK) ;
 assign_ref_reg_ref: reference '=' REGISTER '=' reference;
@@ -53,12 +55,10 @@ assign_ref_reg_ref: reference '=' REGISTER '=' reference;
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
 
 reference:
-	  ref_identifier
-	| ref_indexed
+	  ref_indexed
 	| ref_indirect_x
 	| ref_indirect_y
 	;
-ref_identifier: IDENTIFIER ; // can be a label in direct addressing (ZP or ABS) or a constant
 ref_indexed: IDENTIFIER '[' REGISTER ']' ;
 ref_indirect_x: '(' IDENTIFIER ')' '[' REGISTER ']' ;
 ref_indirect_y: '(' IDENTIFIER '[' REGISTER ']' ')' ;
@@ -69,8 +69,7 @@ ref_indirect: '(' IDENTIFIER ')' ; // outside of reference because it's only use
 goto_stmt: GOTO_KWD ( IDENTIFIER | ref_indirect ) ;
 
 label: IDENTIFIER ':' ;
-constant: IDENTIFIER ;
-value: literal | constant ;
+value: literal | IDENTIFIER ;
 
 literal: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
 hex_number: HEX_BIGEND | HEX_LITEND ;

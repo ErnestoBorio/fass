@@ -271,23 +271,21 @@ class fassCompiler(fassListener) :
 		my.append_output( output)
 
 # CONST
-	def enterConst_stmt(my, ctx:fassParser.Const_stmtContext): # WIP TODO arreglar
-		const = ctx.children[1].symbol.text.lower()
+	def enterConst_stmt(my, ctx:fassParser.Const_stmtContext):
+		const = ctx.IDENTIFIER().symbol.text.lower()
 		assert const not in my.consts, f"Constant `{const}` was already declared"
-		value = ctx.children[3].children[0]
-		raw_value = value.children[0].symbol.text
-		if isinstance( value, prs.LiteralContext ):
-			value = my.decode_value( raw_value)
-			my.assert_value_8bits( value, "Constants value") # For now constants will only be 1 byte wide
-			value = my.serialize( raw_value) # WIP TODO should we store the value or serialized?
-			my.consts[ const ] = value
-		elif isinstance( value, prs.ConstantContext ):
-			rhs_const = raw_value.lower()
+		try:
+			literal = ctx.value().literal().children[0].symbol.text
+		except AttributeError: # right hand side is another constant
+			rhs_const = ctx.value().IDENTIFIER().symbol.text.lower()
 			try:
 				my.consts[ const] = my.consts[ rhs_const]
-			except Exception as exp:
+			except KeyError:
 				raise Exception( f"Const `{rhs_const}` must be declared before being assigned to const `{const}`")
-				# WIP TODO add forward const reference? That would conflict with label forward references
+		else: # right hand side is a literal value
+			literal = my.serialize( literal)
+			assert len(literal) == 1, f"Value for constant `{const}` should be an 8 bit value, 0..$FF (-128..255)"
+			my.consts[ const] = literal
 
 ## ASSIGNMENTS
 

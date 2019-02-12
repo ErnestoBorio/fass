@@ -172,7 +172,7 @@ class fassCompiler(fassListener) :
 # ADDRESS
 	def enterAddress_stmt(my, ctx:fassParser.Address_stmtContext):
 		""" set current address for producing next output byte """
-		address = ctx.children[1].children[0].symbol.text
+		address = ctx.address().children[0].symbol.text
 		address = my.decode_value( address )
 		my.assert_address_valid( address )
 		assert (my.address is None) or (address >= my.address), f"Address {address} would overlap current address {my.address}"

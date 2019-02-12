@@ -79,15 +79,15 @@ class fassCompiler(fassListener) :
 	
 	# decode value string as read by the parser into a typed value. Don't pass values with L suffix
 	def decode_value( my, value ):
-		match = re.match( r"\$(.+)", value )
+		match = re.match( r"\$(.+)L?", value )
 		if match: # hex
 			return int( match[1], 16 )
 		else:
-			match = re.match( r"([0-9]+)", value )
+			match = re.match( r"([0-9]+)L?", value )
 			if match: # decimal
 				return int( match[1] )
 			else:
-				match = re.match( r"%(.+)", value )
+				match = re.match( r"%(.+)L?", value )
 				if match: #binary
 					return int( match[1], 2 )
 				else:

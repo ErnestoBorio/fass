@@ -223,17 +223,15 @@ class fassCompiler(fassListener) :
 		
 # GOTO
 	def exitGoto_stmt(my, ctx:fassParser.Goto_stmtContext):
-		''' WIP TODO Doesn't work for zeropage addresses '''
-		label = ctx.IDENTIFIER()
-		if label:
-			label = label.symbol.text.lower()
+		# WIP TODO watch out for zero page addresses
+		try:
+			label = ctx.IDENTIFIER().symbol.text.lower()
 			addressing = my.ABS
-		else:
+		except AttributeError:
 			label = ctx.ref_indirect().IDENTIFIER().symbol.text.lower()
 			addressing = my.IND
-		
 		opcode = my.opcodes[ my.JMP][ addressing]
-		address,_ = my.resolve_label( label)
+		address = my.resolve_label( label)[0]
 		my.append_output( opcode + address)
 
 # NOP

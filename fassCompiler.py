@@ -210,8 +210,9 @@ class fassCompiler(fassListener) :
 				output += my.serialize(
 					token.children[0].symbol.text)
 		my.append_output( output)
+
 # FILLER
-	def enterFiller_stmt(my, ctx:fassParser.Filler_stmtContext):
+	def enterFiller_stmt(my, ctx:fassParser.Filler_stmtContext): # WIP TODO arreglar
 		filler = ctx.children[1]
 		if isinstance(filler, fassParser.ValueContext):
 			filler = ctx.children[1].children[0].symbol.text
@@ -235,7 +236,7 @@ class fassCompiler(fassListener) :
 		my.append_output( opcode + address)
 
 # NOP
-	def enterNop_stmt(my, ctx:fassParser.Nop_stmtContext):
+	def enterNop_stmt(my, ctx:fassParser.Nop_stmtContext): # WIP TODO Fix with children methods like NOP() and EAFP
 		op = ctx.children[0].symbol
 		output = bytearray()
 		if op.type == lxr.NOP:
@@ -257,8 +258,9 @@ class fassCompiler(fassListener) :
 				argument = my.opcodes[my.NOP] # default argument will be NOP, just in case
 			output += argument
 		my.append_output( output )
+
 # BRK	
-	def enterBrk_stmt(my, ctx:fassParser.Brk_stmtContext):
+	def enterBrk_stmt(my, ctx:fassParser.Brk_stmtContext): # WIP TODO Fix with children methods like value() and EAFP
 		""" if no argument follows BRK, output will have only BRK, so a normal interrupt process would skip next byte, be careful. """
 		output = bytearray(my.opcodes[my.BRK])
 		if len(ctx.children) > 1:

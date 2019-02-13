@@ -324,10 +324,34 @@ class fassCompiler(fassListener) :
 		opcode = my.opcodes[ mnemonic][ my.IMM]
 		my.append_output( opcode + operand )
 
-	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
-		''' A = reference ; with reference being a constant or any addressing except for indirect '''
+	def exitAssign_reg_id(my, ctx:fassParser.Assign_reg_idContext):
+		''' A = label ; A = constant. -> LDA label ; LDA {immediate} '''
 		register = ctx.REGISTER().symbol.text.upper()
-		
+		identifier = ctx.IDENTIFIER().symbol.text.lower()
+		mnemonic = my.get_mnemonic( 'LD', register )
+		if identifier in my.consts:
+			opcode = my.opcodes[mnemonic][my.IMM]
+			operand = my.consts[identifier]
+		else:
+			operand, zeropage = my.resolve_label( identifier)
+			addressing = my.ZP if zeropage else my.ABS
+			opcode = my.opcodes[mnemonic][addressing]
+		my.append_output( opcode + operand )
+
+	def exitAssign_reg_ref(my, ctx:fassParser.Assign_reg_refContext):
+		''' A = reference -> LDA ref ; with reference being a constant or any addressing except for indirect '''
+		register = ctx.REGISTER().symbol.text.upper()
+		reference = ctx.reference().children[0]
+		label = reference.IDENTIFIER()
+		if type(reference) == prs.Ref_indexedContext:
+			pass
+		elif type(reference) == prs.Ref_indirect_xContext:
+			pass
+		elif type(reference) == prs.Ref_indirect_yContext:
+			pass
+		else:
+			raise Exception("What pass?")
+
 	
 	def exitAssign_reg_reg(self, ctx:fassParser.Assign_reg_regContext):
 		pass

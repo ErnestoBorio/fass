@@ -144,12 +144,17 @@ class fassCompiler(fassListener) :
 			except AttributeError:
 				return None
 
-	def resolve_label(my, label: str) -> (bytes, bool):
+	def resolve_label(my, label: str, absolute: bool = False) -> (bytes, bool):
 		''' Get the address of a label or handle it if it hasn't been yet defined '''
 		label = label.lower()
 		if label in my.labels:
 			address = my.labels[label]
-			zeropage = (address[1] == 0) # address is little endian serialized WIP TODO no habría que guardar un byte solo?
+			if absolute: # force address to be absolute
+				zeropage = False
+				if len(address) == 1:
+					address += b"\x00" # It's little endian, so append 0 to make absolute
+			else:
+				zeropage = (len(address) == 1)
 		else:
 			zeropage = False # if forward declaration, assume it's absolute. Zero page optimization is lost.
 				# Anyway, who puts code in the zero page? very unlikely.
@@ -227,7 +232,6 @@ class fassCompiler(fassListener) :
 		
 # GOTO
 	def exitGoto_stmt(my, ctx:fassParser.Goto_stmtContext):
-		# WIP TODO watch out for zero page addresses
 		try:
 			label = ctx.IDENTIFIER().symbol.text.lower()
 			addressing = my.ABS
@@ -235,7 +239,7 @@ class fassCompiler(fassListener) :
 			label = ctx.ref_indirect().IDENTIFIER().symbol.text.lower()
 			addressing = my.IND
 		opcode = my.opcodes[ my.JMP][ addressing]
-		address = my.resolve_label( label)[0]
+		address = my.resolve_label( label, absolute= True)[0]
 		my.append_output( opcode + address)
 
 # NOP

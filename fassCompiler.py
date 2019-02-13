@@ -75,7 +75,8 @@ class fassCompiler(fassListener) :
 
 	def get_output( my ):
 		return my.output
-
+	
+	# ---------------------------------------------------------------------------------------------------- Utility methods
 	
 	# decode value string as read by the parser into a typed value. Don't pass values with L suffix
 	def decode_value( my, value ):
@@ -168,14 +169,16 @@ class fassCompiler(fassListener) :
 			"output": my.output.hex().upper()
 		}
 
-### Grammar rules listeners: ###
+# ---------------------------------------------------------------------------------------------------- Grammar rules listeners
+
 # ADDRESS
 	def enterAddress_stmt(my, ctx:fassParser.Address_stmtContext):
 		""" set current address for producing next output byte """
 		address = ctx.address().children[0].symbol.text
 		address = my.decode_value( address )
 		my.assert_address_valid( address )
-		assert (my.address is None) or (address >= my.address), f"Address {address} would overlap current address {my.address}"
+		assert (my.address is None) or (address >= my.address), 
+			f"Address {address} would overlap current address {my.address}"
 		if my.address is not None and address > my.address : # have to fill output with filler byte
 			gap = address - my.address
 			my.output += my.filler * gap # fill the gap with the filler byte
@@ -287,7 +290,7 @@ class fassCompiler(fassListener) :
 			assert len(literal) == 1, f"Value for constant `{const}` should be an 8 bit value, 0..$FF (-128..255)"
 			my.consts[ const] = literal
 
-## ASSIGNMENTS
+# ------------------------------------------------------------------------------------------------------------ Assignments
 
 	def enterReference(my, ctx:fassParser.ReferenceContext):
 		""" All references will have exactly one identifier, the label """
@@ -338,7 +341,7 @@ class fassCompiler(fassListener) :
 			opcode = my.opcodes[mnemonic][addressing]
 		my.append_output( opcode + operand )
 
-	def exitAssign_reg_ref(my, ctx:fassParser.Assign_reg_refContext):
+	def exitAssign_reg_ref(my, ctx:fassParser.Assign_reg_refContext): # WIP TODO completar
 		''' A = reference -> LDA ref ; with reference being a constant or any addressing except for indirect '''
 		register = ctx.REGISTER().symbol.text.upper()
 		reference = ctx.reference().children[0]
@@ -351,10 +354,6 @@ class fassCompiler(fassListener) :
 			pass
 		else:
 			raise Exception("What pass?")
-
-	
-	def exitAssign_reg_reg(self, ctx:fassParser.Assign_reg_regContext):
-		pass
 
 	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

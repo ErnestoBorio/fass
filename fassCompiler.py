@@ -148,7 +148,7 @@ class fassCompiler(fassListener) :
 		label = label.lower()
 		if label in my.labels:
 			address = my.labels[label]
-			zeropage = (address[1] == 0) # address is little endian serialized
+			zeropage = (address[1] == 0) # address is little endian serialized WIP TODO no habría que guardar un byte solo?
 		else:
 			zeropage = False # if forward declaration, assume it's absolute. Zero page optimization is lost.
 				# Anyway, who puts code in the zero page? very unlikely.
@@ -203,7 +203,7 @@ class fassCompiler(fassListener) :
 
 # DATA
 	# write arbitrary data to the output
-	def enterData_stmt(my, ctx:fassParser.Data_stmtContext):
+	def enterData_stmt(my, ctx:fassParser.Data_stmtContext): # WIP TODO FIX
 		output = bytearray()
 		for token in ctx.children[1:]:
 			if isinstance( token, fassParser.ValueContext ):

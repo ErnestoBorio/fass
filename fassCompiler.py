@@ -177,8 +177,7 @@ class fassCompiler(fassListener) :
 		address = ctx.address().children[0].symbol.text
 		address = my.decode_value( address )
 		my.assert_address_valid( address )
-		assert (my.address is None) or (address >= my.address), 
-			f"Address {address} would overlap current address {my.address}"
+		assert (my.address is None) or (address >= my.address), f"Address {address} would overlap current address {my.address}"
 		if my.address is not None and address > my.address : # have to fill output with filler byte
 			gap = address - my.address
 			my.output += my.filler * gap # fill the gap with the filler byte
@@ -197,11 +196,12 @@ class fassCompiler(fassListener) :
 		""" Define a label remotely, that is, not in the current address. Example: C64.border_color at $D020
 		    Doesn't produce output """
 		# WIP TODO Doesn't handle zeropage addresses well
-		label = ctx.IDENTIFIER().text.lower()
+		label = ctx.IDENTIFIER().symbol.text.lower()
 		assert label not in my.labels
-		raw_address = ctx.address().HEX_BIGEND().text.upper()
+		raw_address = ctx.address().HEX_BIGEND().symbol.text.upper()
 		address = my.decode_value( raw_address )
 		my.assert_address_valid( address )
+		# WIP TODO if address is like $00FF, should remove the leading zero and make it zeropage? 
 		my.labels[ label] = my.serialize( raw_address+"L")
 
 # DATA

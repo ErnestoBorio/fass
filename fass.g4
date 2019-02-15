@@ -39,7 +39,8 @@ remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without
 // --> Assignments and References
 assign_stmt:
 	  assign_reg_lit // A = 5 -> LDA, LDX, LDY
-	| assign_reg_id  // A = const1 | A = label
+	| assign_reg_id  // A = const1 | A = label -> LDA, LDX, LDY
+	| assign_id_reg  // label = A -> STA, STX, STY
 	| assign_reg_ref // A = reference -> LDA, LDX, LDY
 	| assign_ref_reg // reference = A -> STA, STX, STY
 	| assign_reg_reg // X = Stack -> TSX, TXS
@@ -47,6 +48,7 @@ assign_stmt:
 	;
 assign_reg_lit: REGISTER  '=' literal ;
 assign_reg_id:  REGISTER  '=' IDENTIFIER ; // IDENTIFIER can be a direct reference to a label, or a constant
+assign_id_reg:  IDENTIFIER '=' REGISTER ; // IDENTIFIER can be a direct reference to a label, or a constant (which is an error)
 assign_reg_ref: REGISTER  '=' reference ;
 assign_ref_reg: reference '=' REGISTER ;
 assign_reg_reg: (REGISTER|STACK) '=' (REGISTER|STACK) ;

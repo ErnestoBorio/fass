@@ -174,7 +174,19 @@ class fassCompiler(fassListener) :
 			my.add_pending_reference( label, my.offset)
 		return address, zeropage
 	
+	def append_operation(my, mnemonic: str, addressing: str, operand: bytes = b"" ):
+		try:
+			operation = my.opcodes[ mnemonic ][ addressing ]
+		except KeyError:
+			raise Exception(f"Operation {mnemonic} doesn't have the {my.addressings[addressing]} addressing mode.")
+		else:
+			my.append_output( operation + operand )
+	
+	def get_register(my, ctx: ParserRuleContext) -> str:
+		return ctx.REGISTER().symbol.text.upper()
 
+	def get_identifier(my, ctx: ParserRuleContext) -> str:
+		return ctx.IDENTIFIER().symbol.text.lower()
 # ---------------------------------------------------------------------------------------------------- Grammar rules listeners
 
 # ADDRESS
@@ -299,25 +311,39 @@ class fassCompiler(fassListener) :
 
 	def enterReference(my, ctx:fassParser.ReferenceContext):
 		""" All references will have exactly one identifier, the label """
-		label = ctx.children[0].IDENTIFIER().symbol.text
+		label = ctx.children[0].IDENTIFIER().symbol.text.lower()
+		register = ctx.children[0].REGISTER().symbol.text.upper()
+		if register == "A":
+			raise Exception("The A register can't be used for indexing, use X or Y.")
 		address, zeropage = my.resolve_label( label)
-		my.cur_ref.references.append( obj({
+		my.cur_ref.append( obj({
 			'label': label,
 			'address': address,
+			'register': register,
 			'zeropage': zeropage,
 			'addressing': None }))
 
 	def enterRef_indexed(my, ctx:fassParser.Ref_indexedContext):
-		my.cur_ref.addressing = my.ABSX
+		ref = my.cur_ref[-1]
+		if ref.zeropage:
+			if ref.register == 'X':
+				ref.addressing = my.ZPX
+			else:
+				ref.addressing = my.ZPY
+		else:
+			if ref.register == 'X':
+				ref.addressing = my.ABSX
+			else:
+				ref.addressing = my.ABSY
 
 	def enterRef_indirect_x(my, ctx:fassParser.Ref_indirect_xContext):
-		my.cur_ref.addressing = my.INDX
+		my.cur_ref[-1].addressing = my.INDX
 
 	def enterRef_indirect_y(my, ctx:fassParser.Ref_indirect_yContext):
-		my.cur_ref.addressing = my.INDY
+		my.cur_ref[-1].addressing = my.INDY
 
 	def enterStatement(my, ctx:fassParser.StatementContext):
-		my.cur_ref = obj({ 'references':[], 'registers':[], 'literals':[], 'constants':[] })
+		my.cur_ref = []
 
 	def exitStatement(my, ctx:fassParser.StatementContext):
 		my.cur_ref = None
@@ -327,38 +353,40 @@ class fassCompiler(fassListener) :
 		literal = ctx.literal().children[0].symbol.text
 		my.assert_value_8bits( my.decode_value( literal))
 		operand = my.serialize( literal)
-		register = ctx.REGISTER().symbol.text.upper()
+		register = my.get_register(ctx)
 		mnemonic = my.get_mnemonic( 'LD', register )
-		opcode = my.opcodes[ mnemonic][ my.IMM]
-		my.append_output( opcode + operand )
+		my.append_operation( mnemonic, my.IMM, operand )
 
 	def exitAssign_reg_id(my, ctx:fassParser.Assign_reg_idContext):
 		''' A = label ; A = constant. -> LDA label ; LDA {immediate} '''
-		register = ctx.REGISTER().symbol.text.upper()
 		identifier = ctx.IDENTIFIER().symbol.text.lower()
+		register = my.get_register(ctx)
 		mnemonic = my.get_mnemonic( 'LD', register )
 		if identifier in my.consts:
-			opcode = my.opcodes[mnemonic][my.IMM]
+			addressing = my.IMM
 			operand = my.consts[identifier]
 		else:
-			operand, zeropage = my.resolve_label( identifier)
+			operand, zeropage = my.resolve_label( identifier )
 			addressing = my.ZP if zeropage else my.ABS
-			opcode = my.opcodes[mnemonic][addressing]
-		my.append_output( opcode + operand )
+		my.append_operation( mnemonic, addressing, operand )
+	
+	def enterAssign_id_reg(my, ctx:fassParser.Assign_id_regContext):
+		''' label = A -> STA, STX, STY '''
+		identifier = my.get_identifier(ctx)
+		if identifier in my.consts:
+			raise Exception(f"Cant assign a value to a constant ({identifier})")
+		register = my.get_register(ctx)
+		mnemonic = my.get_mnemonic( 'ST', register )
+		address, zeropage = my.resolve_label( identifier )
+		addressing = my.ZP if zeropage else my.ABS 
+		my.append_operation( mnemonic, addressing, address )
 
-	def exitAssign_reg_ref(my, ctx:fassParser.Assign_reg_refContext): # WIP TODO completar
-		''' A = reference -> LDA ref ; with reference being a constant or any addressing except for indirect '''
+	def exitAssign_reg_ref(my, ctx:fassParser.Assign_reg_refContext):
+		''' A = reference -> LDA ref ; with reference being any indexed addressing '''
 		register = ctx.REGISTER().symbol.text.upper()
-		reference = ctx.reference().children[0]
-		label = reference.IDENTIFIER()
-		if type(reference) == prs.Ref_indexedContext:
-			pass
-		elif type(reference) == prs.Ref_indirect_xContext:
-			pass
-		elif type(reference) == prs.Ref_indirect_yContext:
-			pass
-		else:
-			raise Exception("What pass?")
+		mnemonic = my.get_mnemonic( 'LD', register )
+		ref = my.cur_ref[0] # this statement has only one reference, so directly use index [0]
+		my.append_operation( mnemonic, ref.addressing, ref.address )
 
 	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

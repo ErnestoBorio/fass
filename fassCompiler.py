@@ -76,6 +76,18 @@ class fassCompiler(fassListener) :
 	def get_output( my ):
 		return my.output
 	
+	def as_dict(my):
+		''' A quick debug output of relevant properties. '''
+		return {
+			"address": hex(my.address),
+			"offset": my.offset,
+			"labels": my.labels,
+			"consts": my.consts,
+			"pending_refs": my.pending_refs,
+			"cur_ref": my.cur_ref,
+			"output": my.output.hex().upper()
+		}
+
 	# ---------------------------------------------------------------------------------------------------- Utility methods
 	
 	# decode value string as read by the parser into a typed value. Don't pass values with L suffix
@@ -162,17 +174,6 @@ class fassCompiler(fassListener) :
 			my.add_pending_reference( label, my.offset)
 		return address, zeropage
 	
-	def as_dict(my):
-		''' A quick debug output of relevant properties. '''
-		return {
-			"address": hex(my.address),
-			"offset": my.offset,
-			"labels": my.labels,
-			"consts": my.consts,
-			"pending_refs": my.pending_refs,
-			"cur_ref": my.cur_ref,
-			"output": my.output.hex().upper()
-		}
 
 # ---------------------------------------------------------------------------------------------------- Grammar rules listeners
 

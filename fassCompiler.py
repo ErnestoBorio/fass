@@ -383,10 +383,20 @@ class fassCompiler(fassListener) :
 
 	def exitAssign_reg_ref(my, ctx:fassParser.Assign_reg_refContext):
 		''' A = reference -> LDA ref ; with reference being any indexed addressing '''
-		register = ctx.REGISTER().symbol.text.upper()
+		register = my.get_register(ctx)
 		mnemonic = my.get_mnemonic( 'LD', register )
 		ref = my.cur_ref[0] # this statement has only one reference, so directly use index [0]
 		my.append_operation( mnemonic, ref.addressing, ref.address )
+	
+	### WIP TODO These two functions ↑ ↓ are exactly the same except for the mnemonic, should factor out. ###
+
+	def exitAssign_ref_reg(my, ctx:fassParser.Assign_ref_regContext):
+		''' label[X] = A -> STA, STX, STY '''
+		register = my.get_register(ctx)
+		mnemonic = my.get_mnemonic( 'ST', register )
+		ref = my.cur_ref[0] # this statement has only one reference, so directly use index [0]
+		my.append_operation( mnemonic, ref.addressing, ref.address )
+
 
 	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

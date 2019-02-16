@@ -326,6 +326,8 @@ class fassCompiler(fassListener) :
 
 	def enterRef_indexed(my, ctx:fassParser.Ref_indexedContext):
 		ref = my.cur_ref[-1]
+		if ref.register == "A":
+			raise Exception("The A register can't be used for indexing.")
 		if ref.zeropage:
 			if ref.register == 'X':
 				ref.addressing = my.ZPX

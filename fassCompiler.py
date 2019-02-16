@@ -41,11 +41,12 @@ class fassCompiler(fassListener) :
 		LDA: { IMM:b"\xA9", ZP:b"\xA5", ZPX:b"\xB5", ABS:b"\xAD", ABSX:b"\xBD", ABSY:b"\xB9", INDX:b"\xA1", INDY:b"\xB1" },
 		LDX: { IMM:b"\xA2", ZP:b"\xA6", ZPY:b"\xB6", ABS:b"\xAE", ABSY:b"\xBE" },
 		LDY: { IMM:b"\xA0", ZP:b"\xA4", ZPX:b"\xB4", ABS:b"\xAC", ABSX:b"\xBC" },
-		STA: { ABS:b"\x8D" },
+		STA: { ZP:b"\x85", ZPX:b"\x95", ABS:b"\x8D", ABSX:b"\x9D", ABSY:b"\x99", INDX:b"\x81", INDY:b"\x91" },
+		STX: { ZP:b"\x86", ZPY:b"\x96", ABS:b"\x8E" },
+		STY: { ZP:b"\x84", ZPX:b"\x94", ABS:b"\x8C" },
+		TAX: b"\xAA", TXA: b"\x8A", TAY: b"\xA8", TYA: b"\x98", TSX: b"\xBA", TXS: b"\x9A",
 		JMP: { ABS:b"\x4C", IND:b"\x6C" },
-		NOP:  b"\xEA",
-		NOP3: b"\x04",
-		NOP4: b"\x14",
+		NOP:  b"\xEA", NOP3: b"\x04", NOP4: b"\x14",
 		BRK:  b"\x00"
 	}
 

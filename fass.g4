@@ -17,6 +17,9 @@ statement: // single line statements
 	| goto_stmt
 	| assign_stmt
 	| remote_label_stmt
+	| flag_set_stmt
+	| flag_enable_stmt
+	| flag_statement
 	| label statement?
 	;
 
@@ -80,6 +83,20 @@ value: literal | IDENTIFIER ;
 literal: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
 hex_number: HEX_BIGEND | HEX_LITEND ;
 address: HEX_BIGEND ;
+
+flag: CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE | ZERO | POSITIVE | NEGATIVE ;
+flag_set_stmt: flag '=' ('0'|'1') ;
+flag_enable_stmt: ( ENABLE_KWD | DISABLE_KWD ) ( INTERRUPT | DECIMAL_MODE );
+
+flag_statement: flag_set_carry | flag_clear_carry | flag_clear_overflow | flag_enable_interrupt | flag_disable_interrupt | flag_enable_decimal;
+flag_set_carry: CARRY '=' '1';
+flag_clear_carry: CARRY '=' '0';
+flag_clear_overflow: OVERFLOW '=' '0' ;
+flag_enable_interrupt: ENABLE_KWD INTERRUPT ;
+flag_disable_interrupt: DISABLE_KWD INTERRUPT ;
+flag_enable_decimal: ENABLE_KWD DECIMAL_MODE ;
+flag_disable_decimal: DISABLE_KWD DECIMAL_MODE ;
+
 
 ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS] ;
 FILLER_KWD : [fF][iI][lL][lL][eE][rR] ;

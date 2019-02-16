@@ -44,7 +44,9 @@ assign_stmt:
 	| assign_reg_ref // A = reference -> LDA, LDX, LDY
 	| assign_ref_reg // reference = A -> STA, STX, STY
 	| assign_reg_reg // X = Stack -> TSX, TXS
-	| assign_ref_reg_ref // label1 = A = label2 -> LDA, LDX, LDY + STA, STX, STY
+	| assign_id_reg_val // label1 = A = label2 -> LDA, LDX, LDY + STA, STX, STY
+	| assign_ref_reg_val // label = A = $EA -> LDA, LDX, LDY + STA, STX, STY
+	| assign_ref_reg_ref // label1[X] = A = label2[Y] -> LDA, LDX, LDY + STA, STX, STY
 	;
 assign_reg_lit: REGISTER  '=' literal ;
 assign_reg_id:  REGISTER  '=' IDENTIFIER ; // IDENTIFIER can be a direct reference to a label, or a constant
@@ -52,6 +54,8 @@ assign_id_reg:  IDENTIFIER '=' REGISTER ; // IDENTIFIER can be a direct referenc
 assign_reg_ref: REGISTER  '=' reference ;
 assign_ref_reg: reference '=' REGISTER ;
 assign_reg_reg: (REGISTER|STACK) '=' (REGISTER|STACK) ;
+assign_id_reg_val: IDENTIFIER '=' REGISTER '=' value; // value can catch direct addressings too
+assign_ref_reg_val: reference '=' REGISTER '=' value; // value can catch direct addressings too
 assign_ref_reg_ref: reference '=' REGISTER '=' reference;
 	// synthesizes [ LDA label2; STA label1 ] with: label1 = a = label2
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags

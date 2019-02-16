@@ -414,5 +414,14 @@ class fassCompiler(fassListener) :
 			raise Exception(f"Register assignment {registers[0]} = {registers[1]} is not valid.")
 		my.append_output( my.opcodes[ ops[registers]])
 
+	def exitAssign_ref_reg_ref(my, ctx:fassParser.Assign_ref_reg_refContext):
+		''' dest = A = source -> LDA source ; STA dest '''
+		register = my.get_register(ctx)
+		mnemonic = my.get_mnemonic( "LD", register)
+		my.append_operation( mnemonic, my.cur_ref[1].addressing, my.cur_ref[1].address)
+		mnemonic = my.get_mnemonic( "ST", register)
+		my.append_operation( mnemonic, my.cur_ref[0].addressing, my.cur_ref[0].address)
+
+
 	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

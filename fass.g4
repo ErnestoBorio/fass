@@ -105,6 +105,19 @@ NOP:  [nN][oO][pP] ; // equal to $EA
 NOP3: [nN][oO][pP]'3' ; // equal to $04, NOP that takes 3 cycles and 2 bytes, zeropage
 NOP4: [nN][oO][pP]'4' ; // equal to $14, NOP that takes 4 cycles and 2 bytes, zeropage,X
 
+// --> Flags
+ZERO: [zZ][eE][rR][oO] ;
+CARRY: [cC][aA][rR][rR][yY] ;
+OVERFLOW: [oO][vV][eE][rR][fF][lL][oO][wW] ;
+INTERRUPT: [iI][nN][tT][eE][rR][rR][uU][pP][tT] ;
+POSITIVE: [pP][oO][sS][iI][tT][iI][vV][eE] ;
+NEGATIVE: [nN][eE][gG][aA][tT][iI][vV][eE] ;
+DECIMAL_MODE: [dD][eE][cC][iI][mM][aA][lL]' '[mM][oO][dD][eE] ;
+
+ENABLE_KWD: [eE][nN][aA][bB][lL][eE] ;
+DISABLE_KWD: [dD][iI][sS][aA][bB][lL][eE] ;
+// Flags <--
+
 REGISTER: [aA] | [xX] | [yY] ;
 STACK: [sS][tT][aA][cC][kK] ;
 

@@ -315,7 +315,7 @@ class fassCompiler(fassListener) :
 		label = ctx.children[0].IDENTIFIER().symbol.text.lower()
 		register = ctx.children[0].REGISTER().symbol.text.upper()
 		if register == "A":
-			raise Exception("The A register can't be used for indexing, use X or Y.")
+			raise Exception("The A register can't be used for indexing, X or Y should be used.")
 		address, zeropage = my.resolve_label( label)
 		my.cur_ref.append( obj({
 			'label': label,

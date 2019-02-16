@@ -17,7 +17,6 @@ statement: // single line statements
 	| goto_stmt
 	| assign_stmt
 	| remote_label_stmt
-
 	| label statement?
 	;
 
@@ -44,8 +43,8 @@ assign_stmt:
 	| assign_reg_ref // A = reference -> LDA, LDX, LDY
 	| assign_ref_reg // reference = A -> STA, STX, STY
 	| assign_reg_reg // X = Stack -> TSX, TXS
-	| assign_id_reg_val // label1 = A = label2 -> LDA, LDX, LDY + STA, STX, STY
-	| assign_ref_reg_val // label = A = $EA -> LDA, LDX, LDY + STA, STX, STY
+	| assign_id_reg_cdl
+	| assign_ref_reg_cdl
 	| assign_ref_reg_ref // label1[X] = A = label2[Y] -> LDA, LDX, LDY + STA, STX, STY
 	;
 assign_reg_lit: REGISTER  '=' literal ;
@@ -54,10 +53,10 @@ assign_id_reg:  IDENTIFIER '=' REGISTER ; // IDENTIFIER can be a direct referenc
 assign_reg_ref: REGISTER  '=' reference ;
 assign_ref_reg: reference '=' REGISTER ;
 assign_reg_reg: (REGISTER|STACK) '=' (REGISTER|STACK) ;
-assign_id_reg_val: IDENTIFIER '=' REGISTER '=' value; // value can catch direct addressings too
-assign_ref_reg_val: reference '=' REGISTER '=' value; // value can catch direct addressings too
+assign_id_reg_cdl: IDENTIFIER '=' REGISTER '=' con_dir_lit;
+assign_ref_reg_cdl: reference '=' REGISTER '=' con_dir_lit;
 assign_ref_reg_ref: reference '=' REGISTER '=' reference;
-	// synthesizes [ LDA label2; STA label1 ] with: label1 = a = label2
+	// Last 3 synthesize `LDA ref_source; STA ref_dest` with: ref_dest = A = ref_source
 	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
 
 reference:
@@ -71,6 +70,7 @@ ref_indirect_y: '(' IDENTIFIER '[' REGISTER ']' ')' ;
 // Assignments and References <--
 
 ref_indirect: '(' IDENTIFIER ')' ; // outside of reference because it's only used by goto/JMP
+con_dir_lit: literal | IDENTIFIER ; // a constant, a direct reference or a literal
 
 goto_stmt: GOTO_KWD ( IDENTIFIER | ref_indirect ) ;
 

@@ -398,6 +398,19 @@ class fassCompiler(fassListener) :
 		ref = my.cur_ref[0] # this statement has only one reference, so directly use index [0]
 		my.append_operation( mnemonic, ref.addressing, ref.address )
 
+	def enterAssign_reg_reg(my, ctx:fassParser.Assign_reg_regContext):
+		''' a=x, x=a, a=y, y=a, stack=x, x=stack -> TXA TAX TYA TAY TSX TXS '''
+		ops = {
+			('a','x') : "TXA", 
+			('x','a') : "TAX", 
+			('a','y') : "TYA", 
+			('y','a') : "TAY", 
+			('stack','x') : "TXS", 
+			('x','stack') : "TSX" }
+		registers = ( ctx.children[0].symbol.text.lower(), ctx.children[2].symbol.text.lower() )
+		if registers not in ops:
+			raise Exception(f"Register assignment {registers[0]} = {registers[1]} is not valid.")
+		my.append_output( my.opcodes[ ops[registers]])
 
 	def exitProgram(my, ctx:fassParser.ProgramContext):
 		pass

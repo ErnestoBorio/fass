@@ -4,7 +4,6 @@ from antlr4 import *
 from fassLexer import fassLexer
 from fassParser import fassParser
 from myParser import myParser
-from myListener import myListener
 
 def main(argv):
 	if len(argv) <= 1:

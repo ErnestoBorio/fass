@@ -10,16 +10,20 @@ statement
 	| filler_stmt
 	;
 
-// --> Statements
 address_stmt: ADDRESS_KWD adr=HEX_BIGEND {self.set_address( $adr.text)} ;
 filler_stmt: FILLER_KWD fb=filler_byte {self.set_filler( $fb.ret )};
 	filler_byte returns [ret]
-		: HEX_BIGEND {$ret = int( $HEX_BIGEND.text[1:], 16 )}
-		| DEC_BIGEND {$ret = int( $DEC_BIGEND.text )}
-		| BIN_BIGEND {$ret = int( $BIN_BIGEND.text[1:], 2 )}
-		| STRING {$ret = $STRING.text[1:-1] }
+		: hex_bigend {$ret = $hex_bigend.ret}
+		| dec_bigend {$ret = $dec_bigend.ret}
+		| bin_bigend {$ret = $bin_bigend.ret}
+		| string {$ret = $string.ret}
 		;
+// --> Statements
 
+hex_bigend returns [ret]: HEX_BIGEND {$ret = int( $HEX_BIGEND.text[1:], 16 )};
+dec_bigend returns [ret]: DEC_BIGEND {$ret = int( $DEC_BIGEND.text )};
+bin_bigend returns [ret]: BIN_BIGEND {$ret = int( $BIN_BIGEND.text[1:], 2 )};
+string returns [ret]: STRING {$ret = $STRING.text[1:-1] };
 // --> Literals
 LITEND: 'L'; // Little endianness, uppercase only to avoid confusion with the number 1
 HEX_BIGEND: '$' [0-9a-fA-F]+ ;

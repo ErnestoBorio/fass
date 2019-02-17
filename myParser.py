@@ -16,7 +16,6 @@ class myParser( fassParser ):
 		self.address = None # current address where next byte will be output
 		self.filler = self.__class__.default_filler # filler for address gaps
 		self.output = bytearray() # 6502 machine code bytes
-		pass
 
 # --> Utility functions	
 	def append_output( self, output: bytes ):
@@ -37,7 +36,7 @@ class myParser( fassParser ):
 		if self.address is not None:
 			if new_address < self.address: # new address can't overlap current address
 				hex_cur_address = hex( self.address )[2:].upper()
-				hex_new_address = hex( new_address )[2:].upper()
+				hex_new_address = hex( new_address  )[2:].upper()
 				raise fassException(f"Address ${hex_new_address} should be greater or equal to current address ${hex_cur_address}.")
 			elif new_address > self.address: # got to fill the gap
 				gap = new_address - self.address
@@ -57,5 +56,4 @@ class myParser( fassParser ):
 				# WIP TODO Maybe factor this ↑ out for reuse
 		else: # int value
 			self.filler = bytes([filler])
-
 # Statements <--

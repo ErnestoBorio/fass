@@ -45,9 +45,17 @@ class myParser( fassParser ):
 			
 		self.address = new_address
 
-	def set_filler(self, filler: int):
+	def set_filler( self, filler ):		
 		''' Change the current filler for address gaps '''
-		if filler > 0xFF:
-			raise fassException(f"The filler value must be a byte, 0..$FF, {filler} given.")
-		self.filler = filler.to_bytes(1, 'big')
+		try: # int value?
+			if filler > 0xFF:
+				raise fassException(f"The filler value must be a byte (0..$FF), {filler} given.")
+		except TypeError: # str value
+			if len(filler) > 1:
+				raise fassException(f"The filler value must be a single byte, `{filler}` given.")
+			self.filler = bytes( filler, 'ISO-8859-1')#[0:1] # cap to one byte, just in case.
+				# WIP TODO Maybe factor this ↑ out for reuse
+		else: # int value
+			self.filler = bytes([filler])
+
 # Statements <--

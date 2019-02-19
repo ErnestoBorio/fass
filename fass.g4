@@ -11,6 +11,7 @@ statement:
 	| filler_stmt
 	| const_stmt
 	| data_stmt
+	| nop_brk_stmt
 	;
 
 address_stmt: ADDRESS_KWD adr=HEX_BIGEND {self.set_address( $adr.text)} ;
@@ -26,11 +27,16 @@ const_stmt: CONST_KWD left_const=IDENTIFIER '=' (
 	literal {self.declare_constant(name= $left_const.text, value= $literal.ret)}
 	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text, value= self.get_constant( $right_const.text ))}
 	);
-
 data_stmt: 
-	DATA_KWD first=value ( ',' rest+= value )*
-	{self.data( localctx.children[1], $rest )};
+	DATA_KWD first=value ( ',' rest+= value )* {self.data( localctx.children[1], $rest )};
 	// localctx.children[1] == $first, but you can't reference a rule context directly
+
+nop_brk_stmt:
+	  BRK  {self.append_output( self.opcodes[self.BRK]  )}
+	| NOP  {self.append_output( self.opcodes[self.NOP]  )}
+	| NOP3 {self.append_output( self.opcodes[self.NOP3] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
+	| NOP4 {self.append_output( self.opcodes[self.NOP4] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
+	; // NOP3 and NOP4 are illegal instructions that waste 3 and 4 cycles respectively, used for timing
 // Statements <--
 
 // --> Values
@@ -59,8 +65,8 @@ dec_litend returns [ret]: DEC_LITEND {$ret = self.serialize( int( $DEC_LITEND.te
 bin_litend returns [ret]: BIN_LITEND {$ret = self.serialize( int( $BIN_LITEND.text[1:-1], 2 ), 'little')};
 string     returns [ret]: STRING {$ret = self.serialize( $STRING.text[1:-1] )};
 negative_number returns [ret]: NEGATIVE_NUMBER {$ret = self.serialize( self.check_negative( int($NEGATIVE_NUMBER.text)), signed= True )};
-brk_literal returns [ret]: BRK {$ret = self.opcodes["BRK"]};
-nop_literal returns [ret]: NOP {$ret = self.opcodes["NOP"]};
+brk_literal returns [ret]: BRK {$ret = self.opcodes[self.BRK]};
+nop_literal returns [ret]: NOP {$ret = self.opcodes[self.NOP]};
 // Values <--
 
 // --> Literals
@@ -85,6 +91,8 @@ DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
 DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
 GOTO_KWD: [gG][oO][tT][oO] ;
+NOP3: [nN][oO][pP]'3' ;
+NOP4: [nN][oO][pP]'4' ;
 // Keywords <--
 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]* ; // The dot allows a dot-notation-like syntactic sugar

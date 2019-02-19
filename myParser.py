@@ -74,15 +74,17 @@ class myParser( fassParser ):
 			return bytes( bytes(value, 'ascii').decode('unicode_escape'), 'ascii')
 			# Serialized string with \" and \\ unescaped
 
-	def get_constant(self, name: str, length: int = None) -> bytes:
+	def get_constant(self, name: str ) -> bytes:
 		try:
-			if length is None or len(self.constants[ name]) == length:
-				return self.constants[ name]
-			else:
-				raise fassException(f"%i byte%s value expected, but constant `{name}` is %i byte%s long ({self.constants[name]})" \
-					% ( length, 's' if length > 1 else '', len(self.constants[ name]), 's' if len(self.constants[ name]) > 1 else '' ))
+			return self.constants[ name]
 		except KeyError:
 			raise fassException(f"Constant `{name}` is not defined.")
+	
+	def check_length(self, data: bytes, length: int ) -> bytes:
+		if len(data) != length:
+			data = data.decode('ascii')
+			raise fassException(f"A {length} byte%s value expected, `{data}` given." % ('s' if length > 1 else '' ))
+		return data
 # Utility functions <--
 
 # --> Statements

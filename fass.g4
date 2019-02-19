@@ -28,8 +28,9 @@ const_stmt: CONST_KWD left_const=IDENTIFIER '=' (
 	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text, value= self.get_constant( $right_const.text ))}
 	);
 data_stmt: 
-	DATA_KWD first=value ( ',' rest+= value )* {self.data( localctx.children[1], $rest )};
-	// localctx.children[1] == $first, but you can't reference a rule context directly
+	DATA_KWD 
+		( value {self.append_output( $value.ret )} ) // WIP TODO if data() should do additional checking, review this action
+		( ',' datas+= value )* {self.data( $datas )};
 
 nop_brk_stmt:
 	  BRK  {self.append_output( self.opcodes[self.BRK]  )}

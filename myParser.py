@@ -117,11 +117,11 @@ class myParser( fassParser ):
 			raise fassException(f"Constant `{name}` already declared.")
 		self.constants[ name] = value
 
-	def data(self, first: ParserRuleContext, rest: list ):
-		rest.insert( 0, first )
+	def data(self, datas: list ):
 		output = bytearray()
-		for value in rest:
+		for value in datas:
 			output += value.ret
 		self.append_output( output)
+		# WIP TODO If data() should do any additional checking, review data_stmt grammar rule's first sub-rule which calls append_output() directly
 
 # Statements <--

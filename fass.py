@@ -14,14 +14,16 @@ def main(argv):
 	
 	lexer = fassLexer( input)
 	tokenStream = CommonTokenStream( lexer)
-	tree = myParser( tokenStream).program()
+	parser = myParser( tokenStream)
+	parser.program()
+	print( parser.get_output() ) # WIP TODO Debug only
 	# listener = myListener()
-	# ParseTreeWalker().walk( listener, tree )
+	# ParseTreeWalker().walk( listener, parser )
 
 	# WIP TODO: implement argparse
 	if len(argv) >= 3:
 		out = open( argv[2], "wb" )
-		out.write( tree.get_output() )
+		out.write( parser.get_output() )
 		out.close()
 
 if __name__ == '__main__':

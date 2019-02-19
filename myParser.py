@@ -12,6 +12,38 @@ class fassException( Exception) :
 class myParser( fassParser ):
 	default_filler = b"\xEA" # default filler for address gaps ($EA = NOP)
 
+	# enum addressing modes:
+	IMP = "IMP"; IMM = "IMM"; ZP = "ZP"; ZPX = "ZPX"; ZPY = "ZPY"; ABS = "ABS"
+	ABSX = "ABSX"; ABSY = "ABSY"; IND = "IND"; INDX = "INDX"; INDY = "INDY"	
+
+	# addressing mode names:
+	addressings = { IMP:"implied", IMM:"immediate", ZP:"zero page", ZPX:"zero page x-indexed", 
+		ZPY:"zero page y-indexed", ABS:"absolute", ABSX:"absolute x-indexed", ABSY:"absolute y-indexed", 
+		IND:"indirect", INDX:"x-indexed indirect", INDY:"indirect y-indexed" }
+	
+	# enum operations:
+	ADC = "ADC"; AND = "AND"; ASL = "ASL"; BCC = "BCC"; BCS = "BCS"; BEQ = "BEQ"; BIT = "BIT"; BMI = "BMI"
+	BNE = "BNE"; BPL = "BPL"; BRK = "BRK"; BVC = "BVC"; BVS = "BVS"; CLC = "CLC"; CLD = "CLD"; CLI = "CLI"
+	CLV = "CLV"; CMP = "CMP"; CPX = "CPX"; CPY = "CPY"; DEC = "DEC"; DEX = "DEX"; DEY = "DEY"; EOR = "EOR"
+	INC = "INC"; INX = "INX"; INY = "INY"; JMP = "JMP"; JSR = "JSR"; LDA = "LDA"; LDX = "LDX"; LDY = "LDY"
+	LSR = "LSR"; NOP = "NOP"; ORA = "ORA"; PHA = "PHA"; PHP = "PHP"; PLA = "PLA"; PLP = "PLP"; ROL = "ROL"
+	ROR = "ROR"; RTI = "RTI"; RTS = "RTS"; SBC = "SBC"; SEC = "SEC"; SED = "SED"; SEI = "SEI"; STA = "STA"
+	STX = "STX"; STY = "STY"; TAX = "TAX"; TAY = "TAY"; TSX = "TSX"; TXA = "TXA"; TXS = "TXS"; TYA = "TYA"
+	NOP3 = "NOP3"; NOP4 = "NOP4" # undocumented operations
+	
+	opcodes = {
+		LDA: { IMM:b"\xA9", ZP:b"\xA5", ZPX:b"\xB5", ABS:b"\xAD", ABSX:b"\xBD", ABSY:b"\xB9", INDX:b"\xA1", INDY:b"\xB1" },
+		LDX: { IMM:b"\xA2", ZP:b"\xA6", ZPY:b"\xB6", ABS:b"\xAE", ABSY:b"\xBE" },
+		LDY: { IMM:b"\xA0", ZP:b"\xA4", ZPX:b"\xB4", ABS:b"\xAC", ABSX:b"\xBC" },
+		STA: { ZP:b"\x85", ZPX:b"\x95", ABS:b"\x8D", ABSX:b"\x9D", ABSY:b"\x99", INDX:b"\x81", INDY:b"\x91" },
+		STX: { ZP:b"\x86", ZPY:b"\x96", ABS:b"\x8E" },
+		STY: { ZP:b"\x84", ZPX:b"\x94", ABS:b"\x8C" },
+		TAX: b"\xAA", TXA: b"\x8A", TAY: b"\xA8", TYA: b"\x98", TSX: b"\xBA", TXS: b"\x9A",
+		JMP: { ABS:b"\x4C", IND:b"\x6C" },
+		NOP:  b"\xEA", NOP3: b"\x04", NOP4: b"\x14",
+		BRK:  b"\x00"
+	}
+
 	def __init__( self, input: TokenStream, output: TextIO = sys.stdout ):
 		super().__init__(input, output)
 		self.address = None # current address where next byte will be output
@@ -26,6 +58,9 @@ class myParser( fassParser ):
 			raise fassException("Output started without setting an address first.")
 		self.output += output
 		self.address += len( output )
+	
+	def get_output(self) -> bytearray:
+		return self.output
 	
 	def check_negative(self, negative: int ) -> bool:
 		if not( -128 <= negative <= -1 ):
@@ -79,5 +114,12 @@ class myParser( fassParser ):
 		if name in self.constants:
 			raise fassException(f"Constant `{name}` already declared.")
 		self.constants[ name] = value
+
+	def data(self, first: ParserRuleContext, rest: list ):
+		rest.insert( 0, first )
+		output = bytearray()
+		for value in rest:
+			output += value.ret
+		self.append_output( output)
 
 # Statements <--

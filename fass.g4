@@ -6,10 +6,11 @@ program:
 	EOF ;
 
 // --> Statements
-statement
-	: address_stmt
+statement:
+	  address_stmt
 	| filler_stmt
 	| const_stmt
+	| data_stmt
 	;
 
 address_stmt: ADDRESS_KWD adr=HEX_BIGEND {self.set_address( $adr.text)} ;
@@ -25,9 +26,18 @@ const_stmt: CONST_KWD left_const=IDENTIFIER '=' (
 	literal {self.declare_constant(name= $left_const.text, value= $literal.ret)}
 	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text, value= self.get_constant( $right_const.text ))}
 	);
+
+data_stmt: 
+	DATA_KWD first=value ( ',' rest+= value )*
+	{self.data( localctx.children[1], $rest )};
+	// localctx.children[1] == $first, but you can't reference a rule context directly
 // Statements <--
 
-// --> Literals
+// --> Values
+value returns [ret]: 
+	  literal {$ret = $literal.ret}
+	| constant=IDENTIFIER {$ret = self.get_constant( $constant.text )}
+	;
 literal returns [ret]: (
 	  hex_bigend
 	| hex_litend
@@ -37,6 +47,8 @@ literal returns [ret]: (
 	| bin_litend
 	| negative_number
 	| string
+	| brk_literal
+	| nop_literal
 	) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule const_stmt
 
 hex_bigend returns [ret]: HEX_BIGEND {$ret = self.serialize( int( $HEX_BIGEND.text[1:], 16 ))};
@@ -47,7 +59,9 @@ dec_litend returns [ret]: DEC_LITEND {$ret = self.serialize( int( $DEC_LITEND.te
 bin_litend returns [ret]: BIN_LITEND {$ret = self.serialize( int( $BIN_LITEND.text[1:-1], 2 ), 'little')};
 string     returns [ret]: STRING {$ret = self.serialize( $STRING.text[1:-1] )};
 negative_number returns [ret]: NEGATIVE_NUMBER {$ret = self.serialize( self.check_negative( int($NEGATIVE_NUMBER.text)), signed= True )};
-// Literals <--
+brk_literal returns [ret]: BRK {$ret = self.opcodes["BRK"]};
+nop_literal returns [ret]: NOP {$ret = self.opcodes["NOP"]};
+// Values <--
 
 // --> Literals
 LITEND: 'L'; // Little endianness, uppercase only to avoid confusion with the number 1
@@ -58,6 +72,8 @@ BIN_LITEND: '%' [01]+ LITEND;
 DEC_BIGEND: [0-9]+ ;
 DEC_LITEND: [0-9]+ LITEND;
 NEGATIVE_NUMBER: '-'[0-9]+; // Intended for 1 byte, range [-128..-1]
+BRK: [bB][rR][kK] ; // equal to $00
+NOP: [nN][oO][pP] ; // equal to $EA
 STRING: '"' (ESC|.)+? '"';
 	fragment ESC : '\\"' | '\\\\' ;
 // Literals <--

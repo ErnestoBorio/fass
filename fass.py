@@ -16,7 +16,7 @@ def main(argv):
 	tokenStream = CommonTokenStream( lexer)
 	parser = myParser( tokenStream)
 	parser.program()
-	print( parser.get_output() ) # WIP TODO Debug only
+	print( "compiled: ", parser.get_output() ) # WIP TODO Debug only
 	# listener = myListener()
 	# ParseTreeWalker().walk( listener, parser )
 

@@ -13,6 +13,7 @@ statement:
 	| data_stmt
 	| nop_brk_stmt
 	| remote_label_stmt
+	| flag_set_stmt
 	| label statement?
 	;
 
@@ -47,6 +48,20 @@ nop_brk_stmt:
 
 remote_label_stmt: IDENTIFIER 'at' address {self.set_label( $IDENTIFIER.text.lower(), $address.ret )};
 label: IDENTIFIER ':' {self.set_label( $IDENTIFIER.text.lower() )};
+
+flag_set_stmt locals [opcode]:
+	( OVERFLOW '=' '0' {opcode = self.opcodes['CLV']}
+	| CARRY '='
+		( '1' {opcode = self.opcodes['SEC']}
+		| '0' {opcode = self.opcodes['CLC']} )
+	| INTERRUPT
+		( ON_KWD  {opcode = self.opcodes['CLI']}
+		| OFF_KWD {opcode = self.opcodes['SEI']} )
+	| DECIMAL_MODE
+		( ON_KWD  {opcode = self.opcodes['SED']}
+		| OFF_KWD {opcode = self.opcodes['CLD']} )
+	) {self.append_output( opcode )} ;
+
 // Statements <--
 
 // --> Values
@@ -106,6 +121,21 @@ GOTO_KWD: [gG][oO][tT][oO] ;
 NOP3: [nN][oO][pP]'3' ;
 NOP4: [nN][oO][pP]'4' ;
 // Keywords <--
+
+// --> Flags
+CARRY: [cC][aA][rR][rR][yY] ;
+OVERFLOW: [oO][vV][eE][rR][fF][lL][oO][wW] ;
+INTERRUPT: [iI][nN][tT][eE][rR][rR][uU][pP][tT] ;
+DECIMAL_MODE: [dD][eE][cC][iI][mM][aA][lL]' '[mM][oO][dD][eE] ;
+
+ZERO: [zZ][eE][rR][oO] ;
+POSITIVE: [pP][oO][sS][iI][tT][iI][vV][eE] ;
+NEGATIVE: [nN][eE][gG][aA][tT][iI][vV][eE] ;
+
+ON_KWD: [oO][nN] ;
+OFF_KWD: [oO][fF][fF] ;
+NOT_KWD: [nN][oO][tT] ;
+// Flags <--
 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]* ; // The dot allows a dot-notation-like syntactic sugar
 WHITESPACE: [ \t]+ -> skip ;

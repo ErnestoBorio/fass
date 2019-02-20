@@ -11,7 +11,8 @@ def main(argv):
 		exit()
 	
 	input = FileStream(argv[1])
-	
+	print( input.strdata ) # WIP TODO For debugging only
+
 	lexer = fassLexer( input)
 	tokenStream = CommonTokenStream( lexer)
 	parser = myParser( tokenStream)

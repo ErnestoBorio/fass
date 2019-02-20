@@ -12,6 +12,8 @@ statement:
 	| const_stmt
 	| data_stmt
 	| nop_brk_stmt
+	| remote_label_stmt
+	| label statement?
 	;
 
 address_stmt: ADDRESS_KWD adr=HEX_BIGEND {self.set_address( $adr.text)} ;
@@ -38,6 +40,9 @@ nop_brk_stmt:
 	| NOP3 {self.append_output( self.opcodes[self.NOP3] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
 	| NOP4 {self.append_output( self.opcodes[self.NOP4] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
 	; // NOP3 and NOP4 are illegal instructions that waste 3 and 4 cycles respectively, used for timing
+
+remote_label_stmt: IDENTIFIER 'at' address {self.set_label( $IDENTIFIER.text.lower(), $address.ret )};
+label: IDENTIFIER ':' {self.set_label( $IDENTIFIER.text.lower() )};
 // Statements <--
 
 // --> Values
@@ -57,6 +62,8 @@ literal returns [ret]: (
 	| brk_literal
 	| nop_literal
 	) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule const_stmt
+
+address returns [ret]: adrs=( HEX_BIGEND | DEC_BIGEND ) {$ret = self.check_address( $adrs.text )};
 
 hex_bigend returns [ret]: HEX_BIGEND {$ret = self.serialize( int( $HEX_BIGEND.text[1:], 16 ))};
 dec_bigend returns [ret]: DEC_BIGEND {$ret = self.serialize( int( $DEC_BIGEND.text ))};

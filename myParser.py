@@ -50,6 +50,7 @@ class myParser( fassParser ):
 		self.filler = self.__class__.default_filler # filler for address gaps
 		self.output = bytearray() # 6502 machine code bytes
 		self.constants = {} # dict<str: bytes> of defined constants
+		self.labels = {} # dict<str: bytes> of defined labels
 
 # --> Utility functions	
 	def append_output( self, output: bytes ):
@@ -111,17 +112,27 @@ class myParser( fassParser ):
 			filler = filler.decode('ascii') # WIP TODO this will print string values for ints, not great
 			raise fassException(f"The filler value must be a single byte, `{filler}` given.")
 		self.filler = filler
-	
+
 	def declare_constant(self, name: str, value: bytes ):
 		if name in self.constants:
 			raise fassException(f"Constant `{name}` already declared.")
 		self.constants[ name] = value
 
+	# WIP TODO If data() should do any additional checking, review data_stmt grammar rule's first sub-rule which calls append_output() directly
 	def data(self, datas: list ):
 		output = bytearray()
 		for value in datas:
 			output += value.ret
 		self.append_output( output)
-		# WIP TODO If data() should do any additional checking, review data_stmt grammar rule's first sub-rule which calls append_output() directly
+	
+	def set_label(self, label: str, address: int = None ):
+		if label in self.labels:
+			raise fassException(f"Label `{label}` already declared.")
+		if address is None:
+			address = self.address
+		elif not 0 <= address <= 0xFFFF:
+			raise fassException(f"Address {address} is outside the 64KB range 0..$FFFF")
+		self.labels[label] = self.serialize( address, 'little' )
+		
 
 # Statements <--

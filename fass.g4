@@ -17,7 +17,11 @@ statement:
 	;
 
 address_stmt: ADDRESS_KWD adr=HEX_BIGEND {self.set_address( $adr.text)} ;
-filler_stmt: FILLER_KWD fb=filler_byte {self.set_filler( $fb.ret )};
+filler_stmt: FILLER_KWD (
+	  fb=filler_byte {self.set_filler( $fb.ret )}
+	| DEFAULT_KWD    {self.set_filler( self.default_filler )}
+	);
+
 	filler_byte returns [ret]: (
 		  hex_bigend
 		| dec_bigend

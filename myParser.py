@@ -133,6 +133,5 @@ class myParser( fassParser ):
 		elif not 0 <= address <= 0xFFFF:
 			raise fassException(f"Address {address} is outside the 64KB range 0..$FFFF")
 		self.labels[label] = self.serialize( address, 'little' )
-		
 
 # Statements <--

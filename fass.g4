@@ -64,18 +64,11 @@ flag_set_stmt locals [opcode]:
 	) {self.append_output( opcode )} ;
 
 stack_stmt locals [opcode]:
-	( ( A '->' STACK | STACK '<-' A ) {opcode = self.opcodes[ self.PHA ]}
-	| ( A '<-' STACK | STACK '->' A ) {opcode = self.opcodes[ self.PLA ]}
-	| (FLAGS_KWD '<-' STACK | STACK '->' FLAGS_KWD ) {opcode = self.opcodes[ self.PHP ]}
-	| (FLAGS_KWD '->' STACK | STACK '<-' FLAGS_KWD ) {opcode = self.opcodes[ self.PLP ]}
+	( A '=' PULL_KWD {opcode = self.opcodes[ self.PLA ]}
+	| PUSH_KWD A     {opcode = self.opcodes[ self.PHA ]}
+	| FLAGS_KWD '=' PULL_KWD {opcode = self.opcodes[ self.PLP ]}
+	| PUSH_KWD FLAGS_KWD {opcode = self.opcodes[ self.PHP ]}
 	) {self.append_output( opcode )} ;
-
-// stack_stmt locals [opcode]:
-// 	( A '=' PULL_KWD {opcode = self.opcodes[ self.PLA ]}
-// 	| PUSH_KWD A     {opcode = self.opcodes[ self.PHA ]}
-// 	| FLAGS_KWD '=' PULL_KWD {opcode = self.opcodes[ self.PLP ]}
-// 	| PUSH_KWD FLAGS_KWD {opcode = self.opcodes[ self.PHP ]}
-// 	) {self.append_output( opcode )} ;
 // Statements <--
 
 // --> Values
@@ -132,6 +125,8 @@ DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
 DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
 GOTO_KWD: [gG][oO][tT][oO] ;
+PUSH_KWD: [pP][uU][sS][hH] ;
+PULL_KWD: [pP][uU][lL][lL] ;
 FLAGS_KWD: [fF][lL][aA][gG][sS] ;
 NOP3: [nN][oO][pP]'3' ;
 NOP4: [nN][oO][pP]'4' ;

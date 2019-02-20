@@ -39,10 +39,11 @@ class myParser( fassParser ):
 		STX: { ZP:b'\x86', ZPY:b'\x96', ABS:b'\x8E' },
 		STY: { ZP:b'\x84', ZPX:b'\x94', ABS:b'\x8C' },
 		TAX: b'\xAA', TXA: b'\x8A', TAY: b'\xA8', TYA: b'\x98', TSX: b'\xBA', TXS: b'\x9A',
-		JMP: { ABS:b'\x4C', IND:b'\x6C' },
+		INX: b'\xE8', INY: b'\xC8', DEX: b'\xCA', DEY: b'\x88',
+		JMP: { ABS: b'\x4C', IND: b'\x6C' },
 		CLV: b'\xB8', CLC: b'\x18', SEC: b'\x38', CLI: b'\x58', SEI: b'\x78', CLD: b'\xD8', SED: b'\xF8',
 		NOP: b'\xEA', NOP3: b'\x04', NOP4: b'\x14',
-		BRK: b'\x00'
+		BRK: b'\x00', RTS: b'\x60', RTI: b'\x40'
 	}
 
 	def __init__( self, input: TokenStream, output: TextIO = sys.stdout ):

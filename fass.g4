@@ -15,6 +15,8 @@ statement:
 	| remote_label_stmt
 	| flag_set_stmt
 	| stack_stmt
+	| return_stmt
+	| increment_stmt
 	| label statement?
 	;
 
@@ -68,6 +70,17 @@ stack_stmt locals [opcode]:
 	| PUSH_KWD A     {opcode = self.opcodes[ self.PHA ]}
 	| FLAGS_KWD '=' PULL_KWD {opcode = self.opcodes[ self.PLP ]}
 	| PUSH_KWD FLAGS_KWD {opcode = self.opcodes[ self.PHP ]}
+	) {self.append_output( opcode )} ;
+
+return_stmt:
+	( RETURN_KWD {self.append_output( self.opcodes[ self.RTS ])}
+	| RETINT_KWD {self.append_output( self.opcodes[ self.RTI ])} );
+
+increment_stmt locals [opcode]:
+	( X '+=' '1' {opcode = self.opcodes[ self.INX ]}
+	| Y '+=' '1' {opcode = self.opcodes[ self.INY ]}
+	| X '-=' '1' {opcode = self.opcodes[ self.DEX ]}
+	| Y '-=' '1' {opcode = self.opcodes[ self.DEY ]}
 	) {self.append_output( opcode )} ;
 // Statements <--
 
@@ -125,6 +138,8 @@ DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
 DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
 GOTO_KWD: [gG][oO][tT][oO] ;
+RETURN_KWD: [rR][eE][tT][uU][rR][nN]; // RTS
+RETINT_KWD: [rR][eE][tT][iI][nN][tT]; // RTI
 PUSH_KWD: [pP][uU][sS][hH] ;
 PULL_KWD: [pP][uU][lL][lL] ;
 FLAGS_KWD: [fF][lL][aA][gG][sS] ;

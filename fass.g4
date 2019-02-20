@@ -14,6 +14,7 @@ statement:
 	| nop_brk_stmt
 	| remote_label_stmt
 	| flag_set_stmt
+	| stack_stmt
 	| label statement?
 	;
 
@@ -62,6 +63,19 @@ flag_set_stmt locals [opcode]:
 		| OFF_KWD {opcode = self.opcodes['CLD']} )
 	) {self.append_output( opcode )} ;
 
+stack_stmt locals [opcode]:
+	( ( A '->' STACK | STACK '<-' A ) {opcode = self.opcodes[ self.PHA ]}
+	| ( A '<-' STACK | STACK '->' A ) {opcode = self.opcodes[ self.PLA ]}
+	| (FLAGS_KWD '<-' STACK | STACK '->' FLAGS_KWD ) {opcode = self.opcodes[ self.PHP ]}
+	| (FLAGS_KWD '->' STACK | STACK '<-' FLAGS_KWD ) {opcode = self.opcodes[ self.PLP ]}
+	) {self.append_output( opcode )} ;
+
+// stack_stmt locals [opcode]:
+// 	( A '=' PULL_KWD {opcode = self.opcodes[ self.PLA ]}
+// 	| PUSH_KWD A     {opcode = self.opcodes[ self.PHA ]}
+// 	| FLAGS_KWD '=' PULL_KWD {opcode = self.opcodes[ self.PLP ]}
+// 	| PUSH_KWD FLAGS_KWD {opcode = self.opcodes[ self.PHP ]}
+// 	) {self.append_output( opcode )} ;
 // Statements <--
 
 // --> Values
@@ -118,6 +132,7 @@ DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
 DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
 GOTO_KWD: [gG][oO][tT][oO] ;
+FLAGS_KWD: [fF][lL][aA][gG][sS] ;
 NOP3: [nN][oO][pP]'3' ;
 NOP4: [nN][oO][pP]'4' ;
 // Keywords <--
@@ -136,6 +151,11 @@ ON_KWD: [oO][nN] ;
 OFF_KWD: [oO][fF][fF] ;
 NOT_KWD: [nN][oO][tT] ;
 // Flags <--
+
+A: [aA] ;
+X: [xX] ;
+Y: [yY] ;
+STACK: [sS][tT][aA][cC][kK] ;
 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]* ; // The dot allows a dot-notation-like syntactic sugar
 WHITESPACE: [ \t]+ -> skip ;

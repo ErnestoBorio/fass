@@ -20,7 +20,10 @@ statement:
 	| label statement?
 	;
 
-address_stmt: ADDRESS_KWD adr=HEX_BIGEND {self.set_address( $adr.text)} ;
+address_stmt: ADDRESS_KWD
+	( HEX_BIGEND {self.set_address( int( $HEX_BIGEND.text[1:], 16 ))}
+	| DEC_BIGEND {self.set_address( int( $DEC_BIGEND.text ))} );
+
 filler_stmt: FILLER_KWD (
 	  fb=filler_byte {self.set_filler( $fb.ret )}
 	| DEFAULT_KWD    {self.set_filler( self.default_filler )}
@@ -49,7 +52,7 @@ nop_brk_stmt:
 	| NOP4 {self.append_output( self.opcodes[self.NOP4] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
 	; // NOP3 and NOP4 are illegal instructions that waste 3 and 4 cycles respectively, used for timing
 
-remote_label_stmt: IDENTIFIER 'at' address {self.set_label( $IDENTIFIER.text.lower(), $address.ret )};
+remote_label_stmt: IDENTIFIER 'at' the_address {self.set_label( $IDENTIFIER.text.lower(), $the_address.ret )};
 label: IDENTIFIER ':' {self.set_label( $IDENTIFIER.text.lower() )};
 
 flag_set_stmt locals [opcode]:
@@ -82,7 +85,25 @@ increment_stmt locals [opcode]:
 	| X '-=' '1' {opcode = self.opcodes[ self.DEX ]}
 	| Y '-=' '1' {opcode = self.opcodes[ self.DEY ]}
 	) {self.append_output( opcode )} ;
+
 // Statements <--
+
+// --> References
+reference returns [ret]:
+	( ref_direct  {adrs = $ref_direct.ret ; addressing = self.ZP if len(adrs) == 1 else self.ABS }
+	| ref_indexed_x {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs) == 1 else self.ABSX }
+	| ref_indexed_y {adrs = $ref_indexed_y.ret ; addressing = self.ZPY if len(adrs) == 1 else self.ABSY }
+	| ref_indirect_x {adrs = self.check_zeropage( $ref_indirect_x.ret ) ; addressing = self.INDX }
+	| ref_indirect_y {adrs = self.check_zeropage( $ref_indirect_y.ret ) ; addressing = self.INDY }
+	) {$ret = ( adrs, addressing )};
+// ref_indirect is not a child of reference because it's only used by JMP
+ref_indirect returns [ret]: '(' IDENTIFIER ')' {$ret = self.get_label( $IDENTIFIER.text )} ;
+ref_direct returns [ret]: IDENTIFIER {$ret = self.get_label( $IDENTIFIER.text )};
+ref_indexed_x returns [ret]: IDENTIFIER '[' X ']' {$ret = self.get_label( $IDENTIFIER.text )};
+ref_indexed_y returns [ret]: IDENTIFIER '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text )};
+ref_indirect_x returns [ret]: '(' IDENTIFIER '[' X ']' ')' {$ret = self.get_label( $IDENTIFIER.text )};
+ref_indirect_y returns [ret]: '(' IDENTIFIER ')' '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text )};
+// References <--
 
 // --> Values
 value returns [ret]: 
@@ -102,7 +123,11 @@ literal returns [ret]: (
 	| nop_literal
 	) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule const_stmt
 
-address returns [ret]: adrs=( HEX_BIGEND | DEC_BIGEND ) {$ret = self.check_address( $adrs.text )};
+the_address returns [ret]: 
+	  hex_bigend {$ret = self.check_address( $hex_bigend.ret )}
+	| dec_bigend {$ret = self.check_address( $dec_bigend.ret )}
+	;
+// the_address: `the_` added to avoid conflict between myParser.address and fassParser.address()
 
 hex_bigend returns [ret]: HEX_BIGEND {$ret = self.serialize( int( $HEX_BIGEND.text[1:], 16 ))};
 dec_bigend returns [ret]: DEC_BIGEND {$ret = self.serialize( int( $DEC_BIGEND.text ))};

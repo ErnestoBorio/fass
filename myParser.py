@@ -49,10 +49,12 @@ class myParser( fassParser ):
 	def __init__( self, input: TokenStream, output: TextIO = sys.stdout ):
 		super().__init__(input, output)
 		self.address = None # current address where next byte will be output
+		self.offset = 0 # count of bytes output so far
 		self.filler = self.__class__.default_filler # filler for address gaps
 		self.output = bytearray() # 6502 machine code bytes
 		self.constants = {} # dict<str: bytes> of defined constants
 		self.labels = {} # dict<str: bytes> of defined labels
+		self.pending_refs = [] # forward references to labels
 
 # --> Utility functions	
 	def append_output( self, output: bytes ):
@@ -88,14 +90,30 @@ class myParser( fassParser ):
 			data = data.decode('ascii')
 			raise fassException(f"A {length} byte%s value expected, `{data}` given." % ('s' if length > 1 else '' ))
 		return data
+	
+	def get_label(self, label ):
+		return self.labels[ label]
+		# WIP TODO needs to check for forward references
+	
+	def check_address(self, address: bytes ) -> bytes:
+		if 1<= len(address) <= 2:
+			return address
+		else:
+			raise fassException( f"Address should be 1 or 2 bytes long, `{address}` given." )
+
+	def check_zeropage(self, address: bytes ) -> bytes:
+		if len(address) == 1:
+			return address
+		else:
+			raise fassException( f"Zero page address expected (0..$FF), $`{address}` given. (little endian)" )
+		
 # Utility functions <--
 
 # --> Statements
-	def set_address( self, new_address: str ):
+	def set_address( self, new_address: int ):
 		''' set current address for producing next output byte '''
-		new_address = int( "0x"+ new_address[1:], 16 ) # Strip leading $ and convert hex->int
 		if new_address > 0xFFFF:
-			raise fassException("Address should be between 0 and $FFFF.")
+			raise fassException( f"Address should be between 0 and $FFFF, `{new_address}` given.")
 		
 		if self.address is not None:
 			if new_address < self.address: # new address can't overlap current address
@@ -105,8 +123,9 @@ class myParser( fassParser ):
 			elif new_address > self.address: # got to fill the gap
 				gap = new_address - self.address
 				self.append_output( self.filler * gap )
-			
+		
 		self.address = new_address
+
 
 	def set_filler( self, filler: bytes ):		
 		''' Change the current filler for address gaps '''
@@ -127,13 +146,13 @@ class myParser( fassParser ):
 			output += value.ret
 		self.append_output( output)
 	
-	def set_label(self, label: str, address: int = None ):
+	def set_label(self, label: str, address: bytes = None ):
 		if label in self.labels:
 			raise fassException(f"Label `{label}` already declared.")
 		if address is None:
-			address = self.address
-		elif not 0 <= address <= 0xFFFF:
+			address = self.serialize( self.address, 'little' )
+		elif len(address) > 2:
 			raise fassException(f"Address {address} is outside the 64KB range 0..$FFFF")
-		self.labels[label] = self.serialize( address, 'little' )
+		self.labels[label] = address[1:] + address[0:1] # swap bytes to make address little endian
 
 # Statements <--

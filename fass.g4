@@ -123,11 +123,11 @@ literal returns [ret]: (
 	| nop_literal
 	) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule const_stmt
 
+// the_address: `the_` added to avoid conflict between myParser.address and fassParser.address()
 the_address returns [ret]: 
 	  hex_bigend {$ret = self.check_address( $hex_bigend.ret )}
 	| dec_bigend {$ret = self.check_address( $dec_bigend.ret )}
 	;
-// the_address: `the_` added to avoid conflict between myParser.address and fassParser.address()
 
 hex_bigend returns [ret]: HEX_BIGEND {$ret = self.serialize( int( $HEX_BIGEND.text[1:], 16 ))};
 dec_bigend returns [ret]: DEC_BIGEND {$ret = self.serialize( int( $DEC_BIGEND.text ))};

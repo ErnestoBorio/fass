@@ -106,7 +106,13 @@ class myParser( fassParser ):
 			return address
 		else:
 			raise fassException( f"Zero page address expected (0..$FF), $`{address}` given. (little endian)" )
-		
+	
+	def check_value_in(self, value, whitelist ):
+		if value in whitelist:
+			return value
+		else:
+			raise fassException(f"Expected values {whitelist}, but {value} given.")
+
 # Utility functions <--
 
 # --> Statements

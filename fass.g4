@@ -56,10 +56,10 @@ remote_label_stmt: IDENTIFIER 'at' the_address {self.set_label( $IDENTIFIER.text
 label: IDENTIFIER ':' {self.set_label( $IDENTIFIER.text.lower() )};
 
 flag_set_stmt locals [opcode]:
-	( OVERFLOW '=' '0' {opcode = self.opcodes['CLV']}
-	| CARRY '='
-		( '1' {opcode = self.opcodes['SEC']}
-		| '0' {opcode = self.opcodes['CLC']} )
+	( OVERFLOW '=' DEC_BIGEND {self.check_value_in( int($DEC_BIGEND.text), [0]) ; opcode = self.opcodes['CLV']}
+	| CARRY '=' DEC_BIGEND
+		{self.check_value_in( int($DEC_BIGEND.text), [0,1]) }
+		{opcode = self.opcodes['SEC'] if $DEC_BIGEND.text == '1' else self.opcodes['CLC'] }
 	| INTERRUPT
 		( ON_KWD  {opcode = self.opcodes['CLI']}
 		| OFF_KWD {opcode = self.opcodes['SEI']} )

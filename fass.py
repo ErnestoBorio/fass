@@ -7,7 +7,7 @@ from myParser import myParser
 
 def main(argv):
 	if len(argv) <= 1:
-		print("Usage: py fass.py source_file.fass binary_file.prg")
+		print("Usage: py fass.py source_file.fass compiled_file")
 		exit()
 	
 	input = FileStream(argv[1])

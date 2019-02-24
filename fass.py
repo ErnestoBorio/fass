@@ -3,6 +3,7 @@ from sys import argv, stdout
 from antlr4 import *
 from fassLexer import fassLexer
 from fassParser import fassParser
+from fassErrorListener import fassErrorListener
 from myParser import myParser
 
 def main(argv):
@@ -16,6 +17,7 @@ def main(argv):
 	lexer = fassLexer( input)
 	tokenStream = CommonTokenStream( lexer)
 	parser = myParser( tokenStream)
+	parser.addErrorListener( fassErrorListener())
 	parser.program()
 	print( "compiled: ", parser.get_output() ) # WIP TODO Debug only
 	# listener = myListener()

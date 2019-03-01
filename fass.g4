@@ -16,7 +16,8 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| return_stmt
-	| increment_stmt
+	// | increment_stmt // WIP TODO This will have to be merged with ADC and SBC
+	| assign_stmt
 	| label statement?
 	;
 
@@ -36,9 +37,9 @@ filler_stmt: FILLER_KWD (
 		| string
 		) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule filler_stmt
 
-const_stmt: CONST_KWD left_const=IDENTIFIER '=' (
-	literal {self.declare_constant(name= $left_const.text, value= $literal.ret)}
-	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text, value= self.get_constant( $right_const.text ))}
+const_stmt: CONST_KWD left_const=IDENTIFIER '='
+	( literal {self.declare_constant(name= $left_const.text.lower(), value= $literal.ret)}
+	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text.lower(), value= self.get_constant( $right_const.text ))}
 	);
 data_stmt: 
 	DATA_KWD 
@@ -79,37 +80,51 @@ return_stmt:
 	( RETURN_KWD {self.append_output( self.opcodes[ self.RTS ])}
 	| RETINT_KWD {self.append_output( self.opcodes[ self.RTI ])} );
 
-increment_stmt locals [opcode]:
-	( X '+=' '1' {opcode = self.opcodes[ self.INX ]}
-	| Y '+=' '1' {opcode = self.opcodes[ self.INY ]}
-	| X '-=' '1' {opcode = self.opcodes[ self.DEX ]}
-	| Y '-=' '1' {opcode = self.opcodes[ self.DEY ]}
-	) {self.append_output( opcode )} ;
+// WIP TODO These will have to be merged with ADC and SBC:
+// increment_stmt locals [opcode]:
+// 	( X '+=' '1' {opcode = self.opcodes[ self.INX ]}
+// 	| Y '+=' '1' {opcode = self.opcodes[ self.INY ]}
+// 	| X '-=' '1' {opcode = self.opcodes[ self.DEX ]}
+// 	| Y '-=' '1' {opcode = self.opcodes[ self.DEY ]}
+// 	) {self.append_output( opcode )} ;
 
+
+//                            self.load_store_op( mnem, register,       addressing,         operand )
+assign_stmt:
+	( register '=' literal    {self.load_store_op( "LD", $register.name, self.IMM,           $literal.ret )}
+	| register '=' ref_name   {self.load_store_op( "LD", $register.name, $ref_name.ret[0],   $ref_name.ret[1] )}
+	| ref_direct '=' register {self.load_store_op( "ST", $register.name, None,               $ref_direct.ret )}
+	| register '=' reference  {self.load_store_op( "LD", $register.name, $reference.ret[0],  $reference.ret[1] )}
+	| reference '=' register  {self.load_store_op( "ST", $register.name, $reference.ret[0],  $reference.ret[1] )}
+	);
+register returns [name]: reg=(A|X|Y) {$name = $reg.text.upper() };
 // Statements <--
 
 // --> References
 reference returns [ret]:
-	( ref_direct  {adrs = $ref_direct.ret ; addressing = self.ZP if len(adrs) == 1 else self.ABS }
-	| ref_indexed_x {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs) == 1 else self.ABSX }
-	| ref_indexed_y {adrs = $ref_indexed_y.ret ; addressing = self.ZPY if len(adrs) == 1 else self.ABSY }
+	( ref_indexed_x  {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABS }
+	| ref_indexed_y  {adrs = $ref_indexed_y.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABS }
 	| ref_indirect_x {adrs = self.check_zeropage( $ref_indirect_x.ret ) ; addressing = self.INDX }
 	| ref_indirect_y {adrs = self.check_zeropage( $ref_indirect_y.ret ) ; addressing = self.INDY }
-	) {$ret = ( adrs, addressing )};
-// ref_indirect is not a child of reference because it's only used by JMP
-ref_indirect returns [ret]: '(' IDENTIFIER ')' {$ret = self.get_label( $IDENTIFIER.text )} ;
-ref_direct returns [ret]: IDENTIFIER {$ret = self.get_label( $IDENTIFIER.text )};
-ref_indexed_x returns [ret]: IDENTIFIER '[' X ']' {$ret = self.get_label( $IDENTIFIER.text )};
-ref_indexed_y returns [ret]: IDENTIFIER '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text )};
-ref_indirect_x returns [ret]: '(' IDENTIFIER '[' X ']' ')' {$ret = self.get_label( $IDENTIFIER.text )};
-ref_indirect_y returns [ret]: '(' IDENTIFIER ')' '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text )};
+	) {$ret = ( addressing, adrs )};
+
+ref_indexed_x returns [ret]: IDENTIFIER '[' X ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indexed_y returns [ret]: IDENTIFIER '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indirect_x returns [ret]: '(' IDENTIFIER '[' X ']' ')' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indirect_y returns [ret]: '(' IDENTIFIER ')' '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+
+// References not included in `reference` rule
+ref_name returns [ret]: IDENTIFIER {$ret = self.get_name( $IDENTIFIER.text.lower() )};
+ref_direct returns [ret]: IDENTIFIER {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indirect returns [ret]: '(' IDENTIFIER ')' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
 // References <--
 
 // --> Values
 value returns [ret]: 
 	  literal {$ret = $literal.ret}
-	| constant=IDENTIFIER {$ret = self.get_constant( $constant.text )}
+	| constant {$ret = $constant.ret}
 	;
+constant returns [ret]: IDENTIFIER {$ret = self.get_constant( $IDENTIFIER.text.lower() )};
 literal returns [ret]: (
 	  hex_bigend
 	| hex_litend

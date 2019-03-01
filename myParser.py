@@ -83,7 +83,7 @@ class myParser( fassParser ):
 		try:
 			return self.constants[ name]
 		except KeyError:
-			raise fassException(f"Constant `{name}` is not defined.")
+			raise fassException(f"Constant `{name}` is not defined.") from None
 	
 	def check_length(self, data: bytes, length: int ) -> bytes:
 		if len(data) != length:
@@ -91,8 +91,27 @@ class myParser( fassParser ):
 			raise fassException(f"A {length} byte%s value expected, `{data}` given." % ('s' if length > 1 else '' ))
 		return data
 	
-	def get_label(self, label ):
-		return self.labels[ label]
+	def get_name(self, name ) -> tuple:
+		try: # name is a defined constant?
+			operand = self.constants[ name]
+			addressing = self.IMM
+		except KeyError: # name is not a defined constant
+			try: # name is a defined label?
+				addressing = None
+				operand = self.get_label( name)
+			except fassException: # name is not a defined label either
+				raise fassException(
+					f"Name `{name}` is neither a constant nor a label, forward references not yet implemented.")\
+					from None
+		return ( addressing, operand )
+	
+	def get_label(self, label: str ) -> tuple:
+		try:
+			address = self.labels[ label]
+		except KeyError:
+			raise fassException(f"Label `{label}` is not defined or it's a forward reference, not yet implemented.")\
+				from None
+		return address
 		# WIP TODO needs to check for forward references
 	
 	def check_address(self, address: bytes ) -> bytes:
@@ -160,5 +179,18 @@ class myParser( fassParser ):
 		elif len(address) > 2:
 			raise fassException(f"Address {address} is outside the 64KB range 0..$FFFF")
 		self.labels[label] = address[1:] + address[0:1] # swap bytes to make address little endian
+	
+	# LDA LDX LDY STA STX STY
+	def load_store_op(self, operation: str, register: str, addressing: str, operand: bytes ):
+		if ( addressing == self.IMM ) and ( len( operand ) != 1 ):
+			raise fassException( f"Registers can only be assigned 1-byte literal values, `{operand}` given." )
+		elif addressing is None: # Special case for a direct reference
+			addressing = self.ZP if len(operand)==1 else self.ABS
+		mnemonic = operation + register
+		try:
+			opcode = self.opcodes[ mnemonic][ addressing]
+		except KeyError:
+			raise fassException( f"Addressing mode {self.addressings[addressing]} is not available for generated instruction {mnemonic}." )
+		self.append_output( opcode + operand )
 
 # Statements <--

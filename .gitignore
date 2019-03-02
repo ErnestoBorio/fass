@@ -4,17 +4,14 @@
 /.vscode
 /.antlr
 
-*.java
-*.class
 *.tokens
 *.interp
-*Lexer.py
-*Parser.py
-*Visitor.py
-*Listener.py
+fassLexer.py
+fassParser.py
+fassVisitor.py
+fassListener.py
 .DS_Store
-buildp
 build
-Latin-1.py
 old.fassCompiler.py
 old_fass.g4
+Latin-1.py

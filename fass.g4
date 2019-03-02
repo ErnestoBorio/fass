@@ -1,128 +1,212 @@
 grammar fass;
 
-program: ( 
-	( statement | block | ) EOL )* // optional statements or blocks ending in newlines
-	( statement | block )? // optional last line with no newline
+program:
+	( statement? EOL )* // optional statements ending in newlines
+	statement ? // optional last line with no newline
 	EOF ;
 
-block: '<< to be implemented >>'; // block of statements
-
-statement: // single line statements
+// --> Statements
+statement:
 	  address_stmt
 	| filler_stmt
-	| data_stmt
 	| const_stmt
-	| nop_stmt
-	| brk_stmt
-	| goto_stmt
-	| assign_stmt
+	| data_stmt
+	| nop_brk_stmt
 	| remote_label_stmt
+	| flag_set_stmt
+	| stack_stmt
+	| return_stmt
+	// | increment_stmt // WIP TODO This will have to be merged with ADC and SBC
+	| assign_stmt
 	| label statement?
 	;
 
-address_stmt: ADDRESS_KWD address ; // set memory address for next instruction
-filler_stmt: FILLER_KWD ( value | DEFAULT_KWD ) ; // set filler for empty memory blocks
-data_stmt: DATA_KWD value ( ',' value )* ; // insert raw data into code
-const_stmt: CONST_KWD IDENTIFIER '=' value ; // define a named constant literal
+address_stmt: ADDRESS_KWD
+	( HEX_BIGEND {self.set_address( int( $HEX_BIGEND.text[1:], 16 ))}
+	| DEC_BIGEND {self.set_address( int( $DEC_BIGEND.text ))} );
 
-nop_stmt: 
-	  NOP // do nothing for 2 cpu cycles
-	| NOP3 value? // NOP for 3 cycles, optionally provide disposable argument
-	| NOP4 value? // NOP for 4 cycles, optionally provide disposable argument
-	;
+filler_stmt: FILLER_KWD (
+	  fb=filler_byte {self.set_filler( $fb.ret )}
+	| DEFAULT_KWD    {self.set_filler( self.default_filler )}
+	);
 
-brk_stmt: BRK value?; // jump to Break interrupt handler, takes 2 bytes, argument is discarded
+	filler_byte returns [ret]: (
+		  hex_bigend
+		| dec_bigend
+		| bin_bigend
+		| string
+		) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule filler_stmt
 
-remote_label_stmt: IDENTIFIER 'at' address; // set a label on an address without changing current program counter
+const_stmt: CONST_KWD left_const=IDENTIFIER '='
+	( literal {self.declare_constant(name= $left_const.text.lower(), value= $literal.ret)}
+	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text.lower(), value= self.get_constant( $right_const.text ))}
+	);
+data_stmt: 
+	DATA_KWD 
+		( value {self.append_output( $value.ret )} ) // WIP TODO if data() should do additional checking, review this action
+		( ',' datas+= value )* {self.data( $datas )};
 
-// --> Assignments and References
+nop_brk_stmt:
+	  BRK  {self.append_output( self.opcodes[self.BRK]  )}
+	| NOP  {self.append_output( self.opcodes[self.NOP]  )}
+	| NOP3 {self.append_output( self.opcodes[self.NOP3] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
+	| NOP4 {self.append_output( self.opcodes[self.NOP4] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
+	; // NOP3 and NOP4 are illegal instructions that waste 3 and 4 cycles respectively, used for timing
+
+remote_label_stmt: IDENTIFIER 'at' the_address {self.set_label( $IDENTIFIER.text.lower(), $the_address.ret )};
+label: IDENTIFIER ':' {self.set_label( $IDENTIFIER.text.lower() )};
+
+flag_set_stmt locals [opcode]:
+	( OVERFLOW '=' DEC_BIGEND {self.check_value_in( int($DEC_BIGEND.text), [0]) ; opcode = self.opcodes['CLV']}
+	| CARRY '=' DEC_BIGEND
+		{self.check_value_in( int($DEC_BIGEND.text), [0,1]) }
+		{opcode = self.opcodes['SEC'] if $DEC_BIGEND.text == '1' else self.opcodes['CLC'] }
+	| INTERRUPT
+		( ON_KWD  {opcode = self.opcodes['CLI']}
+		| OFF_KWD {opcode = self.opcodes['SEI']} )
+	| DECIMAL_MODE
+		( ON_KWD  {opcode = self.opcodes['SED']}
+		| OFF_KWD {opcode = self.opcodes['CLD']} )
+	) {self.append_output( opcode )} ;
+
+stack_stmt locals [opcode]:
+	( A '=' PULL_KWD {opcode = self.opcodes[ self.PLA ]}
+	| PUSH_KWD A     {opcode = self.opcodes[ self.PHA ]}
+	| FLAGS_KWD '=' PULL_KWD {opcode = self.opcodes[ self.PLP ]}
+	| PUSH_KWD FLAGS_KWD {opcode = self.opcodes[ self.PHP ]}
+	) {self.append_output( opcode )} ;
+
+return_stmt:
+	( RETURN_KWD {self.append_output( self.opcodes[ self.RTS ])}
+	| RETINT_KWD {self.append_output( self.opcodes[ self.RTI ])} );
+
+// WIP TODO These will have to be merged with ADC and SBC:
+// increment_stmt locals [opcode]:
+// 	( X '+=' '1' {opcode = self.opcodes[ self.INX ]}
+// 	| Y '+=' '1' {opcode = self.opcodes[ self.INY ]}
+// 	| X '-=' '1' {opcode = self.opcodes[ self.DEX ]}
+// 	| Y '-=' '1' {opcode = self.opcodes[ self.DEY ]}
+// 	) {self.append_output( opcode )} ;
+
+
+//                            self.load_store_op( mnem, register,       addressing,         operand )
 assign_stmt:
-	  assign_reg_lit // A = 5 -> LDA, LDX, LDY
-	| assign_reg_id  // A = const1 | A = label -> LDA, LDX, LDY
-	| assign_id_reg  // label = A -> STA, STX, STY
-	| assign_reg_ref // A = reference -> LDA, LDX, LDY
-	| assign_ref_reg // reference = A -> STA, STX, STY
-	| assign_reg_reg // X = Stack -> TSX, TXS
-	| assign_id_reg_cdl
-	| assign_ref_reg_cdl
-	| assign_ref_reg_ref // label1[X] = A = label2[Y] -> LDA, LDX, LDY + STA, STX, STY
+	( register '=' literal    {self.load_store_op( "LD", $register.name, self.IMM,           $literal.ret )}
+	| register '=' ref_name   {self.load_store_op( "LD", $register.name, $ref_name.ret[0],   $ref_name.ret[1] )}
+	| ref_direct '=' register {self.load_store_op( "ST", $register.name, None,               $ref_direct.ret )}
+	| register '=' reference  {self.load_store_op( "LD", $register.name, $reference.ret[0],  $reference.ret[1] )}
+	| reference '=' register  {self.load_store_op( "ST", $register.name, $reference.ret[0],  $reference.ret[1] )}
+	);
+register returns [name]: reg=(A|X|Y) {$name = $reg.text.upper() };
+// Statements <--
+
+// --> References
+reference returns [ret]:
+	( ref_indexed_x  {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABSX }
+	| ref_indexed_y  {adrs = $ref_indexed_y.ret ; addressing = self.ZPY if len(adrs)==1 else self.ABSY }
+	| ref_indirect_x {adrs = self.check_zeropage( $ref_indirect_x.ret ) ; addressing = self.INDX }
+	| ref_indirect_y {adrs = self.check_zeropage( $ref_indirect_y.ret ) ; addressing = self.INDY }
+	) {$ret = ( addressing, adrs )};
+
+ref_indexed_x returns [ret]: IDENTIFIER '[' X ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indexed_y returns [ret]: IDENTIFIER '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indirect_x returns [ret]: '(' IDENTIFIER '[' X ']' ')' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indirect_y returns [ret]: '(' IDENTIFIER ')' '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+
+// References not included in `reference` rule
+ref_name returns [ret]: IDENTIFIER {$ret = self.get_name( $IDENTIFIER.text.lower() )};
+ref_direct returns [ret]: IDENTIFIER {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+ref_indirect returns [ret]: '(' IDENTIFIER ')' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+// References <--
+
+// --> Values
+value returns [ret]: 
+	  literal {$ret = $literal.ret}
+	| constant {$ret = $constant.ret}
 	;
-assign_reg_lit: REGISTER  '=' literal ;
-assign_reg_id:  REGISTER  '=' IDENTIFIER ; // IDENTIFIER can be a direct reference to a label, or a constant
-assign_id_reg:  IDENTIFIER '=' REGISTER ; // IDENTIFIER can be a direct reference to a label, or a constant (which is an error)
-assign_reg_ref: REGISTER  '=' reference ;
-assign_ref_reg: reference '=' REGISTER ;
-assign_reg_reg: (REGISTER|STACK) '=' (REGISTER|STACK) ;
-assign_id_reg_cdl: IDENTIFIER '=' REGISTER '=' con_dir_lit;
-assign_ref_reg_cdl: reference '=' REGISTER '=' con_dir_lit;
-assign_ref_reg_ref: reference '=' REGISTER '=' reference;
-	// Last 3 synthesize `LDA ref_source; STA ref_dest` with: ref_dest = A = ref_source
-	// Making evident that A is used to pass the value, so A will hold a new value and also impact flags
+constant returns [ret]: IDENTIFIER {$ret = self.get_constant( $IDENTIFIER.text.lower() )};
+literal returns [ret]: (
+	  hex_bigend
+	| hex_litend
+	| dec_bigend
+	| dec_litend
+	| bin_bigend
+	| bin_litend
+	| negative_number
+	| string
+	| brk_literal
+	| nop_literal
+	) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule const_stmt
 
-reference:
-	  ref_indexed
-	| ref_indirect_x
-	| ref_indirect_y
+// the_address: `the_` added to avoid conflict between myParser.address and fassParser.address()
+the_address returns [ret]: 
+	  hex_bigend {$ret = self.check_address( $hex_bigend.ret )}
+	| dec_bigend {$ret = self.check_address( $dec_bigend.ret )}
 	;
-ref_indexed: IDENTIFIER '[' REGISTER ']' ;
-ref_indirect_x: '(' IDENTIFIER ')' '[' REGISTER ']' ;
-ref_indirect_y: '(' IDENTIFIER '[' REGISTER ']' ')' ;
-// Assignments and References <--
 
-ref_indirect: '(' IDENTIFIER ')' ; // outside of reference because it's only used by goto/JMP
-con_dir_lit: literal | IDENTIFIER ; // a constant, a direct reference or a literal
+hex_bigend returns [ret]: HEX_BIGEND {$ret = self.serialize( int( $HEX_BIGEND.text[1:], 16 ))};
+dec_bigend returns [ret]: DEC_BIGEND {$ret = self.serialize( int( $DEC_BIGEND.text ))};
+bin_bigend returns [ret]: BIN_BIGEND {$ret = self.serialize( int( $BIN_BIGEND.text[1:], 2 ))};
+hex_litend returns [ret]: HEX_LITEND {$ret = self.serialize( int( $HEX_LITEND.text[1:-1], 16 ), 'little')};
+dec_litend returns [ret]: DEC_LITEND {$ret = self.serialize( int( $DEC_LITEND.text[:-1] ), 'little')};
+bin_litend returns [ret]: BIN_LITEND {$ret = self.serialize( int( $BIN_LITEND.text[1:-1], 2 ), 'little')};
+string     returns [ret]: STRING {$ret = self.serialize( $STRING.text[1:-1] )};
+negative_number returns [ret]: NEGATIVE_NUMBER {$ret = self.serialize( self.check_negative( int($NEGATIVE_NUMBER.text)), signed= True )};
+brk_literal returns [ret]: BRK {$ret = self.opcodes[self.BRK]};
+nop_literal returns [ret]: NOP {$ret = self.opcodes[self.NOP]};
+// Values <--
 
-goto_stmt: GOTO_KWD ( IDENTIFIER | ref_indirect ) ;
+// --> Literals
+LITEND: 'L'; // Little endianness, uppercase only to avoid confusion with the number 1
+HEX_BIGEND: '$' [0-9a-fA-F]+ ;
+HEX_LITEND: '$' [0-9a-fA-F]+ LITEND;
+BIN_BIGEND: '%' [01]+ ;
+BIN_LITEND: '%' [01]+ LITEND;
+DEC_BIGEND: [0-9]+ ;
+DEC_LITEND: [0-9]+ LITEND;
+NEGATIVE_NUMBER: '-'[0-9]+; // Intended for 1 byte, range [-128..-1]
+BRK: [bB][rR][kK] ; // equal to $00
+NOP: [nN][oO][pP] ; // equal to $EA
+STRING: '"' (ESC|.)+? '"';
+	fragment ESC : '\\"' | '\\\\' ;
+// Literals <--
 
-label: IDENTIFIER ':' ;
-value: literal | IDENTIFIER ;
-
-literal: HEX_BIGEND | HEX_LITEND | DECIMAL_NUMBER | BINARY_NUMBER | STRING | BRK | NOP ;
-hex_number: HEX_BIGEND | HEX_LITEND ;
-address: HEX_BIGEND ;
-
+// --> Keywords
 ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS] ;
 FILLER_KWD : [fF][iI][lL][lL][eE][rR] ;
 DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
 DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
 GOTO_KWD: [gG][oO][tT][oO] ;
-
-// literals:
-LITEND: 'L'; // Little endianness. 
-	// Possibly the only case sensitive token, to avoid confusion with the number 1
-HEX_BIGEND: '$' [0-9a-fA-F]+ ;
-HEX_LITEND: '$' [0-9a-fA-F]+ LITEND;
-	// TODO WIP maybe make hex_bigend a grammar rule and keep unified HEX_NUMBER as a token?
-DECIMAL_NUMBER: [0-9]+ LITEND?;
-BINARY_NUMBER: '%' [01]+ LITEND?;
-STRING: '"' .+? '"' ; // very basic definition of a string WIP
-BRK:  [bB][rR][kK] ; // equal to $00
-NOP:  [nN][oO][pP] ; // equal to $EA
-// NOP & BRK are both literals and statements
-
-// Undocumented NOPs: both read from zero page but discard the byte
-NOP3: [nN][oO][pP]'3' ; // equal to $04, NOP that takes 3 cycles and 2 bytes, zeropage
-NOP4: [nN][oO][pP]'4' ; // equal to $14, NOP that takes 4 cycles and 2 bytes, zeropage,X
+RETURN_KWD: [rR][eE][tT][uU][rR][nN]; // RTS
+RETINT_KWD: [rR][eE][tT][iI][nN][tT]; // RTI
+PUSH_KWD: [pP][uU][sS][hH] ;
+PULL_KWD: [pP][uU][lL][lL] ;
+FLAGS_KWD: [fF][lL][aA][gG][sS] ;
+NOP3: [nN][oO][pP]'3' ;
+NOP4: [nN][oO][pP]'4' ;
+// Keywords <--
 
 // --> Flags
-ZERO: [zZ][eE][rR][oO] ;
 CARRY: [cC][aA][rR][rR][yY] ;
 OVERFLOW: [oO][vV][eE][rR][fF][lL][oO][wW] ;
 INTERRUPT: [iI][nN][tT][eE][rR][rR][uU][pP][tT] ;
-POSITIVE: [pP][oO][sS][iI][tT][iI][vV][eE] ;
-NEGATIVE: [nN][eE][gG][aA][tT][iI][vV][eE] ;
 DECIMAL_MODE: [dD][eE][cC][iI][mM][aA][lL]' '[mM][oO][dD][eE] ;
 
-ENABLE_KWD: [eE][nN][aA][bB][lL][eE] ;
-DISABLE_KWD: [dD][iI][sS][aA][bB][lL][eE] ;
+ZERO: [zZ][eE][rR][oO] ;
+POSITIVE: [pP][oO][sS][iI][tT][iI][vV][eE] ;
+NEGATIVE: [nN][eE][gG][aA][tT][iI][vV][eE] ;
+
+ON_KWD: [oO][nN] ;
+OFF_KWD: [oO][fF][fF] ;
+NOT_KWD: [nN][oO][tT] ;
 // Flags <--
 
-REGISTER: [aA] | [xX] | [yY] ;
+A: [aA] ;
+X: [xX] ;
+Y: [yY] ;
 STACK: [sS][tT][aA][cC][kK] ;
 
-IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*; // the dot allows a dot-notation-like syntactic sugar
-
-WHITESPACE: [ \t]+ -> skip;
-
-EOL: '\r'? '\n';
+IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]* ; // The dot allows a dot-notation-like syntactic sugar
+WHITESPACE: [ \t]+ -> skip ;
+EOL: '\r'? '\n' ;

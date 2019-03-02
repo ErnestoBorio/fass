@@ -102,8 +102,8 @@ register returns [name]: reg=(A|X|Y) {$name = $reg.text.upper() };
 
 // --> References
 reference returns [ret]:
-	( ref_indexed_x  {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABS }
-	| ref_indexed_y  {adrs = $ref_indexed_y.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABS }
+	( ref_indexed_x  {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABSX }
+	| ref_indexed_y  {adrs = $ref_indexed_y.ret ; addressing = self.ZPY if len(adrs)==1 else self.ABSY }
 	| ref_indirect_x {adrs = self.check_zeropage( $ref_indirect_x.ret ) ; addressing = self.INDX }
 	| ref_indirect_y {adrs = self.check_zeropage( $ref_indirect_y.ret ) ; addressing = self.INDY }
 	) {$ret = ( addressing, adrs )};

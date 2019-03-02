@@ -15,6 +15,7 @@ class myParser( fassParser ):
 	# enum addressing modes:
 	IMP = 'IMP'; IMM = 'IMM'; ZP = 'ZP'; ZPX = 'ZPX'; ZPY = 'ZPY'; ABS = 'ABS'
 	ABSX = 'ABSX'; ABSY = 'ABSY'; IND = 'IND'; INDX = 'INDX'; INDY = 'INDY'
+	DIR = "DIR" # Not a real addressing mode, but means either ZP or ABS
 
 	# addressing mode names:
 	addressings = { IMP:'implied', IMM:'immediate', ZP:'zero page', ZPX:'zero page x-indexed', 
@@ -184,7 +185,7 @@ class myParser( fassParser ):
 	def load_store_op(self, operation: str, register: str, addressing: str, operand: bytes ):
 		if ( addressing == self.IMM ) and ( len( operand ) != 1 ):
 			raise fassException( f"Registers can only be assigned 1-byte literal values, `{operand}` given." )
-		elif addressing is None: # Special case for a direct reference
+		elif addressing == self.DIR:
 			addressing = self.ZP if len(operand)==1 else self.ABS
 		mnemonic = operation + register
 		try:

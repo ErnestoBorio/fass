@@ -83,7 +83,7 @@ return_stmt:
 assign_stmt:
 	( register '=' literal    {self.load_store_op( "LD", $register.name, self.IMM,           $literal.ret )}
 	| register '=' ref_name   {self.load_store_op( "LD", $register.name, $ref_name.ret[0],   $ref_name.ret[1] )}
-	| ref_direct '=' register {self.load_store_op( "ST", $register.name, None,               $ref_direct.ret )}
+	| ref_direct '=' register {self.load_store_op( "ST", $register.name, self.DIR,           $ref_direct.ret )}
 	| register '=' reference  {self.load_store_op( "LD", $register.name, $reference.ret[0],  $reference.ret[1] )}
 	| reference '=' register  {self.load_store_op( "ST", $register.name, $reference.ret[0],  $reference.ret[1] )}
 	);

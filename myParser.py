@@ -39,9 +39,11 @@ class myParser( fassParser ):
 		STA: { ZP:b'\x85', ZPX:b'\x95', ABS:b'\x8D', ABSX:b'\x9D', ABSY:b'\x99', INDX:b'\x81', INDY:b'\x91' },
 		STX: { ZP:b'\x86', ZPY:b'\x96', ABS:b'\x8E' },
 		STY: { ZP:b'\x84', ZPX:b'\x94', ABS:b'\x8C' },
+		ADC: { IMM:b'\x69', ZP:b'\x65', ZPX:b'\x75', ABS:b'\x6D', ABSX:b'\x7D', ABSY:b'\x79', INDX:b'\x61', INDY:b'\x71' },
+		SBC: { IMM:b'\xE9', ZP:b'\xE5', ZPX:b'\xF5', ABS:b'\xED', ABSX:b'\xFD', ABSY:b'\xF9', INDX:b'\xE1', INDY:b'\xF1' },
+		JMP: { ABS: b'\x4C', IND: b'\x6C' },
 		TAX: b'\xAA', TXA: b'\x8A', TAY: b'\xA8', TYA: b'\x98', TSX: b'\xBA', TXS: b'\x9A',
 		INX: b'\xE8', INY: b'\xC8', DEX: b'\xCA', DEY: b'\x88',
-		JMP: { ABS: b'\x4C', IND: b'\x6C' },
 		CLV: b'\xB8', CLC: b'\x18', SEC: b'\x38', CLI: b'\x58', SEI: b'\x78', CLD: b'\xD8', SED: b'\xF8',
 		NOP: b'\xEA', NOP3: b'\x04', NOP4: b'\x14',
 		BRK: b'\x00', RTS: b'\x60', RTI: b'\x40'
@@ -193,5 +195,29 @@ class myParser( fassParser ):
 		except KeyError:
 			raise fassException( f"Addressing mode {self.addressings[addressing]} is not available for generated instruction {mnemonic}." )
 		self.append_output( opcode + operand )
+
+	# A +=|-= literal -> ADC|SBC Immediate. X|Y +=|-= 1 -> INX, INY, DEX, DEY
+	def arith_reg_lit(self, register: str, op: str, literal: bytes ):
+		if register == "a":
+			if len(literal) != 1:
+				raise fassException(f"Only a 1 byte value can be %s register A, {literal} given."%
+					( "added to" if op == "+=" else "subtracted from" ))
+			mnemonic = "ADC" if op=="+=" else "SBC"
+			opcode = self.opcodes[ mnemonic][ self.IMM]
+			self.append_output( opcode + literal )
+		elif register in ["x","y"]:
+			if literal != b'\x01':
+				raise fassException(f"Only the value 1 can be %s register {register.upper()}, {literal} given."%
+					( "added to" if op == "+=" else "subtracted from" ))
+			oper = "IN" if op=="+=" else "DE"
+			mnemonic = oper + register.upper()
+			self.append_output( self.opcodes[ mnemonic])
+		# else: what register is it?
+		pass
+
+# ( register  op=('+='|'-=') literal   {self.arith_reg_lit( $register.text.lower(), $op.text, $literal.ret ) } // ADC|SBC IMM, INX, INY, DEX, DEY
+# | reference op=('+='|'-=') literal   {self.arith_ref_lit( $reference.ret, $op.text, $literal.ret ) } // INC, DEC
+# | A op=('+='|'-=') ref=reference     {self.arith_reg_ref( $A.text.lower(), $op.text, $ref.ret ) } // ADC|SBC ref
+# | A op=('+='|'-=') ref=ref_direct    {self.arith_reg_ref( $A.text.lower(), $op.text, ( self.DIR, $ref.ret )) } // ADC|SBC ref
 
 # Statements <--

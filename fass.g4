@@ -16,6 +16,7 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| return_stmt
+	| arithmetic_stmt
 	| assign_stmt
 	| label statement?
 	;
@@ -87,6 +88,14 @@ assign_stmt:
 	| register '=' reference  {self.load_store_op( "LD", $register.name, $reference.ret[0],  $reference.ret[1] )}
 	| reference '=' register  {self.load_store_op( "ST", $register.name, $reference.ret[0],  $reference.ret[1] )}
 	);
+
+arithmetic_stmt:
+	( register  op=('+='|'-=') literal {self.arith_reg_lit( $register.text.lower(), $op.text, $literal.ret ) } // ADC|SBC IMM, INX, INY, DEX, DEY
+	| reference op=('+='|'-=') literal {self.arith_ref_lit( $reference.ret, $op.text, $literal.ret ) } // INC, DEC
+	| A op=('+='|'-=') ref=reference   {self.arith_reg_ref( 'a', $op.text, $ref.ret ) } // ADC|SBC ref
+	| A op=('+='|'-=') refd=ref_direct {self.arith_reg_ref( 'a', $op.text, ( self.DIR, $refd.ret )) } // ADC|SBC ref
+	);
+
 // Statements <--
 
 // --> References

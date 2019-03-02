@@ -16,7 +16,6 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| return_stmt
-	// | increment_stmt // WIP TODO This will have to be merged with ADC and SBC
 	| assign_stmt
 	| label statement?
 	;
@@ -80,15 +79,6 @@ return_stmt:
 	( RETURN_KWD {self.append_output( self.opcodes[ self.RTS ])}
 	| RETINT_KWD {self.append_output( self.opcodes[ self.RTI ])} );
 
-// WIP TODO These will have to be merged with ADC and SBC:
-// increment_stmt locals [opcode]:
-// 	( X '+=' '1' {opcode = self.opcodes[ self.INX ]}
-// 	| Y '+=' '1' {opcode = self.opcodes[ self.INY ]}
-// 	| X '-=' '1' {opcode = self.opcodes[ self.DEX ]}
-// 	| Y '-=' '1' {opcode = self.opcodes[ self.DEY ]}
-// 	) {self.append_output( opcode )} ;
-
-
 //                            self.load_store_op( mnem, register,       addressing,         operand )
 assign_stmt:
 	( register '=' literal    {self.load_store_op( "LD", $register.name, self.IMM,           $literal.ret )}
@@ -97,16 +87,17 @@ assign_stmt:
 	| register '=' reference  {self.load_store_op( "LD", $register.name, $reference.ret[0],  $reference.ret[1] )}
 	| reference '=' register  {self.load_store_op( "ST", $register.name, $reference.ret[0],  $reference.ret[1] )}
 	);
-register returns [name]: reg=(A|X|Y) {$name = $reg.text.upper() };
 // Statements <--
 
 // --> References
 reference returns [ret]:
-	( ref_indexed_x  {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABSX }
-	| ref_indexed_y  {adrs = $ref_indexed_y.ret ; addressing = self.ZPY if len(adrs)==1 else self.ABSY }
-	| ref_indirect_x {adrs = self.check_zeropage( $ref_indirect_x.ret ) ; addressing = self.INDX }
-	| ref_indirect_y {adrs = self.check_zeropage( $ref_indirect_y.ret ) ; addressing = self.INDY }
+	( ref_indexed_x  {addressing = self.ZPX if len(adrs)==1 else self.ABSX  ;  adrs = $ref_indexed_x.ret }
+	| ref_indexed_y  {addressing = self.ZPY if len(adrs)==1 else self.ABSY  ;  adrs = $ref_indexed_y.ret }
+	| ref_indirect_x {addressing = self.INDX  ;  adrs = self.check_zeropage( $ref_indirect_x.ret ) }
+	| ref_indirect_y {addressing = self.INDY  ;  adrs = self.check_zeropage( $ref_indirect_y.ret ) }
 	) {$ret = ( addressing, adrs )};
+
+register returns [name]: reg=(A|X|Y) {$name = $reg.text.upper() };
 
 ref_indexed_x returns [ret]: IDENTIFIER '[' X ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
 ref_indexed_y returns [ret]: IDENTIFIER '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};

@@ -50,7 +50,7 @@ class myParser( fassParser ):
 		super().__init__(input, output)
 		self.address = None # current address where next byte will be output
 		self.offset = 0 # count of bytes output so far
-		self.filler = self.__class__.default_filler # filler for address gaps
+		self.filler = self.default_filler # filler for address gaps
 		self.output = bytearray() # 6502 machine code bytes
 		self.constants = {} # dict<str: bytes> of defined constants
 		self.labels = {} # dict<str: bytes> of defined labels
@@ -105,7 +105,7 @@ class myParser( fassParser ):
 					from None
 		return ( addressing, operand )
 	
-	def get_label(self, label: str ) -> tuple:
+	def get_label(self, label: str ) -> bytes:
 		try:
 			address = self.labels[ label]
 		except KeyError:

@@ -100,8 +100,8 @@ arithmetic_stmt:
 
 // --> References
 reference returns [ret]:
-	( ref_indexed_x  {addressing = self.ZPX if len(adrs)==1 else self.ABSX  ;  adrs = $ref_indexed_x.ret }
-	| ref_indexed_y  {addressing = self.ZPY if len(adrs)==1 else self.ABSY  ;  adrs = $ref_indexed_y.ret }
+	( ref_indexed_x  {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABSX }
+	| ref_indexed_y  {adrs = $ref_indexed_y.ret ; addressing = self.ZPY if len(adrs)==1 else self.ABSY }
 	| ref_indirect_x {addressing = self.INDX  ;  adrs = self.check_zeropage( $ref_indirect_x.ret ) }
 	| ref_indirect_y {addressing = self.INDY  ;  adrs = self.check_zeropage( $ref_indirect_y.ret ) }
 	) {$ret = ( addressing, adrs )};

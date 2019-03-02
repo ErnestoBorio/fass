@@ -41,6 +41,8 @@ class myParser( fassParser ):
 		STY: { ZP:b'\x84', ZPX:b'\x94', ABS:b'\x8C' },
 		ADC: { IMM:b'\x69', ZP:b'\x65', ZPX:b'\x75', ABS:b'\x6D', ABSX:b'\x7D', ABSY:b'\x79', INDX:b'\x61', INDY:b'\x71' },
 		SBC: { IMM:b'\xE9', ZP:b'\xE5', ZPX:b'\xF5', ABS:b'\xED', ABSX:b'\xFD', ABSY:b'\xF9', INDX:b'\xE1', INDY:b'\xF1' },
+		INC: { ZP:b'\xE6', ZPX:b'\xF6', ABS:b'\xEE', ABSX:b'\xFE' },
+		DEC: { ZP:b'\xC6', ZPX:b'\xD6', ABS:b'\xCE', ABSX:b'\xDE' },
 		JMP: { ABS: b'\x4C', IND: b'\x6C' },
 		TAX: b'\xAA', TXA: b'\x8A', TAY: b'\xA8', TYA: b'\x98', TSX: b'\xBA', TXS: b'\x9A',
 		INX: b'\xE8', INY: b'\xC8', DEX: b'\xCA', DEY: b'\x88',
@@ -135,6 +137,14 @@ class myParser( fassParser ):
 		else:
 			raise fassException(f"Expected values {whitelist}, but {value} given.")
 
+	def get_opcode(self, mnemonic: str, addressing: str ) -> bytes:
+		try:
+			opcode = self.opcodes[ mnemonic][ addressing]
+		except KeyError:
+			raise fassException( f"Addressing mode {self.addressings[addressing]} is not available for generated instruction {mnemonic}." )\
+				from None
+		return opcode
+
 # Utility functions <--
 
 # --> Statements
@@ -190,13 +200,10 @@ class myParser( fassParser ):
 		elif addressing == self.DIR:
 			addressing = self.ZP if len(operand)==1 else self.ABS
 		mnemonic = operation + register
-		try:
-			opcode = self.opcodes[ mnemonic][ addressing]
-		except KeyError:
-			raise fassException( f"Addressing mode {self.addressings[addressing]} is not available for generated instruction {mnemonic}." )
-		self.append_output( opcode + operand )
+		opcode = self.get_opcode( mnemonic, addressing)
+		self.append_output( opcode + operand)
 
-	# A +=|-= literal -> ADC|SBC Immediate. X|Y +=|-= 1 -> INX, INY, DEX, DEY
+	# A +=|-= literal --> ADC|SBC Immediate.  X|Y +=|-= 1 --> INX, INY, DEX, DEY
 	def arith_reg_lit(self, register: str, op: str, literal: bytes ):
 		if register == "a":
 			if len(literal) != 1:
@@ -213,7 +220,19 @@ class myParser( fassParser ):
 			mnemonic = oper + register.upper()
 			self.append_output( self.opcodes[ mnemonic])
 		# else: what register is it?
-		pass
+	
+	# ref +=|-= 1 --> INC, DEC
+	def arith_ref_lit(self, reference: tuple, op: str, literal: bytes ):
+		if literal != b'\x01':
+			raise fassException(f"Only the value 1 can be %s memory, {literal} given."%
+				( "added to" if op == "+=" else "subtracted from" ))
+		address = reference[1]
+		addressing = reference[0]
+		if addressing == self.DIR:
+			addressing = self.ZP if len(address)==1 else self.ABS
+		mnemonic = "INC" if op=='+=' else "DEC"
+		opcode = self.get_opcode( mnemonic, addressing)
+		self.append_output( opcode + address)
 
 # ( register  op=('+='|'-=') literal   {self.arith_reg_lit( $register.text.lower(), $op.text, $literal.ret ) } // ADC|SBC IMM, INX, INY, DEX, DEY
 # | reference op=('+='|'-=') literal   {self.arith_ref_lit( $reference.ret, $op.text, $literal.ret ) } // INC, DEC

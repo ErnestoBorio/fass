@@ -90,10 +90,11 @@ assign_stmt:
 	);
 
 arithmetic_stmt:
-	( register  op=('+='|'-=') literal {self.arith_reg_lit( $register.text.lower(), $op.text, $literal.ret ) } // ADC|SBC IMM, INX, INY, DEX, DEY
-	| reference op=('+='|'-=') literal {self.arith_ref_lit( $reference.ret, $op.text, $literal.ret ) } // INC, DEC
-	| A op=('+='|'-=') ref=reference   {self.arith_reg_ref( 'a', $op.text, $ref.ret ) } // ADC|SBC ref
-	| A op=('+='|'-=') refd=ref_direct {self.arith_reg_ref( 'a', $op.text, ( self.DIR, $refd.ret )) } // ADC|SBC ref
+	( register  op=('+='|'-=') literal  {self.arith_reg_lit( $register.text.lower(), $op.text, $literal.ret ) } // ADC|SBC IMM, INX, INY, DEX, DEY
+	| reference op=('+='|'-=') literal  {self.arith_ref_lit( $reference.ret, $op.text, $literal.ret ) } // INC, DEC
+	| ref_direct op=('+='|'-=') literal {self.arith_ref_lit(( self.DIR, $ref_direct.ret ), $op.text, $literal.ret ) } // INC, DEC
+	| A op=('+='|'-=') ref=reference    {self.arith_reg_ref( 'a', $op.text, $ref.ret ) } // ADC|SBC ref
+	| A op=('+='|'-=') refd=ref_direct  {self.arith_reg_ref( 'a', $op.text, ( self.DIR, $refd.ret )) } // ADC|SBC ref
 	);
 
 // Statements <--

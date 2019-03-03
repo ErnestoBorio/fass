@@ -41,10 +41,7 @@ const_stmt: CONST_KWD left_const=IDENTIFIER '='
 	( literal {self.declare_constant(name= $left_const.text.lower(), value= $literal.ret)}
 	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text.lower(), value= self.get_constant( $right_const.text ))}
 	);
-data_stmt: 
-	DATA_KWD 
-		( value {self.append_output( $value.ret )} ) // WIP TODO if data() should do additional checking, review this action
-		( ',' datas+= value )* {self.data( $datas )};
+data_stmt: DATA_KWD ( datas+= value )+ {self.data( $datas )};
 
 nop_brk_stmt:
 	  BRK  {self.append_output( self.opcodes[self.BRK]  )}

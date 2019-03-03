@@ -5,6 +5,7 @@ from fassLexer import fassLexer
 from fassParser import fassParser
 from fassErrorListener import fassErrorListener
 from myParser import myParser
+from petruza.misc import nicehex
 
 def main(argv):
 	if len(argv) <= 1:
@@ -19,7 +20,7 @@ def main(argv):
 	parser = myParser( tokenStream)
 	parser.addErrorListener( fassErrorListener())
 	parser.program()
-	print( "compiled: ", parser.get_output() ) # WIP TODO Debug only
+	print( "compiled: ", nicehex( parser.get_output(), '.' )) # WIP TODO Debug only
 	# listener = myListener()
 	# ParseTreeWalker().walk( listener, parser )
 

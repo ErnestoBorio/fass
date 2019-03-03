@@ -233,10 +233,15 @@ class myParser( fassParser ):
 		mnemonic = "INC" if op=='+=' else "DEC"
 		opcode = self.get_opcode( mnemonic, addressing)
 		self.append_output( opcode + address)
-
-# ( register  op=('+='|'-=') literal   {self.arith_reg_lit( $register.text.lower(), $op.text, $literal.ret ) } // ADC|SBC IMM, INX, INY, DEX, DEY
-# | reference op=('+='|'-=') literal   {self.arith_ref_lit( $reference.ret, $op.text, $literal.ret ) } // INC, DEC
-# | A op=('+='|'-=') ref=reference     {self.arith_reg_ref( $A.text.lower(), $op.text, $ref.ret ) } // ADC|SBC ref
-# | A op=('+='|'-=') ref=ref_direct    {self.arith_reg_ref( $A.text.lower(), $op.text, ( self.DIR, $ref.ret )) } // ADC|SBC ref
+	
+	# A += label[X] --> ADC|SBC reference|ref_direct
+	def arith_reg_ref(self, op: str, reference: tuple ):
+		address = reference[1]
+		addressing = reference[0]
+		if addressing == self.DIR:
+			addressing = self.ZP if len(address)==1 else self.ABS
+		mnemonic = "ADC" if op=='+=' else "SBC"
+		opcode = self.get_opcode( mnemonic, addressing)
+		self.append_output( opcode + address)
 
 # Statements <--

@@ -16,8 +16,8 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| return_stmt
-	| arithmetic_stmt
 	| assign_stmt
+	| arithmetic_stmt
 	| label statement?
 	;
 
@@ -77,7 +77,7 @@ return_stmt:
 	( RETURN_KWD {self.append_output( self.opcodes[ self.RTS ])}
 	| RETINT_KWD {self.append_output( self.opcodes[ self.RTI ])} );
 
-//                            self.load_store_op( mnem, register,       addressing,         operand )
+//                             self.load_store_op( mnem, register,       addressing,         operand )
 assign_stmt:
 	( register '=' literal    {self.load_store_op( "LD", $register.name, self.IMM,           $literal.ret )}
 	| register '=' ref_name   {self.load_store_op( "LD", $register.name, $ref_name.ret[0],   $ref_name.ret[1] )}

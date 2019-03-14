@@ -13,14 +13,14 @@ class myParser( fassParser ):
 	default_filler = b'\xEA' # default filler for address gaps ($EA = NOP)
 
 	# enum addressing modes:
-	IMP = 'IMP'; IMM = 'IMM'; ZP = 'ZP'; ZPX = 'ZPX'; ZPY = 'ZPY'; ABS = 'ABS'
-	ABSX = 'ABSX'; ABSY = 'ABSY'; IND = 'IND'; INDX = 'INDX'; INDY = 'INDY'
+	IMP = 'IMP'; ACC = 'ACC'; IMM = 'IMM'; ZP = 'ZP'; ZPX = 'ZPX'; ZPY = 'ZPY'
+	ABS = 'ABS'; ABSX = 'ABSX'; ABSY = 'ABSY'; IND = 'IND'; INDX = 'INDX'; INDY = 'INDY'
 	DIR = "DIR" # Not a real addressing mode, but means either ZP or ABS
 
 	# addressing mode names:
-	addressings = { IMP:'implied', IMM:'immediate', ZP:'zero page', ZPX:'zero page x-indexed', 
-		ZPY:'zero page y-indexed', ABS:'absolute', ABSX:'absolute x-indexed', ABSY:'absolute y-indexed', 
-		IND:'indirect', INDX:'x-indexed indirect', INDY:'indirect y-indexed' }
+	addressings = { IMP:'implied', ACC:'accumulator', IMM:'immediate', ZP:'zero page',
+		ZPX:'zero page x-indexed', ZPY:'zero page y-indexed', ABS:'absolute', ABSX:'absolute x-indexed', 
+		ABSY:'absolute y-indexed', IND:'indirect', INDX:'x-indexed indirect', INDY:'indirect y-indexed' }
 	
 	# enum operations:
 	ADC = 'ADC'; AND = 'AND'; ASL = 'ASL'; BCC = 'BCC'; BCS = 'BCS'; BEQ = 'BEQ'; BIT = 'BIT'; BMI = 'BMI'

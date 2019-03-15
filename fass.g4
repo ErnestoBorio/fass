@@ -10,9 +10,9 @@ statement:
 	  address_stmt
 	| remote_label_stmt
 	| filler_stmt
+	| nop_brk_stmt
 	// | const_stmt
 	// | data_stmt
-	// | nop_brk_stmt
 	// | flag_set_stmt
 	// | stack_stmt
 	// | return_stmt
@@ -31,6 +31,12 @@ remote_label_stmt: IDENTIFIER 'at' address;
 filler_stmt: 
 	  FILLER_KWD filler_byte # filler_value 
 	| FILLER_KWD DEFAULT_KWD # filler_default;
+
+nop_brk_stmt:
+	  mnemonic=NOP 
+	| mnemonic=BRK  value?
+	| mnemonic=NOP3 value?
+	| mnemonic=NOP4 value?;
 // Statements <--
 
 label: IDENTIFIER ':';

@@ -1,5 +1,7 @@
 
-class fassException( Exception) :
+from math import ceil
+
+class FassException( Exception) :
 	pass
 
 class Fass():
@@ -52,6 +54,7 @@ class Fass():
 		self.labels = {}
 		self.constants = {}
 
+# --> Utility functions
 	def get_output(self) -> bytearray:
 		return self.output
 	
@@ -60,24 +63,41 @@ class Fass():
 		if name in self.constants or name in self.labels:
 			return False
 		return True
+	
+	def assert_8bits(self, value):
+		try: # it's a scalar?
+			bits = value.bit_length()
+		except AttributeError: # no, it must be a string
+			bits = len(value) * 8
+		if bits > 8:
+			raise FassException(f"An 8 bit value was expected, but `{value}` was given.")
+		return value
+
+	def serialize(self, value, endian: str = 'big', signed: bool = False ) -> bytes:
+		try: # it's a scalar?
+			return value.to_bytes( ceil( value.bit_length()/8 ), byteorder= endian, signed= signed)
+		except AttributeError: # no, it must be a string
+			return bytes(value, 'ascii')
 
 	def append_output( self, output: bytes ):
 		''' Append bytes to the program output '''
 		if self.address is None:
-			raise fassException("Output started without setting an address first.")
+			raise FassException("Output started without setting an address first.")
 		self.output += output
 		self.address += len(output)
+# Utility functions <--
 
+# --> Statements
 	def set_address(self, new_address: int):
 		''' set current address for producing next output byte '''
 		if new_address > 0xFFFF:
-			raise fassException( f"Address should be between 0 and $FFFF, `{new_address}` given.")
+			raise FassException( f"Address should be between 0 and $FFFF, `{new_address}` given.")
 		
 		if self.address is not None:
 			if new_address < self.address: # new address can't overlap current address
 				hex_cur_address = hex(self.address)[2:].upper()
 				hex_new_address = hex(new_address)[2:].upper()
-				raise fassException(f"Address ${hex_new_address} should be greater or equal to current address ${hex_cur_address}.")
+				raise FassException(f"Address ${hex_new_address} should be greater or equal to current address ${hex_cur_address}.")
 			elif new_address > self.address: # got to fill the gap
 				gap = new_address - self.address
 				self.append_output(self.filler * gap)
@@ -88,20 +108,53 @@ class Fass():
 	def set_label(self, label: str, address: int ):
 		''' Declare a label, whether it points to the current or a remote address '''
 		if not self.check_name(label):
-			raise fassException(f"Name `{label}` already declared.")
+			raise FassException(f"Name `{label}` already declared.")
 		if address is None:
 			address = self.address
 		elif address > 0xFFFF:
-			raise fassException(f"Address {address} is outside the 64KB range 0..$FFFF")
+			raise FassException(f"Address {address} is outside the 64KB range 0..$FFFF")
 		self.labels[label] = address
 	
 	def set_filler(self, filler):
 		if filler is None:
 			filler = self.default_filler
-		try: # is it a scalar value?
+		original_filler = filler
+		try: # is it an 8 bit scalar value?
 			filler = bytes([filler])
 		except TypeError: # no, it's a string
-			if len(filler) != 1:
-				raise fassException(f"The filler value must be a single byte, `{filler}` given.") from None
 			filler = bytes(filler, 'ascii')
+		except ValueError:
+			filler = '' # it's longer than 8 bits, force following `if` to fail
+		if len(filler) != 1:
+			raise FassException(f"The filler value must be a single byte, `{original_filler}` given.")
 		self.filler = filler
+	
+	def set_constant(self, name: str, value):
+		original_name = name
+		name = name.lower()
+		if self.check_name(name):
+			self.constants[name] = value
+		else:
+			raise FassException(f"Name `{original_name}` has already been defined.")
+
+	def get_constant(self, name: str):
+		try:
+			return self.constants[name]
+		except KeyError:
+			raise FassException(f"Constant `{name}` hasn't been defined.") from None
+
+
+	def operation(self, mnemonic: str, addressing: str, operand: bytes):
+		opcode = self.opcodes[mnemonic] # operations with a single implied addressing mode
+		try:
+			if addressing:
+				opcode = op[addressing] # operations with proper addressing modes
+		except KeyError:
+			raise FassException(f"Addressing mode `{self.addressings[addressing]}` "+
+				f"is not available for generated instruction {mnemonic}.") from None
+		else:
+			output = bytearray(opcode)
+			if operand:
+				output += operand # TODO WIP I think caller rules should check operand length, right?
+		self.append_output(output)
+# Statements <--

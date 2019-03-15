@@ -36,9 +36,26 @@ class myListener(fassListener):
 
 	def exitFiller_byte(self, ctx:fassParser.Filler_byteContext):
 		ctx.val = ctx.children[0].val
-		
+
+# NOP BRK
+	def exitNop_brk_stmt(self, ctx:fassParser.Nop_brk_stmtContext):
+		if len(ctx.children)>1:
+			operand = ctx.children[1].val
+			operand = self.fass.serialize( self.fass.assert_8bits(operand))
+		else:
+			operand = None
+		self.fass.operation(ctx.mnemonic.text.upper(), None, operand)
 
 # --> Values
+	def exitValue(self, ctx:fassParser.ValueContext):
+		ctx.val = ctx.children[0].val # passthrough the specific value to calling rule
+
+	def exitLiteral(self, ctx:fassParser.LiteralContext):
+		ctx.val = ctx.children[0].val # passthrough the specific value to calling rule
+
+	def exitConstant(self, ctx:fassParser.ConstantContext):
+		ctx.val = self.fass.get_constant(ctx.IDENTIFIER().symbol.text.lower())
+
 	def exitHex_bigend(self, ctx:fassParser.Hex_bigendContext):
 		ctx.val = int( ctx.HEX_BIGEND().symbol.text[1:], 16 )
 

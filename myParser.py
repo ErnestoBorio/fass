@@ -80,7 +80,7 @@ class myParser( fassParser ):
 		try: # int?
 			return value.to_bytes( ceil( value.bit_length()/8 ), byteorder= endian, signed= signed)
 		except AttributeError: # string
-			return bytes( bytes(value, 'ascii').decode('unicode_escape'), 'ascii')
+			return bytes(value, 'ascii')
 			# Serialized string with \" and \\ unescaped
 
 	def get_constant(self, name: str ) -> bytes:

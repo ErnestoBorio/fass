@@ -8,122 +8,62 @@ program:
 // --> Statements
 statement:
 	  address_stmt
-	| filler_stmt
-	| const_stmt
-	| data_stmt
-	| nop_brk_stmt
 	| remote_label_stmt
-	| flag_set_stmt
-	| stack_stmt
-	| return_stmt
-	| assign_stmt
-	| arithmetic_stmt
+	| filler_stmt
+	// | const_stmt
+	// | data_stmt
+	// | nop_brk_stmt
+	// | flag_set_stmt
+	// | stack_stmt
+	// | return_stmt
+	// | assign_stmt
+	// | arithmetic_stmt
 	| label statement?
 	;
 
-address_stmt: ADDRESS_KWD
-	( HEX_BIGEND {self.set_address( int( $HEX_BIGEND.text[1:], 16 ))}
-	| DEC_BIGEND {self.set_address( int( $DEC_BIGEND.text ))} );
+address: 
+	  hex_bigend # address_hex
+	| dec_bigend # address_dec;
+address_stmt: ADDRESS_KWD address;
 
-filler_stmt: FILLER_KWD (
-	  fb=filler_byte {self.set_filler( $fb.ret )}
-	| DEFAULT_KWD    {self.set_filler( self.default_filler )}
-	);
+remote_label_stmt: IDENTIFIER 'at' address;
 
-	filler_byte returns [ret]: (
-		  hex_bigend
-		| dec_bigend
-		| bin_bigend
-		| string
-		) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule filler_stmt
-
-const_stmt: CONST_KWD left_const=IDENTIFIER '='
-	( literal {self.declare_constant(name= $left_const.text.lower(), value= $literal.ret)}
-	| right_const= IDENTIFIER {self.declare_constant(name= $left_const.text.lower(), value= self.get_constant( $right_const.text ))}
-	);
-data_stmt: DATA_KWD ( datas+= value )+ {self.data( $datas )};
-
-nop_brk_stmt:
-	  BRK  {self.append_output( self.opcodes[self.BRK]  )}
-	| NOP  {self.append_output( self.opcodes[self.NOP]  )}
-	| NOP3 {self.append_output( self.opcodes[self.NOP3] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
-	| NOP4 {self.append_output( self.opcodes[self.NOP4] )} ( value {self.append_output( self.check_length( $value.ret, 1 ))} )?
-	; // NOP3 and NOP4 are illegal instructions that waste 3 and 4 cycles respectively, used for timing
-
-remote_label_stmt: IDENTIFIER 'at' the_address {self.set_label( $IDENTIFIER.text.lower(), $the_address.ret )};
-label: IDENTIFIER ':' {self.set_label( $IDENTIFIER.text.lower() )};
-
-flag_set_stmt locals [opcode]:
-	( OVERFLOW '=' DEC_BIGEND {self.check_value_in( int($DEC_BIGEND.text), [0]) ; opcode = self.opcodes['CLV']}
-	| CARRY '=' DEC_BIGEND
-		{self.check_value_in( int($DEC_BIGEND.text), [0,1]) }
-		{opcode = self.opcodes['SEC'] if $DEC_BIGEND.text == '1' else self.opcodes['CLC'] }
-	| INTERRUPT
-		( ON_KWD  {opcode = self.opcodes['CLI']}
-		| OFF_KWD {opcode = self.opcodes['SEI']} )
-	| DECIMAL_MODE
-		( ON_KWD  {opcode = self.opcodes['SED']}
-		| OFF_KWD {opcode = self.opcodes['CLD']} )
-	) {self.append_output( opcode )} ;
-
-stack_stmt locals [opcode]:
-	( A '=' PULL_KWD {opcode = self.opcodes[ self.PLA ]}
-	| PUSH_KWD A     {opcode = self.opcodes[ self.PHA ]}
-	| FLAGS_KWD '=' PULL_KWD {opcode = self.opcodes[ self.PLP ]}
-	| PUSH_KWD FLAGS_KWD {opcode = self.opcodes[ self.PHP ]}
-	) {self.append_output( opcode )} ;
-
-return_stmt:
-	( RETURN_KWD {self.append_output( self.opcodes[ self.RTS ])}
-	| RETINT_KWD {self.append_output( self.opcodes[ self.RTI ])} );
-
-//                             self.load_store_op( mnem, register,       addressing,         operand )
-assign_stmt:
-	( register '=' literal    {self.load_store_op( "LD", $register.name, self.IMM,           $literal.ret )}
-	| register '=' ref_name   {self.load_store_op( "LD", $register.name, $ref_name.ret[0],   $ref_name.ret[1] )}
-	| ref_direct '=' register {self.load_store_op( "ST", $register.name, self.DIR,           $ref_direct.ret )}
-	| register '=' reference  {self.load_store_op( "LD", $register.name, $reference.ret[0],  $reference.ret[1] )}
-	| reference '=' register  {self.load_store_op( "ST", $register.name, $reference.ret[0],  $reference.ret[1] )}
-	);
-
-arithmetic_stmt:
-	( register  op=('+='|'-=') literal  {self.arith_reg_lit( $register.text.lower(), $op.text, $literal.ret ) } // ADC|SBC IMM, INX, INY, DEX, DEY
-	| reference op=('+='|'-=') literal  {self.arith_ref_lit( $reference.ret, $op.text, $literal.ret ) } // INC, DEC
-	| ref_direct op=('+='|'-=') literal {self.arith_ref_lit(( self.DIR, $ref_direct.ret ), $op.text, $literal.ret ) } // INC, DEC
-	| A op=('+='|'-=') ref=reference    {self.arith_reg_ref( $op.text, $ref.ret ) } // ADC|SBC ref
-	| A op=('+='|'-=') refd=ref_direct  {self.arith_reg_ref( $op.text, ( self.DIR, $refd.ret )) } // ADC|SBC ref
-	);
-
+filler_stmt: 
+	  FILLER_KWD filler_byte # filler_value 
+	| FILLER_KWD DEFAULT_KWD # filler_default;
 // Statements <--
 
+label: IDENTIFIER ':';
+
 // --> References
-reference returns [ret]:
-	( ref_indexed_x  {adrs = $ref_indexed_x.ret ; addressing = self.ZPX if len(adrs)==1 else self.ABSX }
-	| ref_indexed_y  {adrs = $ref_indexed_y.ret ; addressing = self.ZPY if len(adrs)==1 else self.ABSY }
-	| ref_indirect_x {addressing = self.INDX  ;  adrs = self.check_zeropage( $ref_indirect_x.ret ) }
-	| ref_indirect_y {addressing = self.INDY  ;  adrs = self.check_zeropage( $ref_indirect_y.ret ) }
-	) {$ret = ( addressing, adrs )};
+reference:
+	  name
+	| index_x
+	| index_y
+	| indir_x
+	| indir_y
+	;
 
-register returns [name]: reg=(A|X|Y) {$name = $reg.text.upper() };
+register: reg=(A|X|Y);
 
-ref_indexed_x returns [ret]: IDENTIFIER '[' X ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
-ref_indexed_y returns [ret]: IDENTIFIER '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
-ref_indirect_x returns [ret]: '(' IDENTIFIER '[' X ']' ')' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
-ref_indirect_y returns [ret]: '(' IDENTIFIER ')' '[' Y ']' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
-
-// References not included in `reference` rule
-ref_name returns [ret]: IDENTIFIER {$ret = self.get_name( $IDENTIFIER.text.lower() )};
-ref_direct returns [ret]: IDENTIFIER {$ret = self.get_label( $IDENTIFIER.text.lower() )};
-ref_indirect returns [ret]: '(' IDENTIFIER ')' {$ret = self.get_label( $IDENTIFIER.text.lower() )};
+name: IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
+index_x: IDENTIFIER '[' X ']';
+index_y: IDENTIFIER '[' Y ']';
+indir_x: '(' IDENTIFIER '[' X ']' ')';
+indir_y: '(' IDENTIFIER ')' '[' Y ']';
+indirect: '(' IDENTIFIER ')'; // Not included in `reference` because only JMP uses it
 // References <--
 
 // --> Values
-value returns [ret]: 
-	  literal {$ret = $literal.ret}
-	| constant {$ret = $constant.ret}
+filler_byte:
+	  hex_bigend
+	| dec_bigend
+	| bin_bigend
+	| string
 	;
-constant returns [ret]: IDENTIFIER {$ret = self.get_constant( $IDENTIFIER.text.lower() )};
-literal returns [ret]: (
+value: literal | constant;
+constant: IDENTIFIER;
+literal:
 	  hex_bigend
 	| hex_litend
 	| dec_bigend
@@ -134,24 +74,18 @@ literal returns [ret]: (
 	| string
 	| brk_literal
 	| nop_literal
-	) {$ret = localctx.children[0].ret}; // pass through whatever value subrules return, to parent rule const_stmt
-
-// the_address: `the_` added to avoid conflict between myParser.address and fassParser.address()
-the_address returns [ret]: 
-	  hex_bigend {$ret = self.check_address( $hex_bigend.ret )}
-	| dec_bigend {$ret = self.check_address( $dec_bigend.ret )}
 	;
 
-hex_bigend returns [ret]: HEX_BIGEND {$ret = self.serialize( int( $HEX_BIGEND.text[1:], 16 ))};
-dec_bigend returns [ret]: DEC_BIGEND {$ret = self.serialize( int( $DEC_BIGEND.text ))};
-bin_bigend returns [ret]: BIN_BIGEND {$ret = self.serialize( int( $BIN_BIGEND.text[1:], 2 ))};
-hex_litend returns [ret]: HEX_LITEND {$ret = self.serialize( int( $HEX_LITEND.text[1:-1], 16 ), 'little')};
-dec_litend returns [ret]: DEC_LITEND {$ret = self.serialize( int( $DEC_LITEND.text[:-1] ), 'little')};
-bin_litend returns [ret]: BIN_LITEND {$ret = self.serialize( int( $BIN_LITEND.text[1:-1], 2 ), 'little')};
-string     returns [ret]: STRING {$ret = self.serialize( $STRING.text[1:-1] )};
-negative_number returns [ret]: NEGATIVE_NUMBER {$ret = self.serialize( self.check_negative( int($NEGATIVE_NUMBER.text)), signed= True )};
-brk_literal returns [ret]: BRK {$ret = self.opcodes[self.BRK]};
-nop_literal returns [ret]: NOP {$ret = self.opcodes[self.NOP]};
+hex_bigend: HEX_BIGEND;
+dec_bigend: DEC_BIGEND;
+bin_bigend: BIN_BIGEND;
+hex_litend: HEX_LITEND;
+dec_litend: DEC_LITEND;
+bin_litend: BIN_LITEND;
+brk_literal: BRK;
+nop_literal: NOP;
+string: STRING;
+negative_number: NEGATIVE_NUMBER;
 // Values <--
 
 // --> Literals

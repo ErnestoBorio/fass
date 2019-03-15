@@ -10,9 +10,9 @@ statement:
 	  address_stmt
 	| remote_label_stmt
 	| filler_stmt
-	| nop_brk_stmt
-	// | const_stmt
+	| const_stmt
 	// | data_stmt
+	| nop_brk_stmt
 	// | flag_set_stmt
 	// | stack_stmt
 	// | return_stmt
@@ -29,7 +29,7 @@ address_stmt: ADDRESS_KWD address;
 remote_label_stmt: IDENTIFIER 'at' address;
 
 filler_stmt: 
-	  FILLER_KWD filler_byte # filler_value 
+	  FILLER_KWD value # filler_value 
 	| FILLER_KWD DEFAULT_KWD # filler_default;
 
 nop_brk_stmt:
@@ -37,6 +37,8 @@ nop_brk_stmt:
 	| mnemonic=BRK  value?
 	| mnemonic=NOP3 value?
 	| mnemonic=NOP4 value?;
+
+const_stmt: CONST_KWD lhs=IDENTIFIER '=' value;
 // Statements <--
 
 label: IDENTIFIER ':';
@@ -61,12 +63,6 @@ indirect: '(' IDENTIFIER ')'; // Not included in `reference` because only JMP us
 // References <--
 
 // --> Values
-filler_byte:
-	  hex_bigend
-	| dec_bigend
-	| bin_bigend
-	| string
-	;
 value: literal | constant;
 constant: IDENTIFIER;
 literal:

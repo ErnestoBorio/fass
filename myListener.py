@@ -29,13 +29,10 @@ class myListener(fassListener):
 
 # Filler
 	def exitFiller_value(self, ctx:fassParser.Filler_valueContext):
-		self.fass.set_filler( ctx.filler_byte().val )
+		self.fass.set_filler( ctx.value().val )
 
 	def exitFiller_default(self, ctx:fassParser.Filler_defaultContext):
 		self.fass.set_filler(None)
-
-	def exitFiller_byte(self, ctx:fassParser.Filler_byteContext):
-		ctx.val = ctx.children[0].val
 
 # NOP BRK
 	def exitNop_brk_stmt(self, ctx:fassParser.Nop_brk_stmtContext):
@@ -45,6 +42,9 @@ class myListener(fassListener):
 		else:
 			operand = None
 		self.fass.operation(ctx.mnemonic.text.upper(), None, operand)
+# Const
+	def exitConst_stmt(self, ctx:fassParser.Const_stmtContext):
+		self.fass.set_constant(ctx.lhs.text.lower(), ctx.value().val)
 
 # --> Values
 	def exitValue(self, ctx:fassParser.ValueContext):

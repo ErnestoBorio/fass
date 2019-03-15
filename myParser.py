@@ -102,7 +102,7 @@ class myParser( fassParser ):
 			addressing = self.IMM
 		except KeyError: # name is not a defined constant
 			try: # name is a defined label?
-				addressing = None
+				addressing = self.DIR
 				operand = self.get_label( name)
 			except fassException: # name is not a defined label either
 				raise fassException(

@@ -15,7 +15,6 @@ class myParser( fassParser ):
 	# enum addressing modes:
 	IMP = 'IMP'; ACC = 'ACC'; IMM = 'IMM'; ZP = 'ZP'; ZPX = 'ZPX'; ZPY = 'ZPY'
 	ABS = 'ABS'; ABSX = 'ABSX'; ABSY = 'ABSY'; IND = 'IND'; INDX = 'INDX'; INDY = 'INDY'
-	DIR = "DIR" # Not a real addressing mode, but means either ZP or ABS
 
 	# addressing mode names:
 	addressings = { IMP:'implied', ACC:'accumulator', IMM:'immediate', ZP:'zero page',

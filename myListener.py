@@ -52,6 +52,10 @@ class myListener(fassListener):
 	def exitData_stmt(self, ctx:fassParser.Data_stmtContext):
 		self.fass.data(ctx.datas)
 
+# Flags
+	def exitFlag_set_stmt(self, ctx:fassParser.Flag_set_stmtContext):
+		self.fass.flag_set(ctx.flag.text.lower(), ctx.operand.text.lower())
+
 # Statements <--
 
 # --> Values

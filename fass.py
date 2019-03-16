@@ -164,6 +164,20 @@ class Fass():
 			output += self.serialize(data.val)
 		self.append_output(output)
 
+	def flag_set(self, flag: str, value: str):
+		if flag == 'carry':
+			opcode = self.SEC if value=='1' else self.CLC
+		elif flag == 'overflow':
+			if value == '0':
+				opcode = self.CLV
+			else:
+				raise FassException("The overflow flag can't be set to 1, only cleared (overflow = 0)")
+		elif flag == 'interrupt':
+			opcode = self.CLI if value=='on' else self.SEI
+		elif flag == 'decimal mode':
+			opcode = self.SED if value=='on' else self.CLD
+		self.append_output(self.opcodes[opcode])
+
 	def operation(self, mnemonic: str, addressing: str, operand: bytes):
 		opcode = self.opcodes[mnemonic] # operations with a single implied addressing mode
 		try:

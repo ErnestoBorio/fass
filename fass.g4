@@ -13,7 +13,7 @@ statement:
 	| const_stmt
 	| data_stmt
 	| nop_brk_stmt
-	// | flag_set_stmt
+	| flag_set_stmt
 	// | stack_stmt
 	// | return_stmt
 	// | assign_stmt
@@ -41,6 +41,12 @@ nop_brk_stmt:
 const_stmt: CONST_KWD lhs=IDENTIFIER '=' value;
 
 data_stmt: DATA_KWD ( datas+= value )+;
+
+flag_set_stmt:
+	  flag=( OVERFLOW | CARRY ) '=' operand=DEC_BIGEND
+	| flag=( INTERRUPT | DECIMAL_MODE ) operand=( ON_KWD | OFF_KWD )
+	;
+
 // Statements <--
 
 label: IDENTIFIER ':';

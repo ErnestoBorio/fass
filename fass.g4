@@ -15,7 +15,7 @@ statement:
 	| nop_brk_stmt
 	| flag_set_stmt
 	| stack_stmt
-	// | return_stmt
+	| return_stmt
 	// | assign_stmt
 	// | arithmetic_stmt
 	| label statement?
@@ -53,6 +53,10 @@ stack_stmt:
 	| reg=FLAGS_KWD '=' op=PULL_KWD
 	| op=PUSH_KWD reg=FLAGS_KWD
 	;
+
+return_stmt: 
+	  RETURN_KWD # Return
+	| RETINT_KWD # Retint;
 // Statements <--
 
 label: IDENTIFIER ':';

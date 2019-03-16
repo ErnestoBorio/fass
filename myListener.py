@@ -60,6 +60,14 @@ class myListener(fassListener):
 	def exitStack_stmt(self, ctx:fassParser.Stack_stmtContext):
 		self.fass.stack(ctx.op.text.lower(), ctx.reg.text.lower())
 
+#Return
+	def exitReturn(self, ctx:fassParser.ReturnContext):
+		self.fass.append_output(Fass.opcodes[Fass.RTS])
+
+	def exitRetint(self, ctx:fassParser.RetintContext):
+		self.fass.append_output(Fass.opcodes[Fass.RTI])
+
+
 # Statements <--
 
 # --> Values

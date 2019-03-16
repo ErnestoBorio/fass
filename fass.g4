@@ -14,7 +14,7 @@ statement:
 	| data_stmt
 	| nop_brk_stmt
 	| flag_set_stmt
-	// | stack_stmt
+	| stack_stmt
 	// | return_stmt
 	// | assign_stmt
 	// | arithmetic_stmt
@@ -47,6 +47,12 @@ flag_set_stmt:
 	| flag=( INTERRUPT | DECIMAL_MODE ) operand=( ON_KWD | OFF_KWD )
 	;
 
+stack_stmt:
+	  reg=A '=' op=PULL_KWD
+	| op=PUSH_KWD reg=A
+	| reg=FLAGS_KWD '=' op=PULL_KWD
+	| op=PUSH_KWD reg=FLAGS_KWD
+	;
 // Statements <--
 
 label: IDENTIFIER ':';

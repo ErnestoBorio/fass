@@ -41,7 +41,8 @@ class Fass():
 		INX: b'\xE8', INY: b'\xC8', DEX: b'\xCA', DEY: b'\x88',
 		CLV: b'\xB8', CLC: b'\x18', SEC: b'\x38', CLI: b'\x58', SEI: b'\x78', CLD: b'\xD8', SED: b'\xF8',
 		NOP: b'\xEA', NOP3: b'\x04', NOP4: b'\x14',
-		BRK: b'\x00', RTS: b'\x60', RTI: b'\x40'
+		BRK: b'\x00', RTS: b'\x60', RTI: b'\x40',
+		PHA: b'\x48', PLA: b'\x68', PHP: b'\x08', PLP: b'\x28'
 	}
 
 	default_filler = opcodes[NOP] # default filler for address gaps
@@ -177,6 +178,13 @@ class Fass():
 		elif flag == 'decimal mode':
 			opcode = self.SED if value=='on' else self.CLD
 		self.append_output(self.opcodes[opcode])
+	
+	def stack(self, operation: str, register: str):
+		if register == 'a':
+			mnemonic = self.PHA if operation=='push' else self.PLA
+		elif register == 'flags':
+			mnemonic = self.PHP if operation=='push' else self.PLP
+		self.append_output(self.opcodes[mnemonic])
 
 	def operation(self, mnemonic: str, addressing: str, operand: bytes):
 		opcode = self.opcodes[mnemonic] # operations with a single implied addressing mode

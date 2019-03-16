@@ -69,15 +69,30 @@ class Fass():
 			bits = value.bit_length()
 		except AttributeError: # no, it must be a string
 			bits = len(value) * 8
+		else:
+			if value < -128: # bit_length of (-129..-255) returns 8 for some reason
+				bits = 9 # workaround to force the exception
 		if bits > 8:
 			raise FassException(f"An 8 bit value was expected, but `{value}` was given.")
 		return value
+	
+	def assert_negative_8bits(self, value: int):
+		if -128 <= value <= -1:
+			return value
+		else:
+			raise FassException(f"A negative 8 bit value was expected (-128..-1), but {value} was given.")
 
 	def serialize(self, value, endian: str = 'big', signed: bool = False ) -> bytes:
 		try: # it's a scalar?
-			return value.to_bytes( ceil( value.bit_length()/8 ), byteorder= endian, signed= signed)
-		except AttributeError: # no, it must be a string
-			return bytes(value, 'ascii')
+			return value.to_bytes( max( 1, ceil( value.bit_length()/8 )), byteorder= endian, signed= signed)
+			# added max to ensure at least 1 byte or else a zero value would return b'' instead of b'\00'
+		except AttributeError:
+			if type(value) is bytes:
+				return value
+			elif type(value) is str:
+				return bytes(value, 'ascii')
+			else:
+				raise FassException(f"Unexpected type `{type(value)}` of value `{value}`.") from None
 
 	def append_output( self, output: bytes ):
 		''' Append bytes to the program output '''
@@ -143,6 +158,11 @@ class Fass():
 		except KeyError:
 			raise FassException(f"Constant `{name}` hasn't been defined.") from None
 
+	def data(self, datas: list):
+		output = bytearray()
+		for data in datas:
+			output += self.serialize(data.val)
+		self.append_output(output)
 
 	def operation(self, mnemonic: str, addressing: str, operand: bytes):
 		opcode = self.opcodes[mnemonic] # operations with a single implied addressing mode

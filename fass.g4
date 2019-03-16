@@ -11,7 +11,7 @@ statement:
 	| remote_label_stmt
 	| filler_stmt
 	| const_stmt
-	// | data_stmt
+	| data_stmt
 	| nop_brk_stmt
 	// | flag_set_stmt
 	// | stack_stmt
@@ -39,6 +39,8 @@ nop_brk_stmt:
 	| mnemonic=NOP4 value?;
 
 const_stmt: CONST_KWD lhs=IDENTIFIER '=' value;
+
+data_stmt: DATA_KWD ( datas+= value )+;
 // Statements <--
 
 label: IDENTIFIER ':';

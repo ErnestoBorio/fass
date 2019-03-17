@@ -84,6 +84,7 @@ class Fass():
 			raise FassException(f"A negative 8 bit value was expected (-128..-1), but {value} was given.")
 
 	def serialize(self, value, endian: str = 'big', signed: bool = False ) -> bytes:
+		''' Convert value to bytes to be output '''
 		try: # it's a scalar?
 			return value.to_bytes( max( 1, ceil( value.bit_length()/8 )), byteorder= endian, signed= signed)
 			# added max to ensure at least 1 byte or else a zero value would return b'' instead of b'\00'
@@ -91,9 +92,12 @@ class Fass():
 			if type(value) is bytes:
 				return value
 			elif type(value) is str:
-				return bytes(value, 'ascii')
+				return bytes(bytes(value, 'ascii').decode('unicode_escape'), 'ascii')
 			else:
 				raise FassException(f"Unexpected type `{type(value)}` of value `{value}`.") from None
+
+	def error(self, message: str):
+		raise FassException(message)
 
 	def append_output( self, output: bytes ):
 		''' Append bytes to the program output '''
@@ -186,17 +190,23 @@ class Fass():
 			mnemonic = self.PHP if operation=='push' else self.PLP
 		self.append_output(self.opcodes[mnemonic])
 
-	def operation(self, mnemonic: str, addressing: str, operand: bytes):
+	def operation(self, mnemonic: str, addressing: str = None, operand: bytes = None):
 		opcode = self.opcodes[mnemonic] # operations with a single implied addressing mode
-		try:
-			if addressing:
-				opcode = op[addressing] # operations with proper addressing modes
-		except KeyError:
-			raise FassException(f"Addressing mode `{self.addressings[addressing]}` "+
-				f"is not available for generated instruction {mnemonic}.") from None
-		else:
-			output = bytearray(opcode)
-			if operand:
-				output += operand # TODO WIP I think caller rules should check operand length, right?
+		if addressing:
+			try:
+				opcode = opcode[addressing] # operations with proper addressing modes
+			except KeyError:
+				raise FassException(f"Addressing mode `{self.addressings[addressing]}` "+
+					f"is not available for generated instruction {mnemonic}.") from None
+		output = bytearray(opcode)
+		if operand:
+			output += operand # TODO WIP I think caller rules should check operand length, right?
 		self.append_output(output)
 # Statements <--
+
+# test
+if __name__ == '__main__':
+	fass = Fass()
+	for d in [128, 129, 255, 256, 257, -1, -127, -128, "A"]:
+		s = fass.serialize(d)
+		print(f"`{d}` -> `{s}`")

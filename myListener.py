@@ -60,12 +60,42 @@ class myListener(fassListener):
 	def exitStack_stmt(self, ctx:fassParser.Stack_stmtContext):
 		self.fass.stack(ctx.op.text.lower(), ctx.reg.text.lower())
 
-#Return
+# Return
 	def exitReturn(self, ctx:fassParser.ReturnContext):
-		self.fass.append_output(Fass.opcodes[Fass.RTS])
+		self.fass.operation(Fass.RTS)
 
 	def exitRetint(self, ctx:fassParser.RetintContext):
-		self.fass.append_output(Fass.opcodes[Fass.RTI])
+		self.fass.operation(Fass.RTI)
+
+# Reference
+	def exitRegister(self, ctx:fassParser.RegisterContext):
+		ctx.val = ctx.reg.text
+
+# Assign
+	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
+		mnemonic = "LD"+ ctx.register().val.upper()
+		operand = self.fass.serialize( ctx.literal().val )
+		self.fass.assert_8bits(operand)
+		self.fass.operation(mnemonic, Fass.IMM, operand)
+
+	def exitAssign_reg_reg(self, ctx:fassParser.Assign_reg_regContext):
+		reg1, reg2 = (reg.val for reg in ctx.register())
+		if reg1 != 'A' and reg2 != 'A':
+			self.fass.error("Registers X and Y can't be assigned directly to each other.")
+		mnemonic = 'T' + reg2 + reg1 # A = X -> TXA
+		self.fass.operation(mnemonic)
+
+	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
+		pass
+
+	def exitAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
+		pass
+
+	def exitAssign_ref_reg_lit(self, ctx:fassParser.Assign_ref_reg_litContext):
+		pass
+
+	def exitAssign_ref_reg_ref(self, ctx:fassParser.Assign_ref_reg_refContext):
+		pass
 
 
 # Statements <--
@@ -104,7 +134,7 @@ class myListener(fassListener):
 		ctx.val = self.fass.serialize( int( ctx.BIN_LITEND().symbol.text[1:-1], 2), 'little');
 
 	def exitNegative_number(self, ctx:fassParser.Negative_numberContext):
-		ctx.val = self.fass.serialize( self.fass.assert_negative_8bits( int( ctx.NEGATIVE_NUMBER().symbol.text)), 'little', True)
+		ctx.val = self.fass.serialize( self.fass.assert_negative_8bits( int( ctx.NEGATIVE_NUMBER().symbol.text)), 'big', True)
 
 	def exitBrk_literal(self, ctx:fassParser.Brk_literalContext):
 		ctx.val = Fass.opcodes[Fass.BRK]

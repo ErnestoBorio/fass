@@ -16,7 +16,7 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| return_stmt
-	// | assign_stmt
+	| assign_stmt
 	// | arithmetic_stmt
 	| label statement?
 	;
@@ -55,8 +55,17 @@ stack_stmt:
 	;
 
 return_stmt: 
-	  RETURN_KWD # Return
-	| RETINT_KWD # Retint;
+	  RETURN_KWD # return
+	| RETINT_KWD # retint;
+
+assign_stmt:
+	  register  '=' literal   # assign_reg_lit
+	| register  '=' register  # assign_reg_reg
+	| register  '=' reference # assign_reg_ref
+	| reference '=' register  # assign_ref_reg
+	| reference '=' register '=' literal   # assign_ref_reg_lit
+	| reference '=' register '=' reference # assign_ref_reg_ref
+	;
 // Statements <--
 
 label: IDENTIFIER ':';
@@ -70,14 +79,14 @@ reference:
 	| indir_y
 	;
 
-register: reg=(A|X|Y);
+register: reg=( A | X | Y );
 
-name: IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
-index_x: IDENTIFIER '[' X ']';
-index_y: IDENTIFIER '[' Y ']';
-indir_x: '(' IDENTIFIER '[' X ']' ')';
-indir_y: '(' IDENTIFIER ')' '[' Y ']';
-indirect: '(' IDENTIFIER ')'; // Not included in `reference` because only JMP uses it
+name: lbl=IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
+index_x: lbl=IDENTIFIER '[' reg=X ']';
+index_y: lbl=IDENTIFIER '[' reg=Y ']';
+indir_x: '(' lbl=IDENTIFIER '[' reg=X ']' ')';
+indir_y: '(' lbl=IDENTIFIER ')' '[' reg=Y ']';
+indirect: '(' lbl=IDENTIFIER ')'; // Not included in `reference` because only JMP uses it
 // References <--
 
 // --> Values

@@ -202,6 +202,20 @@ class Fass():
 		if operand:
 			output += operand # TODO WIP I think caller rules should check operand length, right?
 		self.append_output(output)
+	
+	def assign_reg_reg(self, reg1: str, reg2: str):
+		transfer = {
+			'A': {'X': self.TXA, 'Y': self.TYA},
+			'Y': {'A': self.TAY},
+			'X': {'A': self.TAX, 'STACK': self.TSX},
+			'STACK': {'X': self.TXS}
+		}
+		try:
+			opcode = self.opcodes[transfer[reg1][reg2]]
+		except KeyError:
+			raise FassException(f"Invalid register assignment {reg1} = {reg2}.") from None
+		else:
+			self.append_output(opcode)
 # Statements <--
 
 # test

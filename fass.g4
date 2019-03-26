@@ -60,7 +60,7 @@ return_stmt:
 
 assign_stmt:
 	  register  '=' literal   # assign_reg_lit
-	| register  '=' register  # assign_reg_reg
+	| reg_axys  '=' reg_axys  # assign_reg_reg
 	| register  '=' reference # assign_reg_ref
 	| reference '=' register  # assign_ref_reg
 	| reference '=' register '=' literal   # assign_ref_reg_lit
@@ -80,6 +80,7 @@ reference:
 	;
 
 register: reg=( A | X | Y );
+reg_axys: reg=( A | X | Y | STACK );
 
 name: lbl=IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
 index_x: lbl=IDENTIFIER '[' reg=X ']';

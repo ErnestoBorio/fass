@@ -79,11 +79,8 @@ class myListener(fassListener):
 		self.fass.operation(mnemonic, Fass.IMM, operand)
 
 	def exitAssign_reg_reg(self, ctx:fassParser.Assign_reg_regContext):
-		reg1, reg2 = (reg.val for reg in ctx.register())
-		if reg1 != 'A' and reg2 != 'A':
-			self.fass.error("Registers X and Y can't be assigned directly to each other.")
-		mnemonic = 'T' + reg2 + reg1 # A = X -> TXA
-		self.fass.operation(mnemonic)
+		reg1, reg2 = (reg.val.upper() for reg in ctx.reg_axys())
+		self.fass.assign_reg_reg(reg1, reg2)
 
 	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
 		pass
@@ -100,6 +97,13 @@ class myListener(fassListener):
 
 # Statements <--
 
+# --> References
+	def exitRegister(self, ctx:fassParser.RegisterContext):
+		ctx.val = ctx.reg.text
+	
+	def exitReg_axys(self, ctx:fassParser.Reg_axysContext):
+		ctx.val = ctx.reg.text
+# References <--
 # --> Values
 	def exitValue(self, ctx:fassParser.ValueContext):
 		ctx.val = ctx.children[0].val # passthrough the specific value to calling rule

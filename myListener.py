@@ -67,10 +67,6 @@ class myListener(fassListener):
 	def exitRetint(self, ctx:fassParser.RetintContext):
 		self.fass.operation(Fass.RTI)
 
-# Reference
-	def exitRegister(self, ctx:fassParser.RegisterContext):
-		ctx.val = ctx.reg.text
-
 # Assign
 	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
 		mnemonic = "LD"+ ctx.register().val.upper()
@@ -83,7 +79,10 @@ class myListener(fassListener):
 		self.fass.assign_reg_reg(reg1, reg2)
 
 	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
-		pass
+		address = ctx.reference().adrs
+		addressing = ctx.reference().addressing
+		register = ctx.register().reg.text.upper()
+		self.fass.operation("LD"+register, addressing, self.fass.serialize(address, 'little'))
 
 	def exitAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
 		pass
@@ -94,16 +93,48 @@ class myListener(fassListener):
 	def exitAssign_ref_reg_ref(self, ctx:fassParser.Assign_ref_reg_refContext):
 		pass
 
-
 # Statements <--
 
 # --> References
+	def enterReference(self, ctx:fassParser.ReferenceContext):
+		ctx.lbl = ctx.children[0].lbl.text.lower()
+		ctx.adrs = ctx.children[0].adrs = self.fass.get_label(ctx.lbl)
+
+	def exitReference(self, ctx:fassParser.ReferenceContext):
+		ctx.addressing = ctx.children[0].addressing
+
+	def exitName(self, ctx:fassParser.NameContext):
+		if ctx.adrs is None or ctx.adrs > 0xFF:
+			ctx.addressing = Fass.ABS
+		else:
+			ctx.addressing = Fass.ZP
+
+	def exitIndexed(self, ctx:fassParser.IndexedContext):
+		if ctx.adrs is None or ctx.adrs > 0xFF:
+			ctx.addressing = Fass.ABSX if ctx.reg.text.upper()=='X' else Fass.ABSY
+		else:
+			ctx.addressing = Fass.ZPX if ctx.reg.text.upper()=='X' else Fass.ZPY
+
+	def exitIndir_x(self, ctx:fassParser.Indir_xContext):
+		ctx.addressing = Fass.INDX
+		if ctx.adrs > 0xFF:
+			self.fass.error("Indirect indexed addressing can only be used with zeropage addresses. Label `{ctx.lbl}` is at {ctx.adrs}")
+
+	def exitIndir_y(self, ctx:fassParser.Indir_yContext):
+		ctx.addressing = Fass.INDY
+		if ctx.adrs > 0xFF:
+			self.fass.error("Indirect indexed addressing can only be used with zeropage addresses. Label `{ctx.lbl}` is at {ctx.adrs}")
+
+	def exitIndirect(self, ctx:fassParser.IndirectContext):
+		ctx.addressing = Fass.IND
+
 	def exitRegister(self, ctx:fassParser.RegisterContext):
 		ctx.val = ctx.reg.text
 	
 	def exitReg_axys(self, ctx:fassParser.Reg_axysContext):
 		ctx.val = ctx.reg.text
 # References <--
+
 # --> Values
 	def exitValue(self, ctx:fassParser.ValueContext):
 		ctx.val = ctx.children[0].val # passthrough the specific value to calling rule

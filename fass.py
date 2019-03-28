@@ -50,10 +50,12 @@ class Fass():
 
 	def __init__(self):
 		self.address = None # The 'program counter' or current address
+		self.offset = 0 # byte offset of output since beginning of file
 		self.filler = self.default_filler
 		self.output = bytearray()
 		self.labels = {}
 		self.constants = {}
+		self.pending_labels = {} # {label_name: [offset to replace actual address]}
 
 # --> Utility functions
 	def get_output(self) -> bytearray:
@@ -105,6 +107,7 @@ class Fass():
 			raise FassException("Output started without setting an address first.")
 		self.output += output
 		self.address += len(output)
+		self.offset += len(output)
 # Utility functions <--
 
 # --> Statements
@@ -123,7 +126,6 @@ class Fass():
 				self.append_output(self.filler * gap)
 		
 		self.address = new_address
-
 	
 	def set_label(self, label: str, address: int ):
 		''' Declare a label, whether it points to the current or a remote address '''
@@ -135,6 +137,19 @@ class Fass():
 			raise FassException(f"Address {address} is outside the 64KB range 0..$FFFF")
 		self.labels[label] = address
 	
+	def get_label(self, label: str):
+		if label in self.constants:
+			raise FassException(f"Name `{label}` already defined as a constant.")
+		if label in self.labels:
+			return self.labels[label]
+		else:
+			return None
+			# WIP TODO implement forward references
+			# if label in self.pending_labels:
+			# 	self.pending_labels[label].append(self.offset)
+			# else:
+			# 	self.pending_labels[label] = [self.offset]
+
 	def set_filler(self, filler):
 		if filler is None:
 			filler = self.default_filler

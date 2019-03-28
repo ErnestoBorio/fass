@@ -73,8 +73,7 @@ label: IDENTIFIER ':';
 // --> References
 reference:
 	  name
-	| index_x
-	| index_y
+	| indexed
 	| indir_x
 	| indir_y
 	;
@@ -83,8 +82,7 @@ register: reg=( A | X | Y );
 reg_axys: reg=( A | X | Y | STACK );
 
 name: lbl=IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
-index_x: lbl=IDENTIFIER '[' reg=X ']';
-index_y: lbl=IDENTIFIER '[' reg=Y ']';
+indexed: lbl=IDENTIFIER '[' reg=(X|Y) ']';
 indir_x: '(' lbl=IDENTIFIER '[' reg=X ']' ')';
 indir_y: '(' lbl=IDENTIFIER ')' '[' reg=Y ']';
 indirect: '(' lbl=IDENTIFIER ')'; // Not included in `reference` because only JMP uses it

@@ -68,32 +68,36 @@ class myListener(fassListener):
 		self.fass.operation(Fass.RTI)
 
 # Assign
-	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
-		mnemonic = "LD"+ ctx.reg.reg_name.text.upper()
-		operand = self.fass.serialize( ctx.lit.val )
+	def assign_reg_lit(self, register: str, literal):
+		mnemonic = "LD"+ register
+		operand = self.fass.serialize(literal)
 		self.fass.assert_8bits(operand)
 		self.fass.operation(mnemonic, Fass.IMM, operand)
+	
+	# depending on operation: LD -> reg=ref, ST -> ref=reg
+	def assign(self, operation: str, register: str, addressing: str, address: int):
+		self.fass.operation(operation+register, addressing, self.fass.serialize(address, 'little'))
+
+
+	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
+		self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.lit.val )
 
 	def exitAssign_reg_reg(self, ctx:fassParser.Assign_reg_regContext):
 		self.fass.assign_reg_reg(ctx.reg1.reg_name.text.upper(), ctx.reg2.reg_name.text.upper())
 
 	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
-		address = ctx.ref.adrs
-		addressing = ctx.ref.addressing
-		register = ctx.reg.reg_name.text.upper()
-		self.fass.operation("LD"+register, addressing, self.fass.serialize(address, 'little'))
+		self.assign("LD", ctx.reg.reg_name.text.upper(), ctx.ref.addressing, ctx.ref.adrs)
 
 	def exitAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
-		address = ctx.ref.adrs
-		addressing = ctx.ref.addressing
-		register = ctx.reg.reg_name.text.upper()
-		self.fass.operation("ST"+register, addressing, self.fass.serialize(address, 'little'))
+		self.assign("ST", ctx.reg.reg_name.text.upper(), ctx.ref.addressing, ctx.ref.adrs)
 
 	def exitAssign_ref_reg_lit(self, ctx:fassParser.Assign_ref_reg_litContext):
-		pass
+		self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.lit.val)
+		self.assign("ST", ctx.reg.reg_name.text.upper(), ctx.ref.addressing, ctx.ref.adrs)
 
 	def exitAssign_ref_reg_ref(self, ctx:fassParser.Assign_ref_reg_refContext):
-		pass
+		self.assign("LD", ctx.reg.reg_name.text.upper(), ctx.ref2.addressing, ctx.ref2.adrs)
+		self.assign("ST", ctx.reg.reg_name.text.upper(), ctx.ref1.addressing, ctx.ref1.adrs)
 
 # Statements <--
 

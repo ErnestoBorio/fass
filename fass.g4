@@ -59,12 +59,12 @@ return_stmt:
 	| RETINT_KWD # retint;
 
 assign_stmt:
-	  register  '=' literal   # assign_reg_lit
-	| reg_axys  '=' reg_axys  # assign_reg_reg
-	| register  '=' reference # assign_reg_ref
-	| reference '=' register  # assign_ref_reg
-	| reference '=' register '=' literal   # assign_ref_reg_lit
-	| reference '=' register '=' reference # assign_ref_reg_ref
+	  reg=register '=' lit=literal # assign_reg_lit
+	| reg1=reg_axys '=' reg2=reg_axys # assign_reg_reg
+	| reg=register '=' ref=reference # assign_reg_ref
+	| ref=reference '=' reg=register # assign_ref_reg
+	| ref=reference '=' reg=register '=' lit=literal # assign_ref_reg_lit
+	| ref1=reference '=' reg=register '=' ref2=reference # assign_ref_reg_ref
 	;
 // Statements <--
 
@@ -78,8 +78,8 @@ reference:
 	| indir_y
 	;
 
-register: reg=( A | X | Y );
-reg_axys: reg=( A | X | Y | STACK );
+register: reg_name=( A | X | Y );
+reg_axys: reg_name=( A | X | Y | STACK );
 
 name: lbl=IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
 indexed: lbl=IDENTIFIER '[' reg=(X|Y) ']';

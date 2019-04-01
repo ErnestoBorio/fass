@@ -69,25 +69,24 @@ class myListener(fassListener):
 
 # Assign
 	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
-		mnemonic = "LD"+ ctx.register().val.upper()
-		operand = self.fass.serialize( ctx.literal().val )
+		mnemonic = "LD"+ ctx.reg.reg_name.text.upper()
+		operand = self.fass.serialize( ctx.lit.val )
 		self.fass.assert_8bits(operand)
 		self.fass.operation(mnemonic, Fass.IMM, operand)
 
 	def exitAssign_reg_reg(self, ctx:fassParser.Assign_reg_regContext):
-		reg1, reg2 = (reg.val.upper() for reg in ctx.reg_axys())
-		self.fass.assign_reg_reg(reg1, reg2)
+		self.fass.assign_reg_reg(ctx.reg1.reg_name.text.upper(), ctx.reg2.reg_name.text.upper())
 
 	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
-		address = ctx.reference().adrs
-		addressing = ctx.reference().addressing
-		register = ctx.register().reg.text.upper()
+		address = ctx.ref.adrs
+		addressing = ctx.ref.addressing
+		register = ctx.reg.reg_name.text.upper()
 		self.fass.operation("LD"+register, addressing, self.fass.serialize(address, 'little'))
 
 	def exitAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
-		address = ctx.reference().adrs
-		addressing = ctx.reference().addressing
-		register = ctx.register().reg.text.upper()
+		address = ctx.ref.adrs
+		addressing = ctx.ref.addressing
+		register = ctx.reg.reg_name.text.upper()
 		self.fass.operation("ST"+register, addressing, self.fass.serialize(address, 'little'))
 
 	def exitAssign_ref_reg_lit(self, ctx:fassParser.Assign_ref_reg_litContext):
@@ -131,11 +130,6 @@ class myListener(fassListener):
 	def exitIndirect(self, ctx:fassParser.IndirectContext):
 		ctx.addressing = Fass.IND
 
-	def exitRegister(self, ctx:fassParser.RegisterContext):
-		ctx.val = ctx.reg.text
-	
-	def exitReg_axys(self, ctx:fassParser.Reg_axysContext):
-		ctx.val = ctx.reg.text
 # References <--
 
 # --> Values

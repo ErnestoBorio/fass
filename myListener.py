@@ -85,7 +85,10 @@ class myListener(fassListener):
 		self.fass.operation("LD"+register, addressing, self.fass.serialize(address, 'little'))
 
 	def exitAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
-		pass
+		address = ctx.reference().adrs
+		addressing = ctx.reference().addressing
+		register = ctx.register().reg.text.upper()
+		self.fass.operation("ST"+register, addressing, self.fass.serialize(address, 'little'))
 
 	def exitAssign_ref_reg_lit(self, ctx:fassParser.Assign_ref_reg_litContext):
 		pass

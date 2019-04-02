@@ -61,11 +61,11 @@ return_stmt:
 	| RETINT_KWD # retint; // RTI
 
 assign_stmt:
-	  reg=register '=' lit=literal # assign_reg_lit    // LDA LDX LDY
+	  reg=register  '=' lit=literal   # assign_reg_lit // LDA LDX LDY
 	| reg1=reg_axys '=' reg2=reg_axys # assign_reg_reg // TAX TAY TXA TYA TXS TSX
-	| reg=register '=' ref=reference # assign_reg_ref  // LDA LDX LDY 
-	| ref=reference '=' reg=register # assign_ref_reg  // STA STX STY
-	| ref=reference '=' reg=register '=' lit=literal # assign_ref_reg_lit     // LDA LDX LDY + STA STX STY
+	| reg=register  '=' ref=reference # assign_reg_ref // LDA LDX LDY 
+	| ref=reference '=' reg=register  # assign_ref_reg // STA STX STY
+	| ref=reference  '=' reg=register '=' lit=literal    # assign_ref_reg_lit // LDA LDX LDY + STA STX STY
 	| ref1=reference '=' reg=register '=' ref2=reference # assign_ref_reg_ref // LDA LDX LDY + STA STX STY
 	;
 	;

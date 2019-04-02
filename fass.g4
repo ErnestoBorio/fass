@@ -15,6 +15,8 @@ statement:
 	| nop_brk_stmt
 	| flag_set_stmt
 	| stack_stmt
+	// | goto_stmt
+	// | if_goto_stmt
 	| return_stmt
 	| assign_stmt
 	// | arithmetic_stmt
@@ -40,7 +42,7 @@ nop_brk_stmt:
 
 const_stmt: CONST_KWD lhs=IDENTIFIER '=' value;
 
-data_stmt: DATA_KWD ( datas+= value )+;
+data_stmt: DATA_KWD ( datas+= value ','? )+;
 
 flag_set_stmt:
 	  flag=( OVERFLOW | CARRY ) '=' operand=DEC_BIGEND

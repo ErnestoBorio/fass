@@ -45,28 +45,29 @@ const_stmt: CONST_KWD lhs=IDENTIFIER '=' value;
 data_stmt: DATA_KWD ( datas+= value ','? )+;
 
 flag_set_stmt:
-	  flag=( OVERFLOW | CARRY ) '=' operand=DEC_BIGEND
-	| flag=( INTERRUPT | DECIMAL_MODE ) operand=( ON_KWD | OFF_KWD )
+	  flag=( OVERFLOW | CARRY ) '=' operand=DEC_BIGEND // CLV SEC CLC
+	| flag=( INTERRUPT | DECIMAL_MODE ) operand=( ON_KWD | OFF_KWD ) // SEI CLI SED CLD
 	;
 
 stack_stmt:
-	  reg=A '=' op=PULL_KWD
-	| op=PUSH_KWD reg=A
-	| reg=FLAGS_KWD '=' op=PULL_KWD
-	| op=PUSH_KWD reg=FLAGS_KWD
+	  reg=A '=' op=PULL_KWD // PLA
+	| op=PUSH_KWD reg=A     // PHA
+	| reg=FLAGS_KWD '=' op=PULL_KWD // PLP
+	| op=PUSH_KWD reg=FLAGS_KWD     // PHP
 	;
 
 return_stmt: 
-	  RETURN_KWD # return
-	| RETINT_KWD # retint;
+	  RETURN_KWD # return  // RTS
+	| RETINT_KWD # retint; // RTI
 
 assign_stmt:
-	  reg=register '=' lit=literal # assign_reg_lit
-	| reg1=reg_axys '=' reg2=reg_axys # assign_reg_reg
-	| reg=register '=' ref=reference # assign_reg_ref
-	| ref=reference '=' reg=register # assign_ref_reg
-	| ref=reference '=' reg=register '=' lit=literal # assign_ref_reg_lit
-	| ref1=reference '=' reg=register '=' ref2=reference # assign_ref_reg_ref
+	  reg=register '=' lit=literal # assign_reg_lit    // LDA LDX LDY
+	| reg1=reg_axys '=' reg2=reg_axys # assign_reg_reg // TAX TAY TXA TYA TXS TSX
+	| reg=register '=' ref=reference # assign_reg_ref  // LDA LDX LDY 
+	| ref=reference '=' reg=register # assign_ref_reg  // STA STX STY
+	| ref=reference '=' reg=register '=' lit=literal # assign_ref_reg_lit     // LDA LDX LDY + STA STX STY
+	| ref1=reference '=' reg=register '=' ref2=reference # assign_ref_reg_ref // LDA LDX LDY + STA STX STY
+	;
 	;
 // Statements <--
 

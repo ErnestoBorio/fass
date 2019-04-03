@@ -110,16 +110,16 @@ class myListener(fassListener):
 		self.assign("ST", ctx.reg.reg_name.text.upper(), ctx.ref1.addressing, ctx.ref1.adrs)
 
 # Arithmetic: INC INX INY ADC SBC  
+	def exitArithmetic_a_lit(self, ctx:fassParser.Arithmetic_a_litContext):
+		self.fass.assert_8bits(ctx.lit.val)
+		mnemonic = 'ADC' if ctx.op.text=='+=' else 'SBC'
+		self.fass.operation(mnemonic, Fass.IMM, self.fass.serialize(ctx.lit.val))
+	
 	def exitArithmetic_reg_inc(self, ctx:fassParser.Arithmetic_reg_incContext):
 		if ctx.lit.val != 1:
 			self.fass.error(f"Registers X and Y can only be incremented or decremented by 1, but {ctx.lit.val} given.")
 		oper = 'IN' if ctx.op.text=='+=' else 'DE'
 		self.fass.operation(oper + ctx.reg.reg_name.text.upper())
-
-	def exitArithmetic_a_lit(self, ctx:fassParser.Arithmetic_a_litContext):
-		self.fass.assert_8bits(ctx.lit.val)
-		mnemonic = 'ADC' if ctx.op.text=='+=' else 'SBC'
-		self.fass.operation(mnemonic, Fass.IMM, self.fass.serialize(ctx.lit.val))
 
 # Statements <--
 

@@ -19,7 +19,7 @@ statement:
 	// | if_goto_stmt
 	| return_stmt
 	| assign_stmt
-	// | arithmetic_stmt
+	| arithmetic_stmt
 	| label statement?
 	;
 
@@ -71,6 +71,12 @@ assign_stmt:
 	| ref=reference  '=' reg=register '=' lit=literal    # assign_ref_reg_lit // LDA LDX LDY + STA STX STY
 	| ref1=reference '=' reg=register '=' ref2=reference # assign_ref_reg_ref // LDA LDX LDY + STA STX STY
 	;
+
+arithmetic_stmt:
+	  A op=('+='|'-=') lit=literal   # arithmetic_a_lit // ADC SBC
+	| A op=('+='|'-=') ref=reference # arithmetic_a_ref // ADC SBC
+	| reg=register  op=('+='|'-=') lit=literal # arithmetic_reg_inc // INX INY DEX DEY
+	| ref=reference op=('+='|'-=') lit=literal # arithmetic_ref_lit // INC
 	;
 // Statements <--
 

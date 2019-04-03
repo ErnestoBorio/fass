@@ -7,11 +7,11 @@ class FassException( Exception) :
 class Fass():
 
 	# enum addressing modes:
-	IMP = 'IMP'; ACC = 'ACC'; IMM = 'IMM'; ZP = 'ZP'; ZPX = 'ZPX'; ZPY = 'ZPY'
+	ACC = 'ACC'; IMM = 'IMM'; ZP = 'ZP'; ZPX = 'ZPX'; ZPY = 'ZPY'
 	ABS = 'ABS'; ABSX = 'ABSX'; ABSY = 'ABSY'; IND = 'IND'; INDX = 'INDX'; INDY = 'INDY'
 
 	# addressing mode names:
-	addressings = { IMP:'implied', ACC:'accumulator', IMM:'immediate', ZP:'zero page',
+	addressings = { ACC:'accumulator', IMM:'immediate', ZP:'zero page',
 		ZPX:'zero page x-indexed', ZPY:'zero page y-indexed', ABS:'absolute', ABSX:'absolute x-indexed', 
 		ABSY:'absolute y-indexed', IND:'indirect', INDX:'x-indexed indirect', INDY:'indirect y-indexed' }
 	

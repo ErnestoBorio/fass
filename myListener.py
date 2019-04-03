@@ -115,6 +115,10 @@ class myListener(fassListener):
 		mnemonic = 'ADC' if ctx.op.text=='+=' else 'SBC'
 		self.fass.operation(mnemonic, Fass.IMM, self.fass.serialize(ctx.lit.val))
 	
+	def exitArithmetic_a_ref(self, ctx:fassParser.Arithmetic_a_refContext):
+		mnemonic = 'ADC' if ctx.op.text=='+=' else 'SBC'
+		self.fass.operation(mnemonic, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
+
 	def exitArithmetic_reg_inc(self, ctx:fassParser.Arithmetic_reg_incContext):
 		if ctx.lit.val != 1:
 			self.fass.error(f"Registers X and Y can only be incremented or decremented by 1, but {ctx.lit.val} given.")

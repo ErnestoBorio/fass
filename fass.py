@@ -85,6 +85,7 @@ class Fass():
 		else:
 			raise FassException(f"A negative 8 bit value was expected (-128..-1), but {value} was given.")
 
+	# WIP TODO: Should add a way to serialize a 0..FF number into 2 bytes, for addresses
 	def serialize(self, value, endian: str = 'big', signed: bool = False ) -> bytes:
 		''' Convert value to bytes to be output '''
 		try: # it's a scalar?

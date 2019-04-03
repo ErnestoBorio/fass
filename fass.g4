@@ -15,7 +15,7 @@ statement:
 	| nop_brk_stmt
 	| flag_set_stmt
 	| stack_stmt
-	// | goto_stmt
+	| goto_stmt
 	// | if_goto_stmt
 	| return_stmt
 	| assign_stmt
@@ -59,6 +59,9 @@ stack_stmt:
 return_stmt: 
 	  RETURN_KWD # return  // RTS
 	| RETINT_KWD # retint; // RTI
+
+goto_stmt:
+	  GOTO_KWD ( reference | indirect ); // JMP
 
 assign_stmt:
 	  reg=register  '=' lit=literal   # assign_reg_lit // LDA LDX LDY

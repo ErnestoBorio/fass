@@ -60,13 +60,23 @@ class myListener(fassListener):
 	def exitStack_stmt(self, ctx:fassParser.Stack_stmtContext):
 		self.fass.stack(ctx.op.text.lower(), ctx.reg.text.lower())
 
-# Return
+# Return / RTS RTI
 	def exitReturn(self, ctx:fassParser.ReturnContext):
 		self.fass.operation(Fass.RTS)
 
 	def exitRetint(self, ctx:fassParser.RetintContext):
 		self.fass.operation(Fass.RTI)
 
+# Goto / JMP
+	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
+		ref = ctx.reference() or ctx.indirect()
+		if ref.addressing not in {Fass.ABS, Fass.IND}:
+			return self.fass.error(f"Goto (JMP) only accepts absolute and indirect addressing modes.")
+		
+		self.fass.operation(Fass.JMP, ref.addressing, self.fass.serialize(ref.adrs, 'little'))
+		# WIP TODO: although JMP always uses absolute 16 bit addresses, they could 
+		# still be in zeropage, and serialize will generate a 1 byte address. Fix this.
+		
 # Assign
 	def assign_reg_lit(self, register: str, literal):
 		mnemonic = "LD"+ register
@@ -133,6 +143,7 @@ class myListener(fassListener):
 
 	def exitIndirect(self, ctx:fassParser.IndirectContext):
 		ctx.addressing = Fass.IND
+		ctx.adrs = self.fass.get_label(ctx.lbl.text)
 
 # References <--
 

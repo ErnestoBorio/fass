@@ -124,6 +124,12 @@ class myListener(fassListener):
 			self.fass.error(f"Registers X and Y can only be incremented or decremented by 1, but {ctx.lit.val} given.")
 		oper = 'IN' if ctx.op.text=='+=' else 'DE'
 		self.fass.operation(oper + ctx.reg.reg_name.text.upper())
+	
+	def exitArithmetic_ref_lit(self, ctx:fassParser.Arithmetic_ref_litContext):
+		if ctx.lit.val != 1:
+			self.fass.error(f"Memory references can only be incremented or decremented by 1, but {ctx.lit.val} given.")
+		mnemonic = 'INC' if ctx.op.text=='+=' else 'DEC'
+		self.fass.operation( mnemonic, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
 
 # Statements <--
 

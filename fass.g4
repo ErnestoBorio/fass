@@ -17,6 +17,7 @@ statement:
 	| stack_stmt
 	| goto_stmt
 	// | if_goto_stmt
+	| gosub_stmt
 	| return_stmt
 	| assign_stmt
 	| arithmetic_stmt
@@ -62,6 +63,9 @@ return_stmt:
 
 goto_stmt:
 	  GOTO_KWD ( reference | indirect ); // JMP
+
+gosub_stmt:
+	  GOSUB_KWD ref=reference; // JSR
 
 assign_stmt:
 	  reg=register  '=' lit=literal   # assign_reg_lit // LDA LDX LDY
@@ -149,7 +153,8 @@ FILLER_KWD : [fF][iI][lL][lL][eE][rR] ;
 DEFAULT_KWD : [dD][eE][fF][aA][uU][lL][tT] ;
 DATA_KWD : [dD][aA][tT][aA] ;
 CONST_KWD: [cC][oO][nN][sS][tT] ;
-GOTO_KWD: [gG][oO][tT][oO] ;
+GOTO_KWD: [gG][oO][tT][oO] ; // JMP
+GOSUB_KWD: [gG][oO][sS][uU][bB] ; // JSR
 RETURN_KWD: [rR][eE][tT][uU][rR][nN]; // RTS
 RETINT_KWD: [rR][eE][tT][iI][nN][tT]; // RTI
 PUSH_KWD: [pP][uU][sS][hH] ;

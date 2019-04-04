@@ -67,7 +67,7 @@ class myListener(fassListener):
 	def exitRetint(self, ctx:fassParser.RetintContext):
 		self.fass.operation(Fass.RTI)
 
-# Goto / JMP
+# Goto Gosub / JMP JSR
 	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
 		ref = ctx.reference() or ctx.indirect()
 		if ref.addressing not in {Fass.ABS, Fass.IND}:
@@ -77,6 +77,11 @@ class myListener(fassListener):
 		# WIP TODO: although JMP always uses absolute 16 bit addresses, they could 
 		# still be in zeropage, and serialize will generate a 1 byte address. Fix this.
 		
+	def exitGosub_stmt(self, ctx:fassParser.Gosub_stmtContext):
+		if ctx.ref.addressing != Fass.ABS:
+			return self.fass.error(f"Gosub (JSR) only accepts the absolute addressing mode.")
+		self.fass.operation(Fass.JSR, Fass.ABS, self.fass.serialize(ctx.ref.adrs, 'little'))
+
 # Assign
 	def assign_reg_lit(self, register: str, literal):
 		mnemonic = "LD"+ register

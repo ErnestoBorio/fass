@@ -37,6 +37,7 @@ class Fass():
 		INC: { ZP:b'\xE6', ZPX:b'\xF6', ABS:b'\xEE', ABSX:b'\xFE' },
 		DEC: { ZP:b'\xC6', ZPX:b'\xD6', ABS:b'\xCE', ABSX:b'\xDE' },
 		JMP: { ABS: b'\x4C', IND: b'\x6C' },
+		JSR: { ABS: b'\x20' },
 		TAX: b'\xAA', TXA: b'\x8A', TAY: b'\xA8', TYA: b'\x98', TSX: b'\xBA', TXS: b'\x9A',
 		INX: b'\xE8', INY: b'\xC8', DEX: b'\xCA', DEY: b'\x88',
 		CLV: b'\xB8', CLC: b'\x18', SEC: b'\x38', CLI: b'\x58', SEI: b'\x78', CLD: b'\xD8', SED: b'\xF8',

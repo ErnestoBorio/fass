@@ -170,7 +170,6 @@ class myListener(fassListener):
 
 	def exitIndirect(self, ctx:fassParser.IndirectContext):
 		ctx.addressing = Fass.IND
-		ctx.adrs = self.fass.get_label(ctx.lbl.text)
 
 # References <--
 

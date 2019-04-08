@@ -92,6 +92,7 @@ reference:
 	| indexed
 	| indir_x
 	| indir_y
+	| indirect
 	;
 
 register: reg_name=( A | X | Y );
@@ -101,7 +102,7 @@ name: lbl=IDENTIFIER; // either a constant or a direct addressing (zero page or 
 indexed: lbl=IDENTIFIER '[' reg=(X|Y) ']';
 indir_x: '(' lbl=IDENTIFIER '[' reg=X ']' ')';
 indir_y: '(' lbl=IDENTIFIER ')' '[' reg=Y ']';
-indirect: '(' lbl=IDENTIFIER ')'; // Not included in `reference` because only JMP uses it
+indirect: '(' lbl=IDENTIFIER ')'; // only JMP uses it
 // References <--
 
 // --> Values

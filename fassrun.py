@@ -4,7 +4,6 @@ from antlr4 import *
 from fassLexer import fassLexer
 from fassParser import fassParser
 from fassErrorListener import fassErrorListener
-from myParser import myParser
 from myListener import myListener
 from fass import Fass
 from petruza.misc import nicehex

@@ -16,7 +16,6 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| goto_stmt
-	// | if_goto_stmt
 	| gosub_stmt
 	| return_stmt
 	| assign_stmt

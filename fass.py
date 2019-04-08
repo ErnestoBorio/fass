@@ -43,7 +43,11 @@ class Fass():
 		CLV: b'\xB8', CLC: b'\x18', SEC: b'\x38', CLI: b'\x58', SEI: b'\x78', CLD: b'\xD8', SED: b'\xF8',
 		NOP: b'\xEA', NOP3: b'\x04', NOP4: b'\x14',
 		BRK: b'\x00', RTS: b'\x60', RTI: b'\x40',
-		PHA: b'\x48', PLA: b'\x68', PHP: b'\x08', PLP: b'\x28'
+		PHA: b'\x48', PLA: b'\x68', PHP: b'\x08', PLP: b'\x28',
+		ASL: { ACC: b'\x0A', ZP: b'\x06', ZPX: b'\x16', ABS: b'\x0E', ABSX: b'\x1E' },
+		LSR: { ACC: b'\x4a', ZP: b'\x46', ZPX: b'\x56', ABS: b'\x4E', ABSX: b'\x5E' },
+		ROL: { ACC: b'\x2a', ZP: b'\x26', ZPX: b'\x36', ABS: b'\x2E', ABSX: b'\x3E' },
+		ROR: { ACC: b'\x6A', ZP: b'\x66', ZPX: b'\x76', ABS: b'\x6E', ABSX: b'\x7E' }
 	}
 
 	default_filler = opcodes[NOP] # default filler for address gaps

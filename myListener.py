@@ -136,6 +136,18 @@ class myListener(fassListener):
 		mnemonic = 'INC' if ctx.op.text=='+=' else 'DEC'
 		self.fass.operation( mnemonic, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
 
+# Bit shifting: LSR ASL ROL ROR
+	def exitBit_shift_stmt(self, ctx:fassParser.Bit_shift_stmtContext):
+		if ctx.A():
+			addressing = Fass.ACC
+			address = None
+		else:
+			ref = ctx.reference()
+			addressing = ref.addressing
+			address = self.fass.serialize(ref.adrs, 'little')
+		mnemonic = {'>>': Fass.LSR, '<<': Fass.ASL, '->': Fass.ROR, '<-': Fass.ROL}[ctx.op.text]
+		self.fass.operation(mnemonic, addressing, address)
+
 # Statements <--
 
 # --> References

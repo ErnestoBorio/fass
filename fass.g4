@@ -16,6 +16,7 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| goto_stmt
+	| bit_shift_stmt
 	| gosub_stmt
 	| return_stmt
 	| assign_stmt
@@ -81,6 +82,9 @@ arithmetic_stmt:
 	| reg=register  op=('+='|'-=') lit=literal # arithmetic_reg_inc // INX INY DEX DEY
 	| ref=reference op=('+='|'-=') lit=literal # arithmetic_ref_lit // INC
 	;
+
+bit_shift_stmt: (A|reference) op=('<<'|'>>'|'<-'|'->');
+
 // Statements <--
 
 label: IDENTIFIER ':';

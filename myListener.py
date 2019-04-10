@@ -76,7 +76,7 @@ class myListener(fassListener):
 		self.fass.operation(Fass.JMP, ref.addressing, self.fass.serialize(ref.adrs, 'little'))
 		# WIP TODO: although JMP always uses absolute 16 bit addresses, they could 
 		# still be in zeropage, and serialize will generate a 1 byte address. Fix this.
-		
+	
 	def exitGosub_stmt(self, ctx:fassParser.Gosub_stmtContext):
 		if ctx.ref.addressing != Fass.ABS:
 			return self.fass.error(f"Gosub (JSR) only accepts the absolute addressing mode.")
@@ -147,6 +147,19 @@ class myListener(fassListener):
 			address = self.fass.serialize(ref.adrs, 'little')
 		mnemonic = {'>>': Fass.LSR, '<<': Fass.ASL, '->': Fass.ROR, '<-': Fass.ROL}[ctx.op.text]
 		self.fass.operation(mnemonic, addressing, address)
+
+#Logical AND ORA EOR
+	def exitLogic_stmt(self, ctx:fassParser.Logic_stmtContext):
+		literal = ctx.literal()
+		if literal is not None:
+			operand = self.fass.serialize(literal.val)
+			addressing = Fass.IMM
+		else:
+			ref = ctx.reference()
+			addressing = ref.addressing
+			operand = self.fass.serialize(ref.adrs, 'little')
+		mnemonic = {'and=': Fass.AND, 'or=': Fass.ORA, 'xor=': Fass.EOR}[ctx.op.text.lower()]
+		self.fass.operation(mnemonic, addressing, operand)
 
 # Statements <--
 

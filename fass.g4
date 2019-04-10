@@ -17,6 +17,7 @@ statement:
 	| stack_stmt
 	| goto_stmt
 	| bit_shift_stmt
+	| logic_stmt
 	| gosub_stmt
 	| return_stmt
 	| assign_stmt
@@ -84,6 +85,8 @@ arithmetic_stmt:
 	;
 
 bit_shift_stmt: (A|reference) op=('<<'|'>>'|'<-'|'->');
+
+logic_stmt: A op=(AND_KWD|OR_KWD|XOR_KWD) (literal|reference);
 
 // Statements <--
 
@@ -164,6 +167,9 @@ RETINT_KWD: [rR][eE][tT][iI][nN][tT]; // RTI
 PUSH_KWD: [pP][uU][sS][hH] ;
 PULL_KWD: [pP][uU][lL][lL] ;
 FLAGS_KWD: [fF][lL][aA][gG][sS] ;
+AND_KWD: [aA][nN][dD]'=';
+OR_KWD: [oO][rR]'=';
+XOR_KWD: [xX][oO][rR]'=';
 NOP3: [nN][oO][pP]'3' ;
 NOP4: [nN][oO][pP]'4' ;
 // Keywords <--

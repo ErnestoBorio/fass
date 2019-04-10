@@ -47,7 +47,10 @@ class Fass():
 		ASL: { ACC: b'\x0A', ZP: b'\x06', ZPX: b'\x16', ABS: b'\x0E', ABSX: b'\x1E' },
 		LSR: { ACC: b'\x4a', ZP: b'\x46', ZPX: b'\x56', ABS: b'\x4E', ABSX: b'\x5E' },
 		ROL: { ACC: b'\x2a', ZP: b'\x26', ZPX: b'\x36', ABS: b'\x2E', ABSX: b'\x3E' },
-		ROR: { ACC: b'\x6A', ZP: b'\x66', ZPX: b'\x76', ABS: b'\x6E', ABSX: b'\x7E' }
+		ROR: { ACC: b'\x6A', ZP: b'\x66', ZPX: b'\x76', ABS: b'\x6E', ABSX: b'\x7E' },
+		AND: { IMM: b'\x29', ZP: b'\x25', ZPX: b'\x35', ABS: b'\x2D', ABSX: b'\x3D', ABSY: b'\x39', INDX: b'\x21', INDY: b'\x31' },
+		ORA: { IMM: b'\x09', ZP: b'\x05', ZPX: b'\x15', ABS: b'\x0D', ABSX: b'\x1D', ABSY: b'\x19', INDX: b'\x01', INDY: b'\x11' },
+		EOR: { IMM: b'\x49', ZP: b'\x45', ZPX: b'\x55', ABS: b'\x4D', ABSX: b'\x5D', ABSY: b'\x59', INDX: b'\x41', INDY: b'\x51' }
 	}
 
 	default_filler = opcodes[NOP] # default filler for address gaps

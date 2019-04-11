@@ -50,7 +50,9 @@ class Fass():
 		ROR: { ACC: b'\x6A', ZP: b'\x66', ZPX: b'\x76', ABS: b'\x6E', ABSX: b'\x7E' },
 		AND: { IMM: b'\x29', ZP: b'\x25', ZPX: b'\x35', ABS: b'\x2D', ABSX: b'\x3D', ABSY: b'\x39', INDX: b'\x21', INDY: b'\x31' },
 		ORA: { IMM: b'\x09', ZP: b'\x05', ZPX: b'\x15', ABS: b'\x0D', ABSX: b'\x1D', ABSY: b'\x19', INDX: b'\x01', INDY: b'\x11' },
-		EOR: { IMM: b'\x49', ZP: b'\x45', ZPX: b'\x55', ABS: b'\x4D', ABSX: b'\x5D', ABSY: b'\x59', INDX: b'\x41', INDY: b'\x51' }
+		EOR: { IMM: b'\x49', ZP: b'\x45', ZPX: b'\x55', ABS: b'\x4D', ABSX: b'\x5D', ABSY: b'\x59', INDX: b'\x41', INDY: b'\x51' },
+		CMP: { IMM: b'\xC9', ZP: b'\xC5', ZPX: b'\xD5', ABS: b'\xCD', ABSX: b'\xDD', ABSY: b'\xD9', INDX: b'\xC1', INDY: b'\xD1' },
+		BIT: { ZP: b'\x24', ABS: b'\x2C' }
 	}
 
 	default_filler = opcodes[NOP] # default filler for address gaps

@@ -161,6 +161,22 @@ class myListener(fassListener):
 		mnemonic = {'and=': Fass.AND, 'or=': Fass.ORA, 'xor=': Fass.EOR}[ctx.op.text.lower()]
 		self.fass.operation(mnemonic, addressing, operand)
 
+# Compare
+	def exitCompare_stmt(self, ctx:fassParser.Compare_stmtContext):
+		literal = ctx.literal()
+		if literal:
+			addressing = Fass.IMM
+			operand = self.fass.serialize( self.fass.assert_8bits( literal.val))
+		else:
+			ref = ctx.reference()
+			addressing = ref.addressing
+			operand = self.fass.serialize(ref.adrs, 'little')
+		self.fass.operation(Fass.CMP, addressing, operand)
+
+# Bit test
+	def exitBittest_stmt(self, ctx:fassParser.Bittest_stmtContext):
+		self.fass.operation(Fass.BIT, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
+
 # Statements <--
 
 # --> References

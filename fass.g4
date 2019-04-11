@@ -18,6 +18,8 @@ statement:
 	| goto_stmt
 	| bit_shift_stmt
 	| logic_stmt
+	| compare_stmt
+	| bittest_stmt
 	| gosub_stmt
 	| return_stmt
 	| assign_stmt
@@ -87,6 +89,10 @@ arithmetic_stmt:
 bit_shift_stmt: (A|reference) op=('<<'|'>>'|'<-'|'->');
 
 logic_stmt: A op=(AND_KWD|OR_KWD|XOR_KWD) (literal|reference);
+
+compare_stmt: COMPARE_KWD A ',' (reference|literal);
+
+bittest_stmt: BITTEST_KWD A ',' ref=reference;
 
 // Statements <--
 
@@ -170,6 +176,8 @@ FLAGS_KWD: [fF][lL][aA][gG][sS] ;
 AND_KWD: [aA][nN][dD]'=';
 OR_KWD: [oO][rR]'=';
 XOR_KWD: [xX][oO][rR]'=';
+BITTEST_KWD: [bB][iI][tT][tT][eE][sS][tT];
+COMPARE_KWD: [cC][oO][mM][pP][aA][rR][eE];
 NOP3: [nN][oO][pP]'3' ;
 NOP4: [nN][oO][pP]'4' ;
 // Keywords <--

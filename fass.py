@@ -93,6 +93,19 @@ class Fass():
 		else:
 			raise FassException(f"A negative 8 bit value was expected (-128..-1), but {value} was given.")
 
+	def get_label(self, label: str):
+		if label in self.constants:
+			raise FassException(f"Name `{label}` already defined as a constant.")
+		if label in self.labels:
+			return self.labels[label]
+		else:
+			return None
+			# WIP TODO implement forward references
+			# if label in self.pending_labels:
+			# 	self.pending_labels[label].append(self.offset)
+			# else:
+			# 	self.pending_labels[label] = [self.offset]
+
 	# WIP TODO: Should add a way to serialize a 0..FF number into 2 bytes, for addresses
 	def serialize(self, value, endian: str = 'big', signed: bool = False ) -> bytes:
 		''' Convert value to bytes to be output '''
@@ -144,7 +157,7 @@ class Fass():
 		if operand:
 			output += operand # TODO WIP I think caller rules should check operand length, right?
 		self.append_output(output)
-		
+
 # Utility functions <--
 
 # --> Statements
@@ -173,19 +186,6 @@ class Fass():
 		elif address > 0xFFFF:
 			raise FassException(f"Address {address} is outside the 64KB range 0..$FFFF")
 		self.labels[label] = address
-	
-	def get_label(self, label: str):
-		if label in self.constants:
-			raise FassException(f"Name `{label}` already defined as a constant.")
-		if label in self.labels:
-			return self.labels[label]
-		else:
-			return None
-			# WIP TODO implement forward references
-			# if label in self.pending_labels:
-			# 	self.pending_labels[label].append(self.offset)
-			# else:
-			# 	self.pending_labels[label] = [self.offset]
 
 	def set_filler(self, filler):
 		if filler is None:

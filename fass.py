@@ -117,6 +117,34 @@ class Fass():
 		self.output += output
 		self.address += len(output)
 		self.offset += len(output)
+	
+	def operation(self, mnemonic: str, addressing: str = None, operand: bytes = None):
+		opcode = self.opcodes[mnemonic] # operations with a single implied addressing mode
+		if addressing:
+			try:
+				opcode = opcode[addressing] # operations with proper addressing modes
+			except KeyError:
+				# prepare exception for reuse
+				exp = FassException(f"Addressing mode `{self.addressings[addressing]}` "+
+						f"is not available for generated instruction {mnemonic}.")
+				# if a zero page address was given, but only absolute addressings are available for this mnemonic, 
+				# use them instead. (example: there's no LDA.ZPY but there's equivalent LDA.ABSY)
+				if len(operand) == 1:
+					alternates = {self.ZP: self.ABS, self.ZPX: self.ABSX, self.ZPY: self.ABSY}
+					try:
+						opcode = opcode[alternates[addressing]]
+					except KeyError:
+						raise exp from None # No equivalent absolute addressing available
+					else:
+						operand += b'\x00' # make address 16 bit little endian
+				else:
+					raise exp from None # given addressing is not available for given mnemonic
+
+		output = bytearray(opcode)
+		if operand:
+			output += operand # TODO WIP I think caller rules should check operand length, right?
+		self.append_output(output)
+		
 # Utility functions <--
 
 # --> Statements
@@ -213,34 +241,6 @@ class Fass():
 		elif register == 'flags':
 			mnemonic = self.PHP if operation=='push' else self.PLP
 		self.append_output(self.opcodes[mnemonic])
-
-	def operation(self, mnemonic: str, addressing: str = None, operand: bytes = None):
-		opcode = self.opcodes[mnemonic] # operations with a single implied addressing mode
-		if addressing:
-			try:
-				opcode = opcode[addressing] # operations with proper addressing modes
-			except KeyError:
-				# prepare exception for reuse
-				exp = FassException(f"Addressing mode `{self.addressings[addressing]}` "+
-						f"is not available for generated instruction {mnemonic}.")
-				# if a zero page address was given, but only absolute addressings are available for this mnemonic, 
-				# use them instead. (example: there's no LDA.ZPY but there's equivalent LDA.ABSY)
-				if len(operand) == 1:
-					alternates = {self.ZP: self.ABS, self.ZPX: self.ABSX, self.ZPY: self.ABSY}
-					try:
-						opcode = opcode[alternates[addressing]]
-					except KeyError:
-						raise exp from None # No equivalent absolute addressing available
-					else:
-						operand += b'\x00' # make address 16 bit little endian
-				else:
-					raise exp from None # given addressing is not available for given mnemonic
-
-		output = bytearray(opcode)
-		if operand:
-			output += operand # TODO WIP I think caller rules should check operand length, right?
-		self.append_output(output)
-
 	
 	def assign_reg_reg(self, reg1: str, reg2: str):
 		transfer = {
@@ -260,6 +260,3 @@ class Fass():
 # test
 if __name__ == '__main__':
 	fass = Fass()
-	for d in [128, 129, 255, 256, 257, -1, -127, -128, "A"]:
-		s = fass.serialize(d)
-		print(f"`{d}` -> `{s}`")

@@ -70,7 +70,7 @@ class Fass():
 		return self.output
 	
 	def check_name(self, name: str) -> bool:
-		''' Checks that a name hadn't been already defined '''
+		''' Checks that a name is unique and hadn't been already defined '''
 		if name in self.constants or name in self.labels:
 			return False
 		return True
@@ -95,7 +95,7 @@ class Fass():
 
 	def get_label(self, label: str):
 		if label in self.constants:
-			raise FassException(f"Name `{label}` already defined as a constant.")
+			raise FassException(f"Name `{label}` is a constant.")
 		if label in self.labels:
 			return self.labels[label]
 		else:
@@ -202,12 +202,9 @@ class Fass():
 		self.filler = filler
 	
 	def set_constant(self, name: str, value):
-		original_name = name
-		name = name.lower()
-		if self.check_name(name):
-			self.constants[name] = value
-		else:
-			raise FassException(f"Name `{original_name}` has already been defined.")
+		if not self.check_name(name):
+			raise FassException(f"Name `{name}` has already been defined.")
+		self.constants[name] = value
 
 	def get_constant(self, name: str):
 		try:

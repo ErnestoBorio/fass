@@ -93,6 +93,12 @@ class Fass():
 		else:
 			raise FassException(f"A negative 8 bit value was expected (-128..-1), but {value} was given.")
 
+	def get_constant(self, name: str):
+		try:
+			return self.constants[name]
+		except KeyError:
+			raise FassException(f"Constant `{name}` hasn't been defined.") from None
+
 	def get_label(self, label: str):
 		if label in self.constants:
 			raise FassException(f"Name `{label}` is a constant.")
@@ -205,12 +211,6 @@ class Fass():
 		if not self.check_name(name):
 			raise FassException(f"Name `{name}` has already been defined.")
 		self.constants[name] = value
-
-	def get_constant(self, name: str):
-		try:
-			return self.constants[name]
-		except KeyError:
-			raise FassException(f"Constant `{name}` hasn't been defined.") from None
 
 	def data(self, datas: list):
 		output = bytearray()

@@ -61,9 +61,9 @@ class Fass():
 		self.offset = 0 # byte offset of output since beginning of file
 		self.filler = self.default_filler
 		self.output = bytearray()
-		self.labels = {}
-		self.constants = {}
-		self.pending_labels = {} # {label_name: [offset to replace actual address]}
+		self.labels = {} # {label_name: (int)label_address}
+		self.constants = {} # {const_name: (int|string) value}
+		self.pending_labels = {} # {label_name: (int)[offsets to replace actual address]}
 
 # --> Utility functions
 	def get_output(self) -> bytearray:

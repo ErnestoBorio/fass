@@ -25,7 +25,7 @@ def main(argv):
 	listener = myListener(fass)
 	ParseTreeWalker().walk( listener, tree )
 	
-	print( "compiled: ", nicehex( fass.get_output(), '.' )) # WIP TODO Debug only
+	print( "compiled: \n"+ nicehex( fass.get_output(), '.' )) # WIP TODO Debug only
 	
 	# WIP TODO: implement argparse
 	if len(argv) >= 3:

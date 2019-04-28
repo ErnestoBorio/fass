@@ -88,6 +88,9 @@ class myListener(fassListener):
 	def assign(self, operation: str, register: str, addressing: str, address: int):
 		self.fass.operation(operation+register, addressing, self.fass.serialize(address, 'little'))
 
+	def assert_not_const(self, ref: fassParser.ReferenceContext):
+		if ref.const:
+			self.fass.error(f"Can't assign to constant {ref.lbl}")
 
 	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
 		self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.lit.val )
@@ -96,17 +99,26 @@ class myListener(fassListener):
 		self.fass.assign_reg_reg(ctx.reg1.reg_name.text.upper(), ctx.reg2.reg_name.text.upper())
 
 	def exitAssign_reg_ref(self, ctx:fassParser.Assign_reg_refContext):
-		self.assign("LD", ctx.reg.reg_name.text.upper(), ctx.ref.addressing, ctx.ref.adrs)
+		if ctx.ref.const:
+			self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.ref.val)
+		else:
+			self.assign("LD", ctx.reg.reg_name.text.upper(), ctx.ref.addressing, ctx.ref.adrs)
 
 	def exitAssign_ref_reg(self, ctx:fassParser.Assign_ref_regContext):
+		self.assert_not_const(ctx.ref)
 		self.assign("ST", ctx.reg.reg_name.text.upper(), ctx.ref.addressing, ctx.ref.adrs)
 
 	def exitAssign_ref_reg_lit(self, ctx:fassParser.Assign_ref_reg_litContext):
+		self.assert_not_const(ctx.ref)
 		self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.lit.val)
 		self.assign("ST", ctx.reg.reg_name.text.upper(), ctx.ref.addressing, ctx.ref.adrs)
 
 	def exitAssign_ref_reg_ref(self, ctx:fassParser.Assign_ref_reg_refContext):
-		self.assign("LD", ctx.reg.reg_name.text.upper(), ctx.ref2.addressing, ctx.ref2.adrs)
+		self.assert_not_const(ctx.ref1)
+		if ctx.ref2.const:
+			self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.ref2.val)
+		else:
+			self.assign("LD", ctx.reg.reg_name.text.upper(), ctx.ref2.addressing, ctx.ref2.adrs)
 		self.assign("ST", ctx.reg.reg_name.text.upper(), ctx.ref1.addressing, ctx.ref1.adrs)
 
 # Arithmetic: INC INX INY ADC SBC  
@@ -177,13 +189,25 @@ class myListener(fassListener):
 # --> References
 	def enterReference(self, ctx:fassParser.ReferenceContext):
 		ctx.lbl = ctx.children[0].lbl.text.lower()
-		ctx.adrs = ctx.children[0].adrs = self.fass.get_label(ctx.lbl)
+		ctx.const = False
+		ctx.adrs = None
+		ctx.val = None
+		if ctx.name():
+			const = self.fass.get_constant(ctx.lbl)
+			if const is not None:
+				ctx.val = const
+				ctx.adrs = ctx.children[0].adrs = None
+				ctx.const = True
+		if not ctx.const or not ctx.name(): # it's not a constant, assume it's a label
+			ctx.adrs = ctx.children[0].adrs = self.fass.get_label(ctx.lbl)
 
 	def exitReference(self, ctx:fassParser.ReferenceContext):
 		ctx.addressing = ctx.children[0].addressing
 
 	def exitName(self, ctx:fassParser.NameContext):
-		if ctx.adrs is None or ctx.adrs > 0xFF:
+		if ctx.const:
+			ctx.addressing = None
+		elif ctx.adrs > 0xFF:
 			ctx.addressing = Fass.ABS
 		else:
 			ctx.addressing = Fass.ZP

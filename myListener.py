@@ -70,6 +70,7 @@ class myListener(fassListener):
 # Goto Gosub / JMP JSR
 	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
 		ref = ctx.reference() or ctx.indirect()
+		self.assert_not_const(ref)
 		self.fass.operation(Fass.JMP, ref.addressing, self.fass.serialize(ref.adrs, 'little'))
 	
 	def exitGosub_stmt(self, ctx:fassParser.Gosub_stmtContext):

@@ -83,7 +83,7 @@ arithmetic_stmt:
 	  A op=('+='|'-=') lit=literal   # arithmetic_a_lit // ADC SBC
 	| A op=('+='|'-=') ref=reference # arithmetic_a_ref // ADC SBC
 	| reg=register  op=('+='|'-=') lit=literal # arithmetic_reg_inc // INX INY DEX DEY
-	| ref=reference op=('+='|'-=') lit=literal # arithmetic_ref_lit // INC
+	| ref=reference op=('+='|'-=') lit=literal # arithmetic_ref_lit // INC DEC
 	;
 
 bit_shift_stmt: (A|reference) op=('<<'|'>>'|'<-'|'->');

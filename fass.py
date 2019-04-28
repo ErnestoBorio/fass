@@ -97,7 +97,7 @@ class Fass():
 		try:
 			return self.constants[name]
 		except KeyError:
-			raise FassException(f"Constant `{name}` hasn't been defined.") from None
+			return None
 
 	def get_label(self, label: str):
 		''' Only called by myListener.enterReference() '''

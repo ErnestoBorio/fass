@@ -100,12 +100,15 @@ class Fass():
 			raise FassException(f"Constant `{name}` hasn't been defined.") from None
 
 	def get_label(self, label: str):
-		if label in self.constants:
-			raise FassException(f"Name `{label}` is a constant.")
-		if label in self.labels:
+		''' Only called by myListener.enterReference() '''
+		try:
 			return self.labels[label]
-		else:
-			return None
+		except KeyError:
+			if label in self.constants:
+				raise FassException(f"Name `{label}` is a constant.") from None
+			else:
+				raise FassException(f"Possible forward reference `{label}`. Not yet implemented.") from None
+		# `label` is not yet defined neither as a constant or a label
 			# WIP TODO implement forward references
 			# if label in self.pending_labels:
 			# 	self.pending_labels[label].append(self.offset)

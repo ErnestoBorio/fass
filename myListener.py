@@ -166,12 +166,16 @@ class myListener(fassListener):
 	def exitLogic_stmt(self, ctx:fassParser.Logic_stmtContext):
 		literal = ctx.literal()
 		if literal is not None:
-			operand = self.fass.serialize(literal.val)
 			addressing = Fass.IMM
+			operand = self.fass.serialize(literal.val)
 		else:
 			ref = ctx.reference()
-			addressing = ref.addressing
-			operand = self.fass.serialize(ref.adrs, 'little')
+			if ref.const: # as if it was a literal
+				addressing = Fass.IMM
+				operand = self.fass.serialize(ref.val)
+			else:
+				addressing = ref.addressing
+				operand = self.fass.serialize(ref.adrs, 'little')
 		mnemonic = {'and=': Fass.AND, 'or=': Fass.ORA, 'xor=': Fass.EOR}[ctx.op.text.lower()]
 		self.fass.operation(mnemonic, addressing, operand)
 

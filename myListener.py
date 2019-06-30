@@ -69,7 +69,7 @@ class myListener(fassListener):
 
 # Goto Gosub / JMP JSR
 	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
-		ref = ctx.reference() or ctx.indirect()
+		ref = ctx.reference()
 		self.assert_not_const(ref, "Can't goto a constant. Must use a label.")
 		self.fass.operation(Fass.JMP, ref.addressing, self.fass.serialize(ref.adrs, 'little'))
 	

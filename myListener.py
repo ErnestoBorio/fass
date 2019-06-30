@@ -199,7 +199,7 @@ class myListener(fassListener):
 				ctx.val = const
 				ctx.adrs = ctx.children[0].adrs = None
 				ctx.const = True
-		if not ctx.const or not ctx.name(): # it's not a constant, assume it's a label
+		if not ctx.const: # if not a const, must be a reference to a label
 			ctx.adrs = ctx.children[0].adrs = self.fass.get_label(ctx.lbl)
 
 	def exitReference(self, ctx:fassParser.ReferenceContext):

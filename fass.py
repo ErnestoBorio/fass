@@ -111,9 +111,10 @@ class Fass():
 		# `label` is not yet defined neither as a constant or a label
 			# WIP TODO implement forward references
 			# if label in self.pending_labels:
-			# 	self.pending_labels[label].append(self.offset)
+			# 	self.pending_labels[label].append(self.offset) # +1? account for opcode? WIP
 			# else:
 			# 	self.pending_labels[label] = [self.offset]
+			# Problema! depende desde dónde se llame get_label el offset puede estar mal! TODO WIP
 
 	# WIP TODO: Should add a way to serialize a 0..FF number into 2 bytes, for addresses
 	def serialize(self, value, endian: str = 'big', signed: bool = False ) -> bytes:

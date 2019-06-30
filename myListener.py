@@ -131,7 +131,11 @@ class myListener(fassListener):
 	
 	def exitArithmetic_a_ref(self, ctx:fassParser.Arithmetic_a_refContext):
 		mnemonic = 'ADC' if ctx.op.text=='+=' else 'SBC'
-		self.fass.operation(mnemonic, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
+		if ctx.ref.const:
+			self.fass.assert_8bits(ctx.ref.val)
+			self.fass.operation(mnemonic, Fass.IMM, self.fass.serialize(ctx.ref.val))
+		else:
+			self.fass.operation(mnemonic, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
 
 	def exitArithmetic_reg_inc(self, ctx:fassParser.Arithmetic_reg_incContext):
 		if ctx.lit.val != 1:
@@ -140,6 +144,7 @@ class myListener(fassListener):
 		self.fass.operation(oper + ctx.reg.reg_name.text.upper())
 	
 	def exitArithmetic_ref_lit(self, ctx:fassParser.Arithmetic_ref_litContext):
+		self.assert_not_const(ctx.ref, "Can't modify a constant.")
 		if ctx.lit.val != 1:
 			self.fass.error(f"Memory references can only be incremented or decremented by 1, but {ctx.lit.val} given.")
 		mnemonic = 'INC' if ctx.op.text=='+=' else 'DEC'

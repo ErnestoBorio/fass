@@ -65,7 +65,7 @@ return_stmt:
 	| RETINT_KWD # retint; // RTI
 
 goto_stmt:
-	  GOTO_KWD ( reference | indirect ); // JMP
+	  GOTO_KWD ref=reference; // JMP
 
 gosub_stmt:
 	  GOSUB_KWD ref=reference; // JSR

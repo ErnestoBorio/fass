@@ -70,10 +70,11 @@ class myListener(fassListener):
 # Goto Gosub / JMP JSR
 	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
 		ref = ctx.reference() or ctx.indirect()
-		self.assert_not_const(ref)
+		self.assert_not_const(ref, "Can't goto a constant. Must use a label.")
 		self.fass.operation(Fass.JMP, ref.addressing, self.fass.serialize(ref.adrs, 'little'))
 	
 	def exitGosub_stmt(self, ctx:fassParser.Gosub_stmtContext):
+		self.assert_not_const(ctx.ref, "Can't gosub to a constant. Must use a label.")
 		if ctx.ref.addressing != Fass.ABS:
 			return self.fass.error(f"Gosub (JSR) only accepts the absolute addressing mode.")
 		self.fass.operation(Fass.JSR, Fass.ABS, self.fass.serialize(ctx.ref.adrs, 'little'))
@@ -89,9 +90,9 @@ class myListener(fassListener):
 	def assign(self, operation: str, register: str, addressing: str, address: int):
 		self.fass.operation(operation+register, addressing, self.fass.serialize(address, 'little'))
 
-	def assert_not_const(self, ref: fassParser.ReferenceContext):
+	def assert_not_const(self, ref: fassParser.ReferenceContext, msg: None):
 		if ref.const:
-			self.fass.error(f"Can't assign to constant {ref.lbl}")
+			self.fass.error(msg or f"Can't assign to constant {ref.lbl}")
 
 	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
 		self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.lit.val )

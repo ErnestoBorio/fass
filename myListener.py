@@ -79,6 +79,12 @@ class myListener(fassListener):
 			return self.fass.error(f"Gosub (JSR) only accepts the absolute addressing mode.")
 		self.fass.operation(Fass.JSR, Fass.ABS, self.fass.serialize(ctx.ref.adrs, 'little'))
 
+
+	def assert_not_const(self, ref: fassParser.ReferenceContext, msg: None):
+		if ref.const:
+			self.fass.error(msg or f"Can't assign to constant {ref.lbl}")
+
+
 # Assign
 	def assign_reg_lit(self, register: str, literal):
 		mnemonic = "LD"+ register
@@ -89,10 +95,6 @@ class myListener(fassListener):
 	# depending on operation: LD -> reg=ref, ST -> ref=reg
 	def assign(self, operation: str, register: str, addressing: str, address: int):
 		self.fass.operation(operation+register, addressing, self.fass.serialize(address, 'little'))
-
-	def assert_not_const(self, ref: fassParser.ReferenceContext, msg: None):
-		if ref.const:
-			self.fass.error(msg or f"Can't assign to constant {ref.lbl}")
 
 	def exitAssign_reg_lit(self, ctx:fassParser.Assign_reg_litContext):
 		self.assign_reg_lit(ctx.reg.reg_name.text.upper(), ctx.lit.val )
@@ -157,6 +159,7 @@ class myListener(fassListener):
 			address = None
 		else:
 			ref = ctx.reference()
+			self.assert_not_const(ref)
 			addressing = ref.addressing
 			address = self.fass.serialize(ref.adrs, 'little')
 		mnemonic = {'>>': Fass.LSR, '<<': Fass.ASL, '->': Fass.ROR, '<-': Fass.ROL}[ctx.op.text]
@@ -184,15 +187,20 @@ class myListener(fassListener):
 		literal = ctx.literal()
 		if literal:
 			addressing = Fass.IMM
-			operand = self.fass.serialize( self.fass.assert_8bits( literal.val))
+			operand = self.fass.serialize(self.fass.assert_8bits(literal.val))
 		else:
 			ref = ctx.reference()
-			addressing = ref.addressing
-			operand = self.fass.serialize(ref.adrs, 'little')
+			if ref.const:
+				addressing = Fass.IMM
+				operand = self.fass.serialize(self.fass.assert_8bits(ref.val))
+			else:
+				addressing = ref.addressing
+				operand = self.fass.serialize(ref.adrs, 'little')
 		self.fass.operation(Fass.CMP, addressing, operand)
 
 # Bit test
 	def exitBittest_stmt(self, ctx:fassParser.Bittest_stmtContext):
+		self.assert_not_const(ctx.ref, "Can't bit test a constant.")
 		self.fass.operation(Fass.BIT, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
 
 # Statements <--

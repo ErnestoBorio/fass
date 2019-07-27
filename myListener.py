@@ -80,9 +80,9 @@ class myListener(fassListener):
 		self.fass.operation(Fass.JSR, Fass.ABS, self.fass.serialize(ctx.ref.adrs, 'little'))
 
 
-	def assert_not_const(self, ref: fassParser.ReferenceContext, msg: None):
+	def assert_not_const(self, ref: fassParser.ReferenceContext, msg: str = None):
 		if ref.const:
-			self.fass.error(msg or f"Can't assign to constant {ref.lbl}")
+			self.fass.error(msg or f"Can't modify constant {ref.lbl}")
 
 
 # Assign
@@ -224,7 +224,7 @@ class myListener(fassListener):
 		ctx.addressing = ctx.children[0].addressing
 
 	def exitName(self, ctx:fassParser.NameContext):
-		if ctx.const:
+		if ctx.parentCtx.const:
 			ctx.addressing = None
 		elif ctx.adrs > 0xFF:
 			ctx.addressing = Fass.ABS

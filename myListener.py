@@ -69,15 +69,12 @@ class myListener(fassListener):
 
 # Goto Gosub / JMP JSR
 	def exitGoto_stmt(self, ctx:fassParser.Goto_stmtContext):
-		ref = ctx.reference()
-		self.assert_not_const(ref, "Can't goto a constant. Must use a label.")
-		self.fass.operation(Fass.JMP, ref.addressing, self.fass.serialize(ref.adrs, 'little'))
+		self.assert_not_const(ctx.ref, "Can't goto a constant. Must use a label.")
+		self.fass.operation(Fass.JMP, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
 	
 	def exitGosub_stmt(self, ctx:fassParser.Gosub_stmtContext):
 		self.assert_not_const(ctx.ref, "Can't gosub to a constant. Must use a label.")
-		if ctx.ref.addressing != Fass.ABS:
-			return self.fass.error(f"Gosub (JSR) only accepts the absolute addressing mode.")
-		self.fass.operation(Fass.JSR, Fass.ABS, self.fass.serialize(ctx.ref.adrs, 'little'))
+		self.fass.operation(Fass.JSR, ctx.ref.addressing, self.fass.serialize(ctx.ref.adrs, 'little'))
 
 
 	def assert_not_const(self, ref: fassParser.ReferenceContext, msg: str = None):

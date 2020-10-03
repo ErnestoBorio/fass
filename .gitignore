@@ -1,15 +1,8 @@
 /etc
-/__pycache__
 /.vscode
 /.antlr
 
 .DS_Store
 *.tokens
 *.interp
-fassLexer.py
-fassParser.py
-fassVisitor.py
-fassListener.py
-test.fass
 build
-fassold.g4

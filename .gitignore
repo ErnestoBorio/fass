@@ -1,8 +1,4 @@
-/etc
-.vscode
-
 .DS_Store
 *.tokens
 *.interp
 .antlr
-/antlr_files

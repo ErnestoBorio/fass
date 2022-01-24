@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-FASS_PATH="/Users/petruza/Source/Drean64/fass/"
-antlr -Dlanguage=Go -o $FASS_PATH/antlr_files $FASS_PATH/src/fass.g4
+FASS_PATH="/Users/petruza/Source/Drean64/fass"
+antlr -Dlanguage=JavaScript -o $FASS_PATH/antlr_files $FASS_PATH/src/fass.g4
 
-cp $FASS_PATH/antlr_files/fass_base_listener.go $FASS_PATH/src/
-cp $FASS_PATH/antlr_files/fass_parser.go $FASS_PATH/src/
-cp $FASS_PATH/antlr_files/fass_lexer.go $FASS_PATH/src/
+cp $FASS_PATH/antlr_files/fassLexer.js $FASS_PATH/src/
+cp $FASS_PATH/antlr_files/fassParser.js $FASS_PATH/src/
+cp $FASS_PATH/antlr_files/fassListener.js $FASS_PATH/src/fassBaseListener.js

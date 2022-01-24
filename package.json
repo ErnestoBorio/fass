@@ -1,0 +1,19 @@
+{
+  "name": "fass",
+  "version": "0.1.0",
+  "description": "A friendly 6502 assembler",
+  "main": "src/fassRun.js",
+  "scripts": {
+    "build": "./build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Drean64/fass.git"
+  },
+  "author": "Drean64",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Drean64/fass/issues"
+  },
+  "homepage": "https://github.com/Drean64/fass#readme"
+}

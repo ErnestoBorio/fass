@@ -1,0 +1,21 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Launch Program",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "${workspaceFolder}/src/fassRun.js"
+			"args": ["${workspaceFolder}/program.fass"]
+		},
+		{
+			"type": "pwa-node",
+			"request": "launch",
+			"name": "npm",
+			"skipFiles": ["<node_internals>/**"],
+			"program": "npm run start",
+			"args": ["<", "${workspaceFolder}/program.fass"]
+		}
+	]
+}

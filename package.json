@@ -1,19 +1,29 @@
 {
-  "name": "fass",
-  "version": "0.1.0",
-  "description": "A friendly 6502 assembler",
-  "main": "src/fassRun.js",
-  "scripts": {
-    "build": "./build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Drean64/fass.git"
-  },
-  "author": "Drean64",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Drean64/fass/issues"
-  },
-  "homepage": "https://github.com/Drean64/fass#readme"
+	"name": "fass",
+	"version": "0.1.0",
+	"description": "A friendly 6502 assembler",
+	"main": "src/fassRun.js",
+	"type": "module",
+	"scripts": {
+		"start": "node src/fassRun.js < ./program.fass",
+		"build": "./build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Drean64/fass.git"
+	},
+	"author": "Drean64",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Drean64/fass/issues"
+	},
+	"homepage": "https://github.com/Drean64/fass#readme",
+	"devDependencies": {
+		"eslint": "^8.8.0",
+		"prettier": "^2.5.1",
+		"prettier-eslint": "^13.0.0"
+	},
+	"dependencies": {
+		"antlr4": "^4.9.3"
+	}
 }

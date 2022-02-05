@@ -1,0 +1,14 @@
+{
+	"editor.formatOnSave": true,
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"eslint.codeActionsOnSave.mode": "problems",
+	"eslint.alwaysShowStatus": true,
+	"eslint.run": "onSave",
+	"files.exclude": {
+		"**/.git": true,
+		"**/.DS_Store": true
+		// "node_modules": true
+		// "antlr_files": true
+		// "src/.antlr": true
+	}
+}

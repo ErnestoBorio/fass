@@ -26,14 +26,12 @@ statement:
 	| arithmetic_stmt
 	| label statement?;
 
-address: hex_bigend # address_hex | dec_bigend # address_dec;
+address: hex_bigend | dec_bigend;
 address_stmt: ADDRESS_KWD address;
 
 remote_label_stmt: IDENTIFIER 'at' address;
 
-filler_stmt:
-	FILLER_KWD value			# filler_value
-	| FILLER_KWD DEFAULT_KWD	# filler_default;
+filler_stmt: FILLER_KWD value | FILLER_KWD DEFAULT_KWD;
 
 nop_brk_stmt:
 	mnemonic = NOP
@@ -137,8 +135,7 @@ negative_number: NEGATIVE_NUMBER;
 // Values <--
 
 // --> Literals
-LITEND:
-	'L'; // Little endianness, uppercase only to avoid confusion with the number 1
+LITEND: 'L'; // Little endianness, uppercase only to avoid confusion with the number 1
 HEX_BIGEND: '$' [0-9a-fA-F]+;
 HEX_LITEND: '$' [0-9a-fA-F]+ LITEND;
 BIN_BIGEND: '%' [01]+;

@@ -23,21 +23,12 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
-	// Enter a parse tree produced by fassParser#address_hex.
-	enterAddress_hex(ctx) {
+	// Enter a parse tree produced by fassParser#address.
+	enterAddress(ctx) {
 	}
 
-	// Exit a parse tree produced by fassParser#address_hex.
-	exitAddress_hex(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#address_dec.
-	enterAddress_dec(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#address_dec.
-	exitAddress_dec(ctx) {
+	// Exit a parse tree produced by fassParser#address.
+	exitAddress(ctx) {
 	}
 
 
@@ -59,21 +50,12 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
-	// Enter a parse tree produced by fassParser#filler_value.
-	enterFiller_value(ctx) {
+	// Enter a parse tree produced by fassParser#filler_stmt.
+	enterFiller_stmt(ctx) {
 	}
 
-	// Exit a parse tree produced by fassParser#filler_value.
-	exitFiller_value(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#filler_default.
-	enterFiller_default(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#filler_default.
-	exitFiller_default(ctx) {
+	// Exit a parse tree produced by fassParser#filler_stmt.
+	exitFiller_stmt(ctx) {
 	}
 
 

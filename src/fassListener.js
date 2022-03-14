@@ -9,9 +9,30 @@ export default class FassListener extends FassBaseListener {
 	labels = new Map();
 	constants = new Map();
 	output = [];
+	ctx = []; // Stack of current contexts
+
+	getContext() {
+		return this.ctx.slice(-1);
+	}
+
+	pushBytes(bytes) {
+		if (this.address === null) {
+			throw new FassError("Output started without setting an address", this.getContext());
+		}
+		this.output.push(...bytes);
+	}
 
 	exitProgram(ctx) {
-		console.log(this.constants);
+		console.log("cons", this.constants);
+		console.log("output", this.output);
+	}
+
+	enterEveryRule(ctx) {
+		this.ctx.push(ctx);
+	}
+
+	exitEveryRule() {
+		this.ctx.pop();
 	}
 
 	exitAddress(ctx) {
@@ -67,11 +88,37 @@ export default class FassListener extends FassBaseListener {
 		this.constants.set(constName, ctx.value().val);
 	}
 
+	exitData_stmt(ctx) {
+		for (const value of ctx.datas) {
+			if (value.literal()) {
+				this.pushBytes(value.bytes);
+			}
+		}
+	}
+
 	exitHex_bigend(ctx) {
-		ctx.parentCtx.parentCtx.val = parseInt(ctx.HEX_BIGEND().getText().slice(1), 16);
+		const hex = parseInt(ctx.HEX_BIGEND().getText().slice(1), 16);
+		if (hex < 0x100) {
+			ctx.parentCtx.parentCtx.bytes = [hex];
+		} else if (hex < 0x10000) {
+			ctx.parentCtx.parentCtx.bytes = [hex >> 8, hex & 0xff];
+		} else {
+			throw new FassError(`Value ${ctx.HEX_BIGEND().getText()} is out of range [0..$FFFF]`, ctx);
+		}
 	}
 
 	exitHex_litend(ctx) {}
+
+	exitDec_bigend(ctx) {
+		const dec = parseInt(ctx.DEC_BIGEND().getText(), 10);
+		if (dec < 0x100) {
+			ctx.parentCtx.parentCtx.bytes = [dec];
+		} else if (dec < 0x10000) {
+			ctx.parentCtx.parentCtx.bytes = [dec >> 8, dec & 0xff];
+		} else {
+			throw new FassError(`Value ${dec} is out of range [0..65535]`, ctx);
+		}
+	}
 
 	exitDec_litend(ctx) {}
 }

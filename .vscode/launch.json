@@ -4,15 +4,21 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch Program",
+			"name": "Fass",
 			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}/src/fassRun.js"
+			"program": "${workspaceFolder}/src/fassRun.js",
 			"args": ["${workspaceFolder}/program.fass"]
+		},
+		{
+			"name": "Run file",
+			"type": "node",
+			"request": "launch",
+			"program": "${file}"
 		},
 		{
 			"type": "pwa-node",
 			"request": "launch",
-			"name": "npm",
+			"name": "npm start",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "npm run start",
 			"args": ["<", "${workspaceFolder}/program.fass"]

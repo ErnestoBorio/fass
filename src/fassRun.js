@@ -20,5 +20,3 @@ parser.addErrorListener(new FassErrorListener());
 var tree = parser.program();
 var fass = new FassListener();
 antlr.tree.ParseTreeWalker.DEFAULT.walk(fass, tree);
-
-console.log("Labels:", fass.labels);

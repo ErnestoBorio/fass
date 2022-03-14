@@ -5,12 +5,13 @@ const defaultFiller = 0xea; // NOP
 
 export default class FassListener extends FassBaseListener {
 	address = null;
-	labels;
 	filler = defaultFiller;
+	labels = new Map();
+	constants = new Map();
+	output = [];
 
-	constructor() {
-		super();
-		this.labels = new Map();
+	exitProgram(ctx) {
+		console.log(this.constants);
 	}
 
 	exitAddress(ctx) {
@@ -52,8 +53,25 @@ export default class FassListener extends FassBaseListener {
 
 	exitFiller_stmt(ctx) {
 		if (ctx.value()) {
+			this.filler = ctx.value().val;
 		} else if (ctx.DEFAULT_KWD()) {
 			this.filler = defaultFiller;
 		}
 	}
+
+	exitConst_stmt(ctx) {
+		const constName = ctx.const_name.text.toLowerCase();
+		if (this.constants.has(constName)) {
+			throw new FassError(`Constant ${constName} already defined`, ctx);
+		}
+		this.constants.set(constName, ctx.value().val);
+	}
+
+	exitHex_bigend(ctx) {
+		ctx.parentCtx.parentCtx.val = parseInt(ctx.HEX_BIGEND().getText().slice(1), 16);
+	}
+
+	exitHex_litend(ctx) {}
+
+	exitDec_litend(ctx) {}
 }

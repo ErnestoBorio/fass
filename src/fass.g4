@@ -39,7 +39,7 @@ nop_brk_stmt:
 	| mnemonic = NOP3 value?
 	| mnemonic = NOP4 value?;
 
-const_stmt: CONST_KWD lhs = IDENTIFIER '=' value;
+const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 
 data_stmt: DATA_KWD ( datas += value ','?)+;
 

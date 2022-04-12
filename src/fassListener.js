@@ -11,28 +11,34 @@ export default class FassListener extends FassBaseListener {
 	output = [];
 	ctx = []; // Stack of current contexts
 
-	getContext() {
-		return this.ctx.slice(-1);
+	/** Fail if no address has been defined */
+	requireAddress() {
+		if (this.address === null) {
+			const statement = this.getContext().start.source[1].strdata.trim();
+			throw new FassError(
+				"statement `" + statement + "` needs an address to be defined before hand",
+				this.getContext()
+			);
+		}
 	}
 
 	pushBytes(bytes) {
-		if (this.address === null) {
-			throw new FassError("Output started without setting an address", this.getContext());
-		}
+		this.requireAddress();
 		this.output.push(...bytes);
 	}
 
-	exitProgram(ctx) {
-		console.log("cons", this.constants);
-		console.log("output", this.output);
-	}
-
+	// Keep a stack of contexts to access them outside rule handlers, most likely in error reporting
 	enterEveryRule(ctx) {
 		this.ctx.push(ctx);
 	}
-
 	exitEveryRule() {
 		this.ctx.pop();
+	}
+	getContext() {
+		if (this.ctx.length <= 0) {
+			return undefined;
+		}
+		return this.ctx.slice(-1)[0];
 	}
 
 	exitAddress(ctx) {
@@ -68,7 +74,8 @@ export default class FassListener extends FassBaseListener {
 		this.setLabel(ctx.IDENTIFIER().getText().toLowerCase(), ctx.address().address, ctx);
 	}
 
-	exitLabel_stmt(ctx) {
+	exitLabel(ctx) {
+		this.requireAddress();
 		this.setLabel(ctx.IDENTIFIER().getText().toLowerCase(), this.address, ctx);
 	}
 
@@ -98,11 +105,8 @@ export default class FassListener extends FassBaseListener {
 
 	exitHex_bigend(ctx) {
 		const hex = parseInt(ctx.HEX_BIGEND().getText().slice(1), 16);
-		if (hex < 0x100) {
-			ctx.parentCtx.parentCtx.bytes = [hex];
-		} else if (hex < 0x10000) {
-			ctx.parentCtx.parentCtx.bytes = [hex >> 8, hex & 0xff];
-		} else {
+		ctx.parentCtx.parentCtx.val = hex;
+		if (hex >= 0x10000) {
 			throw new FassError(`Value ${ctx.HEX_BIGEND().getText()} is out of range [0..$FFFF]`, ctx);
 		}
 	}
@@ -111,11 +115,8 @@ export default class FassListener extends FassBaseListener {
 
 	exitDec_bigend(ctx) {
 		const dec = parseInt(ctx.DEC_BIGEND().getText(), 10);
-		if (dec < 0x100) {
-			ctx.parentCtx.parentCtx.bytes = [dec];
-		} else if (dec < 0x10000) {
-			ctx.parentCtx.parentCtx.bytes = [dec >> 8, dec & 0xff];
-		} else {
+		ctx.parentCtx.parentCtx.val = dec;
+		if (dec >= 0x10000) {
 			throw new FassError(`Value ${dec} is out of range [0..65535]`, ctx);
 		}
 	}

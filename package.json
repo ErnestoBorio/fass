@@ -5,7 +5,7 @@
 	"main": "src/fassRun.js",
 	"type": "module",
 	"scripts": {
-		"start": "node src/fassRun.js < ./program.fass",
+		"start": "node src/fassRun.js ./program.fass",
 		"build": "./build"
 	},
 	"repository": {

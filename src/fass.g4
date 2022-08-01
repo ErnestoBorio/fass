@@ -26,7 +26,7 @@ statement:
 	| arithmetic_stmt
 	| label statement?;
 
-address: hex_bigend | dec_bigend;
+address: decimal | hexadecimal;
 address_stmt: ADDRESS_KWD address;
 
 remote_label_stmt: IDENTIFIER 'at' address;
@@ -44,7 +44,7 @@ const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 data_stmt: DATA_KWD ( datas += value ','?)+;
 
 flag_set_stmt:
-	flag = (OVERFLOW | CARRY) '=' operand = DEC_BIGEND // CLV SEC CLC
+	flag = (OVERFLOW | CARRY) '=' operand = DECIMAL // CLV SEC CLC
 	| flag = (INTERRUPT | DECIMAL_MODE) operand = (
 		ON_KWD
 		| OFF_KWD
@@ -111,23 +111,17 @@ indirect: '(' lbl = IDENTIFIER ')'; // only JMP uses it
 value: literal | constant;
 constant: IDENTIFIER;
 literal:
-	hex_bigend
-	| hex_litend
-	| dec_bigend
-	| dec_litend
-	| bin_bigend
-	| bin_litend
+	hexadecimal
+	| decimal
+	| binary
 	| negative_number
 	| string
 	| brk_literal
 	| nop_literal;
 
-hex_bigend: HEX_BIGEND;
-dec_bigend: DEC_BIGEND;
-bin_bigend: BIN_BIGEND;
-hex_litend: HEX_LITEND;
-dec_litend: DEC_LITEND;
-bin_litend: BIN_LITEND;
+hexadecimal: HEXADECIMAL;
+decimal: DECIMAL;
+binary: BINARY;
 brk_literal: BRK;
 nop_literal: NOP;
 string: STRING;
@@ -135,15 +129,10 @@ negative_number: NEGATIVE_NUMBER;
 // Values <--
 
 // --> Literals
-LITEND: 'L'; // Little endianness, uppercase only to avoid confusion with the number 1
-HEX_BIGEND: '$' [0-9a-fA-F]+;
-HEX_LITEND: '$' [0-9a-fA-F]+ LITEND;
-BIN_BIGEND: '%' [01]+;
-BIN_LITEND: '%' [01]+ LITEND;
-DEC_BIGEND: [0-9]+;
-DEC_LITEND: [0-9]+ LITEND;
-NEGATIVE_NUMBER:
-	'-' [0-9]+; // Intended for 1 byte, range [-128..-1]
+HEXADECIMAL: '$' [0-9a-fA-F]+;
+BINARY: '%' [01]+;
+DECIMAL: [0-9]+;
+NEGATIVE_NUMBER: '-' [0-9]+; // Intended for 1 byte, range [-128..-1]
 BRK: [bB][rR][kK]; // equal to $00
 NOP: [nN][oO][pP]; // equal to $EA
 STRING: '"' (ESC | .)+? '"';

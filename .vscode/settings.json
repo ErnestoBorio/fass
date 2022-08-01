@@ -8,8 +8,8 @@
 	"editor.insertSpaces": false,
 	"files.exclude": {
 		"**/.git": true,
-		"**/.DS_Store": true
-		// "node_modules": true
+		"**/.DS_Store": true,
+		"node_modules": true
 		// "antlr_files": true
 		// "src/.antlr": true
 	}

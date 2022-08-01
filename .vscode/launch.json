@@ -16,7 +16,7 @@
 			"program": "${file}"
 		},
 		{
-			"type": "pwa-node",
+			"type": "node",
 			"request": "launch",
 			"name": "npm start",
 			"skipFiles": ["<node_internals>/**"],

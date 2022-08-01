@@ -24,7 +24,12 @@ export default class FassListener extends FassBaseListener {
 
 	pushBytes(bytes) {
 		this.requireAddress();
-		this.output.push(...bytes);
+		if (!Array.isArray(bytes)) {
+			bytes = [bytes];
+		}
+		bytes.forEach(val => {
+			this.output.push(val);
+		});
 	}
 
 	// Keep a stack of contexts to access them outside rule handlers, most likely in error reporting
@@ -42,21 +47,12 @@ export default class FassListener extends FassBaseListener {
 	}
 
 	exitAddress(ctx) {
-		let address;
 		if (ctx.hex_bigend()) {
-			address = parseInt(ctx.hex_bigend().getText().slice(1), 16);
-		} else if (ctx.dec_bigend()) {
-			address = parseInt(ctx.dec_bigend().getText(), 10);
-		} else {
-			throw new Error("Unsupported address format");
+			ctx.address = parseInt(ctx.hex_bigend().getText().slice(1), 16);
+			return;
 		}
-		if (address > 0xffff) {
-			let rawAddress = ctx.hex_bigend()
-				? ctx.hex_bigend().getText()
-				: ctx.dec_bigend().getText();
-			throw new FassError(`Address ${rawAddress} is out of range [0..$FFFF]`, ctx);
-		}
-		ctx.address = address;
+		// ctx.dec_bigend() is assumed
+		ctx.address = parseInt(ctx.dec_bigend().getText(), 10);
 	}
 
 	exitAddress_stmt(ctx) {
@@ -90,7 +86,7 @@ export default class FassListener extends FassBaseListener {
 	exitConst_stmt(ctx) {
 		const constName = ctx.const_name.text.toLowerCase();
 		if (this.constants.has(constName)) {
-			throw new FassError(`Constant ${constName} already defined`, ctx);
+			throw new FassError(`Constant ${ctx.const_name.text} already defined`, ctx);
 		}
 		this.constants.set(constName, ctx.value().val);
 	}
@@ -98,7 +94,7 @@ export default class FassListener extends FassBaseListener {
 	exitData_stmt(ctx) {
 		for (const value of ctx.datas) {
 			if (value.literal()) {
-				this.pushBytes(value.bytes);
+				this.pushBytes(serialize(value.val));
 			}
 		}
 	}
@@ -123,3 +119,24 @@ export default class FassListener extends FassBaseListener {
 
 	exitDec_litend(ctx) {}
 }
+
+function getNumberSizeInBytes(num) {
+	if (num == 0) {
+		return 0;
+	} else if (num > 0) {
+		return Math.floor(Math.log(num) / Math.log(256)) + 1;
+	}
+	// WIP for now negative values can only be [-128...-1] 1 byte size
+	return 1;
+}
+
+function serialize(value) {
+	if (value < 0) {
+		return el & 0xff;
+	}
+	const size = getNumberSizeInBytes(value);
+	// WIP
+}
+
+// WIP:
+// Al pedo dar la opción little endian, para qué? que lo dé vuelta el dev. No hay casos de uso prácticos.

@@ -47,12 +47,12 @@ export default class FassListener extends FassBaseListener {
 	}
 
 	exitAddress(ctx) {
-		if (ctx.hex_bigend()) {
-			ctx.address = parseInt(ctx.hex_bigend().getText().slice(1), 16);
+		if (ctx.hexadecimal()) {
+			ctx.address = parseInt(ctx.hexadecimal().getText().slice(1), 16);
 			return;
 		}
-		// ctx.dec_bigend() is assumed
-		ctx.address = parseInt(ctx.dec_bigend().getText(), 10);
+		// ctx.decimal() is assumed
+		ctx.address = parseInt(ctx.decimal().getText(), 10);
 	}
 
 	exitAddress_stmt(ctx) {
@@ -99,44 +99,52 @@ export default class FassListener extends FassBaseListener {
 		}
 	}
 
-	exitHex_bigend(ctx) {
-		const hex = parseInt(ctx.HEX_BIGEND().getText().slice(1), 16);
-		ctx.parentCtx.parentCtx.val = hex;
+	exitHexadecimal(ctx) {
+		const hex = parseInt(ctx.getText().slice(1), 16);
 		if (hex >= 0x10000) {
-			throw new FassError(`Value ${ctx.HEX_BIGEND().getText()} is out of range [0..$FFFF]`, ctx);
+			throw new FassError(`Value ${ctx.getText()} is out of range [0..$FFFF]`, ctx);
 		}
+		setValue(ctx, hex);
 	}
 
-	exitHex_litend(ctx) {}
-
-	exitDec_bigend(ctx) {
-		const dec = parseInt(ctx.DEC_BIGEND().getText(), 10);
-		ctx.parentCtx.parentCtx.val = dec;
+	exitDecimal(ctx) {
+		const dec = parseInt(ctx.getText(), 10);
 		if (dec >= 0x10000) {
 			throw new FassError(`Value ${dec} is out of range [0..65535]`, ctx);
 		}
+		setValue(ctx, dec);
 	}
 
-	exitDec_litend(ctx) {}
+	exitNegative_number(ctx) {
+		const neg = parseInt(ctx.getText(), 10);
+		if (neg < -128) {
+			throw new FassError(`Value ${neg} is out of range [-128..-1]`, ctx);
+		}
+		setValue(ctx, neg);
+	}
 }
 
-function getNumberSizeInBytes(num) {
-	if (num == 0) {
-		return 0;
-	} else if (num > 0) {
-		return Math.floor(Math.log(num) / Math.log(256)) + 1;
+function setValue(ctx, val) {
+	const value = getTypedAncestor("ValueContext", ctx);
+	if (value) {
+		value.val = val;
 	}
-	// WIP for now negative values can only be [-128...-1] 1 byte size
-	return 1;
 }
 
 function serialize(value) {
-	if (value < 0) {
-		return el & 0xff;
+	if (value <= 0xff) {
+		return [value & 0xff];
 	}
-	const size = getNumberSizeInBytes(value);
-	// WIP
+	return [(value & 0xff00) >> 8, value & 0x00ff];
 }
 
-// WIP:
-// Al pedo dar la opción little endian, para qué? que lo dé vuelta el dev. No hay casos de uso prácticos.
+function getTypedAncestor(type, ctx) {
+	let ancestor = ctx.parentCtx;
+	while (ancestor) {
+		if (ancestor.constructor.name == type) {
+			return ancestor;
+		}
+		ancestor = ancestor.parentCtx;
+	}
+	return undefined;
+}

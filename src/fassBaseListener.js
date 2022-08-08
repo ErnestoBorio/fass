@@ -374,57 +374,30 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
-	// Enter a parse tree produced by fassParser#hex_bigend.
-	enterHex_bigend(ctx) {
+	// Enter a parse tree produced by fassParser#hexadecimal.
+	enterHexadecimal(ctx) {
 	}
 
-	// Exit a parse tree produced by fassParser#hex_bigend.
-	exitHex_bigend(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#dec_bigend.
-	enterDec_bigend(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#dec_bigend.
-	exitDec_bigend(ctx) {
+	// Exit a parse tree produced by fassParser#hexadecimal.
+	exitHexadecimal(ctx) {
 	}
 
 
-	// Enter a parse tree produced by fassParser#bin_bigend.
-	enterBin_bigend(ctx) {
+	// Enter a parse tree produced by fassParser#decimal.
+	enterDecimal(ctx) {
 	}
 
-	// Exit a parse tree produced by fassParser#bin_bigend.
-	exitBin_bigend(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#hex_litend.
-	enterHex_litend(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#hex_litend.
-	exitHex_litend(ctx) {
+	// Exit a parse tree produced by fassParser#decimal.
+	exitDecimal(ctx) {
 	}
 
 
-	// Enter a parse tree produced by fassParser#dec_litend.
-	enterDec_litend(ctx) {
+	// Enter a parse tree produced by fassParser#binary.
+	enterBinary(ctx) {
 	}
 
-	// Exit a parse tree produced by fassParser#dec_litend.
-	exitDec_litend(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#bin_litend.
-	enterBin_litend(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#bin_litend.
-	exitBin_litend(ctx) {
+	// Exit a parse tree produced by fassParser#binary.
+	exitBinary(ctx) {
 	}
 
 

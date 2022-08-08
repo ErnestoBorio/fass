@@ -23,4 +23,7 @@ antlr.tree.ParseTreeWalker.DEFAULT.walk(fass, tree);
 
 console.log("constants", fass.constants);
 console.log("labels", fass.labels);
-console.log("output", fass.output);
+console.log(
+	"output",
+	fass.output.map(it => it.toString(16).toUpperCase().padStart(2, "0"))
+);

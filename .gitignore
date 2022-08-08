@@ -6,3 +6,4 @@ node_modules
 .java_files
 antlr_files
 program.fass
+test.js

@@ -1,10 +1,9 @@
 {
 	"editor.formatOnSave": true,
-	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
 	"eslint.codeActionsOnSave.mode": "problems",
 	"eslint.alwaysShowStatus": true,
 	"eslint.run": "onSave",
-	"editor.tabSize": 3,
 	"editor.insertSpaces": false,
 	"files.exclude": {
 		"**/.git": true,
@@ -12,5 +11,8 @@
 		"node_modules": true
 		// "antlr_files": true
 		// "src/.antlr": true
+	},
+	"[antlr]": {
+		"editor.defaultFormatter": "mike-lischke.vscode-antlr4"
 	}
 }

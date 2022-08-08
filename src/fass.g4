@@ -48,13 +48,13 @@ flag_set_stmt:
 	| flag = (INTERRUPT | DECIMAL_MODE) operand = (
 		ON_KWD
 		| OFF_KWD
-	) ; // SEI CLI SED CLD
+	); // SEI CLI SED CLD
 
 stack_stmt:
 	reg = A '=' op = PULL_KWD // PLA
 	| op = PUSH_KWD reg = A // PHA
 	| reg = FLAGS_KWD '=' op = PULL_KWD // PLP
-	| op = PUSH_KWD reg = FLAGS_KWD ; // PHP
+	| op = PUSH_KWD reg = FLAGS_KWD; // PHP
 
 return_stmt:
 	RETURN_KWD		# return // RTS
@@ -70,15 +70,15 @@ assign_stmt:
 	| reg = register '=' ref = reference					# assign_reg_ref // LDA LDX LDY 
 	| ref = reference '=' reg = register					# assign_ref_reg // STA STX STY
 	| ref = reference '=' reg = register '=' lit = literal	# assign_ref_reg_lit
-		// LDA LDX LDY + STA STX STY
-	| ref1 = reference '=' reg = register '=' ref2 = reference # assign_ref_reg_ref
-		; // LDA LDX LDY + STA STX STY
+	// LDA LDX LDY + STA STX STY
+	| ref1 = reference '=' reg = register '=' ref2 = reference # assign_ref_reg_ref;
+// LDA LDX LDY + STA STX STY
 
 arithmetic_stmt:
 	A op = ('+=' | '-=') lit = literal					# arithmetic_a_lit // ADC SBC
 	| A op = ('+=' | '-=') ref = reference				# arithmetic_a_ref // ADC SBC
 	| reg = register op = ('+=' | '-=') lit = literal	# arithmetic_reg_inc // INX INY DEX DEY
-	| ref = reference op = ('+=' | '-=') lit = literal	# arithmetic_ref_lit ; // INC DEC
+	| ref = reference op = ('+=' | '-=') lit = literal	# arithmetic_ref_lit; // INC DEC
 
 bit_shift_stmt: (A | reference) op = ('<<' | '>>' | '<-' | '->');
 
@@ -96,8 +96,8 @@ label: IDENTIFIER ':';
 // --> References
 reference: name | indexed | indir_x | indir_y | indirect;
 
-register: reg_name = ( A | X | Y);
-reg_axys: reg_name = ( A | X | Y | STACK);
+register: reg_name = (A | X | Y);
+reg_axys: reg_name = (A | X | Y | STACK);
 
 name:
 	lbl = IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
@@ -132,7 +132,8 @@ negative_number: NEGATIVE_NUMBER;
 HEXADECIMAL: '$' [0-9a-fA-F]+;
 BINARY: '%' [01]+;
 DECIMAL: [0-9]+;
-NEGATIVE_NUMBER: '-' [0-9]+; // Intended for 1 byte, range [-128..-1]
+NEGATIVE_NUMBER:
+	'-' [0-9]+; // Intended for 1 byte, range [-128..-1]
 BRK: [bB][rR][kK]; // equal to $00
 NOP: [nN][oO][pP]; // equal to $EA
 STRING: '"' (ESC | .)+? '"';

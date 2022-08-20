@@ -7,26 +7,14 @@ const BRK = 0;
 const defaultFiller = NOP;
 
 export default class FassListener extends FassBaseListener {
-	address = null;
+	address = 0;
 	filler = defaultFiller;
 	labels = new Map();
 	constants = new Map();
 	output = [];
 	ctx = []; // Stack of current contexts
 
-	/** Fail if no address has been defined */
-	requireAddress() {
-		if (this.address === null) {
-			const statement = this.getContext().start.source[1].strdata.trim();
-			throw new FassError(
-				"statement `" + statement + "` needs an address to be defined before hand",
-				this.getContext()
-			);
-		}
-	}
-
 	pushBytes(bytes) {
-		this.requireAddress();
 		if (!Array.isArray(bytes)) {
 			bytes = [bytes];
 		}
@@ -74,7 +62,6 @@ export default class FassListener extends FassBaseListener {
 	}
 
 	exitLabel(ctx) {
-		this.requireAddress();
 		this.setLabel(ctx.IDENTIFIER().getText().toLowerCase(), this.address, ctx);
 	}
 
@@ -87,6 +74,9 @@ export default class FassListener extends FassBaseListener {
 	}
 
 	exitConst_stmt(ctx) {
+		if (ctx.value().val < -128 || ctx.value().val > 0xff) {
+			throw new FassError(`Constants should be in the range [-128..255]`, ctx);
+		}
 		const constName = ctx.const_name.text.toLowerCase();
 		if (this.constants.has(constName)) {
 			throw new FassError(`Constant ${ctx.const_name.text} already defined`, ctx);

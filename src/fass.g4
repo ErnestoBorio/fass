@@ -51,12 +51,9 @@ HEXADECIMAL: '$' [0-9a-fA-F]+;
 BINARY: '%' [01]+;
 DECIMAL: [0-9]+;
 NEGATIVE_NUMBER: '-' [0-9]+;
-// 1 byte, range [-128..-1]
 BRK: [bB][rR][kK];
-// equal to $00
 NOP: [nN][oO][pP];
-// equal to $EA
-NOP3: [nN][oO][pP]'3'; // equal to $04
+NOP3: [nN][oO][pP]'3';
 
 // --> Keywords
 ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS];
@@ -65,13 +62,9 @@ DEFAULT_KWD: [dD][eE][fF][aA][uU][lL][tT];
 DATA_KWD: [dD][aA][tT][aA];
 CONST_KWD: [cC][oO][nN][sS][tT];
 GOTO_KWD: [gG][oO][tT][oO];
-// JMP
 GOSUB_KWD: [gG][oO][sS][uU][bB];
-// JSR
 RETURN_KWD: [rR][eE][tT][uU][rR][nN];
-// RTS
 RETINT_KWD: [rR][eE][tT][iI][nN][tT];
-// RTI
 PUSH_KWD: [pP][uU][sS][hH];
 PULL_KWD: [pP][uU][lL][lL];
 FLAGS_KWD: [fF][lL][aA][gG][sS];
@@ -103,7 +96,7 @@ X: [xX];
 Y: [yY];
 STACK: [sS][tT][aA][cC][kK];
 
-IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
-// The dot allows a dot-notation-like syntactic sugar
+IDENTIFIER:
+	[_a-zA-Z] [._a-zA-Z0-9]*; // The dot allows a dot-notation-like syntactic sugar 
 WHITESPACE: [ \t]+ -> skip;
 EOL: '\r'? '\n';

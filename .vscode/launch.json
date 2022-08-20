@@ -2,6 +2,14 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"type": "antlr-debug",
+			"request": "launch",
+			"name": "Debug Current Grammar",
+			"grammar": "src/fass.g4",
+			"input": "program.fass",
+			"visualParseTree": true
+		},
+		{
 			"type": "node",
 			"request": "launch",
 			"name": "Fass",

@@ -14,6 +14,15 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by fassParser#label.
+	enterLabel(ctx) {
+	}
+
+	// Exit a parse tree produced by fassParser#label.
+	exitLabel(ctx) {
+	}
+
+
 	// Enter a parse tree produced by fassParser#statement.
 	enterStatement(ctx) {
 	}
@@ -74,267 +83,6 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by fassParser#data_stmt.
 	exitData_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#flag_set_stmt.
-	enterFlag_set_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#flag_set_stmt.
-	exitFlag_set_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#stack_stmt.
-	enterStack_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#stack_stmt.
-	exitStack_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#return.
-	enterReturn(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#return.
-	exitReturn(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#retint.
-	enterRetint(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#retint.
-	exitRetint(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#goto_stmt.
-	enterGoto_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#goto_stmt.
-	exitGoto_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#gosub_stmt.
-	enterGosub_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#gosub_stmt.
-	exitGosub_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#assign_reg_lit.
-	enterAssign_reg_lit(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#assign_reg_lit.
-	exitAssign_reg_lit(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#assign_reg_reg.
-	enterAssign_reg_reg(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#assign_reg_reg.
-	exitAssign_reg_reg(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#assign_reg_ref.
-	enterAssign_reg_ref(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#assign_reg_ref.
-	exitAssign_reg_ref(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#assign_ref_reg.
-	enterAssign_ref_reg(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#assign_ref_reg.
-	exitAssign_ref_reg(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#assign_ref_reg_lit.
-	enterAssign_ref_reg_lit(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#assign_ref_reg_lit.
-	exitAssign_ref_reg_lit(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#assign_ref_reg_ref.
-	enterAssign_ref_reg_ref(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#assign_ref_reg_ref.
-	exitAssign_ref_reg_ref(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#arithmetic_a_lit.
-	enterArithmetic_a_lit(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#arithmetic_a_lit.
-	exitArithmetic_a_lit(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#arithmetic_a_ref.
-	enterArithmetic_a_ref(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#arithmetic_a_ref.
-	exitArithmetic_a_ref(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#arithmetic_reg_inc.
-	enterArithmetic_reg_inc(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#arithmetic_reg_inc.
-	exitArithmetic_reg_inc(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#arithmetic_ref_lit.
-	enterArithmetic_ref_lit(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#arithmetic_ref_lit.
-	exitArithmetic_ref_lit(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#bit_shift_stmt.
-	enterBit_shift_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#bit_shift_stmt.
-	exitBit_shift_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#logic_stmt.
-	enterLogic_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#logic_stmt.
-	exitLogic_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#compare_stmt.
-	enterCompare_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#compare_stmt.
-	exitCompare_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#bittest_stmt.
-	enterBittest_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#bittest_stmt.
-	exitBittest_stmt(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#label.
-	enterLabel(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#label.
-	exitLabel(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#reference.
-	enterReference(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#reference.
-	exitReference(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#register.
-	enterRegister(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#register.
-	exitRegister(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#reg_axys.
-	enterReg_axys(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#reg_axys.
-	exitReg_axys(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#name.
-	enterName(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#name.
-	exitName(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#indexed.
-	enterIndexed(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#indexed.
-	exitIndexed(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#indir_x.
-	enterIndir_x(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#indir_x.
-	exitIndir_x(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#indir_y.
-	enterIndir_y(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#indir_y.
-	exitIndir_y(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#indirect.
-	enterIndirect(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#indirect.
-	exitIndirect(ctx) {
 	}
 
 
@@ -425,15 +173,6 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by fassParser#nop3_literal.
 	exitNop3_literal(ctx) {
-	}
-
-
-	// Enter a parse tree produced by fassParser#string.
-	enterString(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#string.
-	exitString(ctx) {
 	}
 
 

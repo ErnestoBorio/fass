@@ -5,6 +5,8 @@ program:
 	statement? // optional last line with no newline
 	EOF;
 
+label: IDENTIFIER ':';
+
 // --> Statements
 statement:
 	address_stmt
@@ -12,17 +14,6 @@ statement:
 	| filler_stmt
 	| const_stmt
 	| data_stmt
-	| flag_set_stmt
-	| stack_stmt
-	| goto_stmt
-	| bit_shift_stmt
-	| logic_stmt
-	| compare_stmt
-	| bittest_stmt
-	| gosub_stmt
-	| return_stmt
-	| assign_stmt
-	| arithmetic_stmt
 	| label statement?;
 
 address: decimal | hexadecimal;
@@ -36,75 +27,6 @@ const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 
 data_stmt: DATA_KWD ( datas += value ','?)+;
 
-flag_set_stmt:
-	flag = (OVERFLOW | CARRY) '=' operand = DECIMAL // CLV SEC CLC
-	| flag = (INTERRUPT | DECIMAL_MODE) operand = (
-		ON_KWD
-		| OFF_KWD
-	); // SEI CLI SED CLD
-
-stack_stmt: // NOT IMPLEMENTED
-	reg = A '=' op = PULL_KWD // PLA
-	| op = PUSH_KWD reg = A // PHA
-	| reg = FLAGS_KWD '=' op = PULL_KWD // PLP
-	| op = PUSH_KWD reg = FLAGS_KWD;
-// PHP
-
-return_stmt:
-	RETURN_KWD		# return // RTS
-	| RETINT_KWD	# retint;
-// RTI
-
-goto_stmt: GOTO_KWD ref = reference;
-// JMP
-
-gosub_stmt: GOSUB_KWD ref = reference;
-// JSR
-
-assign_stmt:
-	reg = register '=' lit = literal						# assign_reg_lit // LDA LDX LDY
-	| reg1 = reg_axys '=' reg2 = reg_axys					# assign_reg_reg // TAX TAY TXA TYA TXS TSX
-	| reg = register '=' ref = reference					# assign_reg_ref // LDA LDX LDY 
-	| ref = reference '=' reg = register					# assign_ref_reg // STA STX STY
-	| ref = reference '=' reg = register '=' lit = literal	# assign_ref_reg_lit
-	// LDA LDX LDY + STA STX STY
-	| ref1 = reference '=' reg = register '=' ref2 = reference # assign_ref_reg_ref;
-// LDA LDX LDY + STA STX STY
-
-arithmetic_stmt:
-	A op = ('+=' | '-=') lit = literal			# arithmetic_a_lit // ADC SBC
-	| A op = ('+=' | '-=') ref = reference		# arithmetic_a_ref // ADC SBC
-	| reg = register op = ('+=' | '-=') '1'		# arithmetic_reg_inc // INX INY DEX DEY
-	| ref = reference op = ('+=' | '-=') '1'	# arithmetic_ref_lit;
-// INC DEC
-
-bit_shift_stmt: (A | reference) op = ('<<' | '>>' | '<-' | '->');
-
-logic_stmt:
-	A op = (AND_KWD | OR_KWD | XOR_KWD) (literal | reference);
-
-compare_stmt: COMPARE_KWD A ',' (reference | literal);
-
-bittest_stmt: BITTEST_KWD A ',' ref = reference;
-
-// Statements <--
-
-label: IDENTIFIER ':';
-
-// --> References
-reference: name | indexed | indir_x | indir_y | indirect;
-
-register: reg_name = (A | X | Y);
-reg_axys: reg_name = (A | X | Y | STACK);
-
-name: lbl = IDENTIFIER;
-// either a constant or a direct addressing (zero page or absolute)
-indexed: lbl = IDENTIFIER '[' reg = (X | Y) ']';
-indir_x: '(' lbl = IDENTIFIER '[' reg = X ']' ')';
-indir_y: '(' lbl = IDENTIFIER ')' '[' reg = Y ']';
-indirect: '(' lbl = IDENTIFIER ')';
-// only JMP uses it References <--
-
 // --> Values
 value: literal | constant;
 constant: IDENTIFIER;
@@ -113,7 +35,6 @@ literal:
 	| decimal
 	| binary
 	| negative_number
-	| string
 	| opcode_literal;
 
 opcode_literal: BRK | NOP | NOP3;
@@ -123,9 +44,7 @@ binary: BINARY;
 brk_literal: BRK;
 nop_literal: NOP;
 nop3_literal: NOP3;
-string: STRING;
 negative_number: NEGATIVE_NUMBER;
-// Values <--
 
 // --> Literals
 HEXADECIMAL: '$' [0-9a-fA-F]+;
@@ -137,11 +56,7 @@ BRK: [bB][rR][kK];
 // equal to $00
 NOP: [nN][oO][pP];
 // equal to $EA
-NOP3: [nN][oO][pP]'3';
-// equal to $04
-STRING: '"' (ESC | .)+? '"';
-fragment ESC: '\\"' | '\\\\';
-// Literals <--
+NOP3: [nN][oO][pP]'3'; // equal to $04
 
 // --> Keywords
 ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS];
@@ -181,8 +96,8 @@ NEGATIVE: [nN][eE][gG][aA][tT][iI][vV][eE];
 ON_KWD: [oO][nN];
 OFF_KWD: [oO][fF][fF];
 NOT_KWD: [nN][oO][tT];
-// Flags <--
 
+// ETC -->
 A: [aA];
 X: [xX];
 Y: [yY];

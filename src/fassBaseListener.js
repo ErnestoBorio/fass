@@ -59,15 +59,6 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
-	// Enter a parse tree produced by fassParser#nop_brk_stmt.
-	enterNop_brk_stmt(ctx) {
-	}
-
-	// Exit a parse tree produced by fassParser#nop_brk_stmt.
-	exitNop_brk_stmt(ctx) {
-	}
-
-
 	// Enter a parse tree produced by fassParser#const_stmt.
 	enterConst_stmt(ctx) {
 	}
@@ -374,6 +365,15 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by fassParser#opcode_literal.
+	enterOpcode_literal(ctx) {
+	}
+
+	// Exit a parse tree produced by fassParser#opcode_literal.
+	exitOpcode_literal(ctx) {
+	}
+
+
 	// Enter a parse tree produced by fassParser#hexadecimal.
 	enterHexadecimal(ctx) {
 	}
@@ -416,6 +416,15 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by fassParser#nop_literal.
 	exitNop_literal(ctx) {
+	}
+
+
+	// Enter a parse tree produced by fassParser#nop3_literal.
+	enterNop3_literal(ctx) {
+	}
+
+	// Exit a parse tree produced by fassParser#nop3_literal.
+	exitNop3_literal(ctx) {
 	}
 
 

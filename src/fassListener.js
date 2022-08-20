@@ -1,7 +1,10 @@
 import FassBaseListener from "./fassBaseListener.js";
 import { FassError } from "./error.js";
 
-const defaultFiller = 0xea; // NOP
+const NOP = 0xea;
+const NOP3 = 4;
+const BRK = 0;
+const defaultFiller = NOP;
 
 export default class FassListener extends FassBaseListener {
 	address = null;
@@ -121,6 +124,18 @@ export default class FassListener extends FassBaseListener {
 			throw new FassError(`Value ${neg} is out of range [-128..-1]`, ctx);
 		}
 		setValue(ctx, neg);
+	}
+
+	exitOpcode_literal(ctx) {
+		if (ctx.NOP()) {
+			return setValue(ctx, NOP);
+		}
+		if (ctx.NOP3()) {
+			return setValue(ctx, NOP3);
+		}
+		if (ctx.BRK()) {
+			return setValue(ctx, BRK);
+		}
 	}
 }
 

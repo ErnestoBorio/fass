@@ -12,7 +12,6 @@ statement:
 	| filler_stmt
 	| const_stmt
 	| data_stmt
-	| nop_brk_stmt
 	| flag_set_stmt
 	| stack_stmt
 	| goto_stmt
@@ -33,12 +32,6 @@ remote_label_stmt: IDENTIFIER 'at' address;
 
 filler_stmt: FILLER_KWD value | FILLER_KWD DEFAULT_KWD;
 
-nop_brk_stmt:
-	mnemonic = NOP
-	| mnemonic = BRK value?
-	| mnemonic = NOP3 value?
-	| mnemonic = NOP4 value?;
-
 const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 
 data_stmt: DATA_KWD ( datas += value ','?)+;
@@ -50,19 +43,23 @@ flag_set_stmt:
 		| OFF_KWD
 	); // SEI CLI SED CLD
 
-stack_stmt:
+stack_stmt: // NOT IMPLEMENTED
 	reg = A '=' op = PULL_KWD // PLA
 	| op = PUSH_KWD reg = A // PHA
 	| reg = FLAGS_KWD '=' op = PULL_KWD // PLP
-	| op = PUSH_KWD reg = FLAGS_KWD; // PHP
+	| op = PUSH_KWD reg = FLAGS_KWD;
+// PHP
 
 return_stmt:
 	RETURN_KWD		# return // RTS
-	| RETINT_KWD	# retint; // RTI
+	| RETINT_KWD	# retint;
+// RTI
 
-goto_stmt: GOTO_KWD ref = reference; // JMP
+goto_stmt: GOTO_KWD ref = reference;
+// JMP
 
-gosub_stmt: GOSUB_KWD ref = reference; // JSR
+gosub_stmt: GOSUB_KWD ref = reference;
+// JSR
 
 assign_stmt:
 	reg = register '=' lit = literal						# assign_reg_lit // LDA LDX LDY
@@ -75,10 +72,11 @@ assign_stmt:
 // LDA LDX LDY + STA STX STY
 
 arithmetic_stmt:
-	A op = ('+=' | '-=') lit = literal					# arithmetic_a_lit // ADC SBC
-	| A op = ('+=' | '-=') ref = reference				# arithmetic_a_ref // ADC SBC
-	| reg = register op = ('+=' | '-=') lit = literal	# arithmetic_reg_inc // INX INY DEX DEY
-	| ref = reference op = ('+=' | '-=') lit = literal	# arithmetic_ref_lit; // INC DEC
+	A op = ('+=' | '-=') lit = literal			# arithmetic_a_lit // ADC SBC
+	| A op = ('+=' | '-=') ref = reference		# arithmetic_a_ref // ADC SBC
+	| reg = register op = ('+=' | '-=') '1'		# arithmetic_reg_inc // INX INY DEX DEY
+	| ref = reference op = ('+=' | '-=') '1'	# arithmetic_ref_lit;
+// INC DEC
 
 bit_shift_stmt: (A | reference) op = ('<<' | '>>' | '<-' | '->');
 
@@ -99,13 +97,13 @@ reference: name | indexed | indir_x | indir_y | indirect;
 register: reg_name = (A | X | Y);
 reg_axys: reg_name = (A | X | Y | STACK);
 
-name:
-	lbl = IDENTIFIER; // either a constant or a direct addressing (zero page or absolute)
+name: lbl = IDENTIFIER;
+// either a constant or a direct addressing (zero page or absolute)
 indexed: lbl = IDENTIFIER '[' reg = (X | Y) ']';
 indir_x: '(' lbl = IDENTIFIER '[' reg = X ']' ')';
 indir_y: '(' lbl = IDENTIFIER ')' '[' reg = Y ']';
-indirect: '(' lbl = IDENTIFIER ')'; // only JMP uses it
-// References <--
+indirect: '(' lbl = IDENTIFIER ')';
+// only JMP uses it References <--
 
 // --> Values
 value: literal | constant;
@@ -116,14 +114,15 @@ literal:
 	| binary
 	| negative_number
 	| string
-	| brk_literal
-	| nop_literal;
+	| opcode_literal;
 
+opcode_literal: BRK | NOP | NOP3;
 hexadecimal: HEXADECIMAL;
 decimal: DECIMAL;
 binary: BINARY;
 brk_literal: BRK;
 nop_literal: NOP;
+nop3_literal: NOP3;
 string: STRING;
 negative_number: NEGATIVE_NUMBER;
 // Values <--
@@ -132,10 +131,14 @@ negative_number: NEGATIVE_NUMBER;
 HEXADECIMAL: '$' [0-9a-fA-F]+;
 BINARY: '%' [01]+;
 DECIMAL: [0-9]+;
-NEGATIVE_NUMBER:
-	'-' [0-9]+; // Intended for 1 byte, range [-128..-1]
-BRK: [bB][rR][kK]; // equal to $00
-NOP: [nN][oO][pP]; // equal to $EA
+NEGATIVE_NUMBER: '-' [0-9]+;
+// 1 byte, range [-128..-1]
+BRK: [bB][rR][kK];
+// equal to $00
+NOP: [nN][oO][pP];
+// equal to $EA
+NOP3: [nN][oO][pP]'3';
+// equal to $04
 STRING: '"' (ESC | .)+? '"';
 fragment ESC: '\\"' | '\\\\';
 // Literals <--
@@ -146,10 +149,14 @@ FILLER_KWD: [fF][iI][lL][lL][eE][rR];
 DEFAULT_KWD: [dD][eE][fF][aA][uU][lL][tT];
 DATA_KWD: [dD][aA][tT][aA];
 CONST_KWD: [cC][oO][nN][sS][tT];
-GOTO_KWD: [gG][oO][tT][oO]; // JMP
-GOSUB_KWD: [gG][oO][sS][uU][bB]; // JSR
-RETURN_KWD: [rR][eE][tT][uU][rR][nN]; // RTS
-RETINT_KWD: [rR][eE][tT][iI][nN][tT]; // RTI
+GOTO_KWD: [gG][oO][tT][oO];
+// JMP
+GOSUB_KWD: [gG][oO][sS][uU][bB];
+// JSR
+RETURN_KWD: [rR][eE][tT][uU][rR][nN];
+// RTS
+RETINT_KWD: [rR][eE][tT][iI][nN][tT];
+// RTI
 PUSH_KWD: [pP][uU][sS][hH];
 PULL_KWD: [pP][uU][lL][lL];
 FLAGS_KWD: [fF][lL][aA][gG][sS];
@@ -158,8 +165,6 @@ OR_KWD: [oO][rR]'=';
 XOR_KWD: [xX][oO][rR]'=';
 BITTEST_KWD: [bB][iI][tT][tT][eE][sS][tT];
 COMPARE_KWD: [cC][oO][mM][pP][aA][rR][eE];
-NOP3: [nN][oO][pP]'3';
-NOP4: [nN][oO][pP]'4';
 // Keywords <--
 
 // --> Flags
@@ -183,7 +188,7 @@ X: [xX];
 Y: [yY];
 STACK: [sS][tT][aA][cC][kK];
 
-IDENTIFIER:
-	[_a-zA-Z] [._a-zA-Z0-9]*; // The dot allows a dot-notation-like syntactic sugar
+IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
+// The dot allows a dot-notation-like syntactic sugar
 WHITESPACE: [ \t]+ -> skip;
 EOL: '\r'? '\n';

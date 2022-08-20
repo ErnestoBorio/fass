@@ -1,29 +1,14 @@
-import fassLexer from "./fassLexer.js";
-import fassParser from "./fassParser.js";
-import FassListener from "./fassListener.js";
-import antlr, { InputStream, CommonTokenStream } from "antlr4";
 import fs from "fs";
-import { FassErrorListener } from "./error.js";
+import { runFass } from "./fass.js";
 
 if (!process.argv[2]) {
 	throw new Error("Please specify input file, reading from stdin not implemented yet");
 }
 const input = fs.readFileSync(process.argv[2], "utf8");
-var chars = new InputStream(input, true);
-var lexer = new fassLexer(chars);
-var tokens = new CommonTokenStream(lexer);
-var parser = new fassParser(tokens);
-parser.buildParseTrees = true;
-parser.removeErrorListeners();
-parser.addErrorListener(new FassErrorListener());
-
-var tree = parser.program();
-var fass = new FassListener();
-antlr.tree.ParseTreeWalker.DEFAULT.walk(fass, tree);
-
-console.log("constants", fass.constants);
-console.log("labels", fass.labels);
+var result = runFass(input);
+console.log("constants", result.constants);
+console.log("labels", result.labels);
 console.log(
 	"output",
-	fass.output.map(it => it.toString(16).toUpperCase().padStart(2, "0"))
+	result.output.map(it => it.toString(16).toUpperCase().padStart(2, "0"))
 );

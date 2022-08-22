@@ -14,6 +14,8 @@ statement:
 	| filler_stmt
 	| const_stmt
 	| data_stmt
+	| flag_set_stmt
+	| stack_stmt
 	| label statement?;
 
 address: decimal | hexadecimal;
@@ -27,7 +29,18 @@ const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 
 data_stmt: DATA_KWD ( datas += value ','?)+;
 
+flag_set_stmt:
+	(CARRY | OVERFLOW) '=' one_zero = decimal
+	| (INTERRUPT | DECIMAL_MODE) (ON | OFF);
+
+stack_stmt:
+	A '=' PULL_KWD
+	| PUSH_KWD A
+	| FLAGS_KWD '=' PULL_KWD
+	| PUSH_KWD FLAGS_KWD;
+
 // --> Values
+
 value: literal | constant;
 constant: IDENTIFIER;
 literal:
@@ -79,16 +92,16 @@ COMPARE_KWD: [cC][oO][mM][pP][aA][rR][eE];
 CARRY: [cC][aA][rR][rR][yY];
 OVERFLOW: [oO][vV][eE][rR][fF][lL][oO][wW];
 INTERRUPT: [iI][nN][tT][eE][rR][rR][uU][pP][tT];
-DECIMAL_MODE:
-	[dD][eE][cC][iI][mM][aA][lL]' ' [mM][oO][dD][eE];
+DECIMAL_MODE: [dD][eE][cC][iI][mM][aA][lL];
 
+NOT: [nN][oO][tT];
 ZERO: [zZ][eE][rR][oO];
 POSITIVE: [pP][oO][sS][iI][tT][iI][vV][eE];
 NEGATIVE: [nN][eE][gG][aA][tT][iI][vV][eE];
+EQUAL: [eE][qQ][uU][aA][lL];
 
-ON_KWD: [oO][nN];
-OFF_KWD: [oO][fF][fF];
-NOT_KWD: [nN][oO][tT];
+ON: [oO][nN];
+OFF: [oO][fF][fF];
 
 // ETC -->
 A: [aA];
@@ -96,7 +109,7 @@ X: [xX];
 Y: [yY];
 STACK: [sS][tT][aA][cC][kK];
 
-IDENTIFIER:
-	[_a-zA-Z] [._a-zA-Z0-9]*; // The dot allows a dot-notation-like syntactic sugar 
+IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
+// The dot allows a dot-notation-like syntactic sugar 
 WHITESPACE: [ \t]+ -> skip;
 EOL: '\r'? '\n';

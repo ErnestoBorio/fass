@@ -4,7 +4,7 @@ import FassListener from "./fassListener.js";
 import antlr, { InputStream, CommonTokenStream } from "antlr4";
 import { FassErrorListener } from "./error.js";
 
-export function runFass(source) {
+export function compile(source) {
 	var chars = new InputStream(source, true);
 	var lexer = new fassLexer(chars);
 	var tokens = new CommonTokenStream(lexer);

@@ -86,6 +86,24 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by fassParser#flag_set_stmt.
+	enterFlag_set_stmt(ctx) {
+	}
+
+	// Exit a parse tree produced by fassParser#flag_set_stmt.
+	exitFlag_set_stmt(ctx) {
+	}
+
+
+	// Enter a parse tree produced by fassParser#stack_stmt.
+	enterStack_stmt(ctx) {
+	}
+
+	// Exit a parse tree produced by fassParser#stack_stmt.
+	exitStack_stmt(ctx) {
+	}
+
+
 	// Enter a parse tree produced by fassParser#value.
 	enterValue(ctx) {
 	}

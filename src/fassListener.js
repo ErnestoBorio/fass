@@ -1,4 +1,5 @@
 import FassBaseListener from "./fassBaseListener.js";
+import { opcodes as op } from "./opcodes.js";
 import { FassError } from "./error.js";
 
 const NOP = 0xea;
@@ -105,6 +106,7 @@ export default class FassListener extends FassBaseListener {
 		if (dec >= 0x10000) {
 			throw new FassError(`Value ${dec} is out of range [0..65535]`, ctx);
 		}
+		ctx.val = dec; // for using decimal directly, instead of value
 		setValue(ctx, dec);
 	}
 
@@ -126,6 +128,61 @@ export default class FassListener extends FassBaseListener {
 		if (ctx.BRK()) {
 			return setValue(ctx, BRK);
 		}
+	}
+
+	exitFlag_set_stmt(ctx) {
+		if (ctx.CARRY()) {
+			if (ctx.one_zero.val == 0) {
+				return this.pushBytes(op.CLC);
+			}
+			if (ctx.one_zero.val == 1) {
+				return this.pushBytes(op.SEC);
+			}
+			throw new FassError("The carry flag can only be set to either 1 or 0", ctx);
+		}
+		if (ctx.OVERFLOW()) {
+			if (ctx.one_zero.val == 0) {
+				return this.pushBytes(op.CLV);
+			}
+			throw new FassError("The overflow flag can only be set to 0", ctx);
+		}
+		if (ctx.INTERRUPT()) {
+			if (ctx.ON()) {
+				return this.pushBytes(op.CLI);
+			}
+			if (ctx.OFF()) {
+				return this.pushBytes(op.SEI);
+			}
+		}
+		if (ctx.DECIMAL_MODE()) {
+			if (ctx.ON()) {
+				return this.pushBytes(op.SED);
+			}
+			if (ctx.OFF()) {
+				return this.pushBytes(op.CLD);
+			}
+		}
+		throw new FassError("Unexpected `Flag set statement` error", ctx);
+	}
+
+	exitStack_stmt(ctx) {
+		if (ctx.A()) {
+			if (ctx.PUSH_KWD()) {
+				return this.pushBytes(op.PHA);
+			}
+			if (ctx.PULL_KWD()) {
+				return this.pushBytes(op.PLA);
+			}
+		}
+		if (ctx.FLAGS_KWD()) {
+			if (ctx.PUSH_KWD()) {
+				return this.pushBytes(op.PHP);
+			}
+			if (ctx.PULL_KWD()) {
+				return this.pushBytes(op.PLP);
+			}
+		}
+		throw new FassError("Unexpected `Stack` error", ctx);
 	}
 }
 

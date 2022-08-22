@@ -30,6 +30,13 @@
 			"skipFiles": ["<node_internals>/**"],
 			"program": "npm run start",
 			"args": ["<", "${workspaceFolder}/program.fass"]
+		},
+		{
+			"name": "Test",
+			"type": "node-terminal",
+			"request": "launch",
+			"command": "jest",
+			"env": { "NODE_OPTIONS": "--experimental-vm-modules" }
 		}
 	]
 }

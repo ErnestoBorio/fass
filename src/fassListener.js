@@ -184,6 +184,27 @@ export default class FassListener extends FassBaseListener {
 		}
 		throw new FassError("Unexpected `Stack` error", ctx);
 	}
+
+	exitGoto_stmt(ctx) {
+		let name;
+		if (ctx.reference()?.direct()) {
+			name = ctx.reference().direct().IDENTIFIER().getText();
+			this.pushBytes(op.JMP.ABS);
+		} else {
+			name = ctx.reference().indirect().IDENTIFIER().getText();
+			this.pushBytes(op.JMP.IND);
+		}
+
+		const normalized_name = name.toLowerCase();
+		if (!this.labels.has(normalized_name)) {
+			throw new FassError(
+				`Reference "${name}" is either non existent or is defined later, which is not yet implemented`,
+				ctx
+			);
+		}
+		const ref_value = this.labels.get(normalized_name);
+		return this.pushBytes(littleEndian(ref_value));
+	}
 }
 
 function setValue(ctx, val) {
@@ -209,4 +230,8 @@ function getTypedAncestor(type, ctx) {
 		ancestor = ancestor.parentCtx;
 	}
 	return undefined;
+}
+
+function littleEndian(value) {
+	return [value & 0xff, (value & 0xff00) >> 8];
 }

@@ -53,3 +53,15 @@ test("Stack push & pull", () => {
 		op.PLP
 	]);
 });
+
+test("Goto (JMP)", () => {
+	expect(compile("address $ABCD\n there: goto there\n goto (there)").output).toEqual([
+		op.JMP.ABS,
+		0xcd,
+		0xab,
+		op.JMP.IND,
+		0xcd,
+		0xab
+	]);
+	expect(() => compile("goto nowhere")).toThrow();
+});

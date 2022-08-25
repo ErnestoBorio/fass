@@ -16,9 +16,14 @@ statement:
 	| data_stmt
 	| flag_set_stmt
 	| stack_stmt
+	| goto_stmt
+	// | if_then_stmt
 	| label statement?;
 
+// single_stmt: data_stmt | flag_set_stmt | stack_stmt;
+
 address: decimal | hexadecimal;
+
 address_stmt: ADDRESS_KWD address;
 
 remote_label_stmt: IDENTIFIER 'at' address;
@@ -29,6 +34,9 @@ const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 
 data_stmt: DATA_KWD ( datas += value ','?)+;
 
+// if_then_stmt: IF_KWD condition THEN_KWD single_stmt (ELSE_KWD single_stmt)?;
+
+// condition: ZERO | NOT ZERO | POSITIVE | NEGATIVE | CARRY | NOT CARRY | OVERFLOW | NOT OVERFLOW;
 flag_set_stmt:
 	(CARRY | OVERFLOW) '=' one_zero = decimal
 	| (INTERRUPT | DECIMAL_MODE) (ON | OFF);
@@ -38,6 +46,17 @@ stack_stmt:
 	| PUSH_KWD A
 	| FLAGS_KWD '=' PULL_KWD
 	| PUSH_KWD FLAGS_KWD;
+
+goto_stmt: GOTO_KWD reference;
+
+// --> References
+
+reference:
+	direct
+	| indirect; // | indexed_x | indexed_y | indirect_y | x_indirect
+
+direct: IDENTIFIER;
+indirect: '(' IDENTIFIER ')';
 
 // --> Values
 
@@ -74,6 +93,9 @@ FILLER_KWD: [fF][iI][lL][lL][eE][rR];
 DEFAULT_KWD: [dD][eE][fF][aA][uU][lL][tT];
 DATA_KWD: [dD][aA][tT][aA];
 CONST_KWD: [cC][oO][nN][sS][tT];
+IF_KWD: [iI][fF];
+THEN_KWD: [tT][hH][eE][nN];
+ELSE_KWD: [eE][lL][sS][eE];
 GOTO_KWD: [gG][oO][tT][oO];
 GOSUB_KWD: [gG][oO][sS][uU][bB];
 RETURN_KWD: [rR][eE][tT][uU][rR][nN];

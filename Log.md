@@ -20,8 +20,15 @@ arithmetic_stmt
 
 # To do
 
-- Add unit tests & regression testing on commit.
+- Add testing on commit.
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
+
+---
+
+## 2022-8-20
+
+Started implementing automated tests.
+Removed the grammar that was unimplemented, now I will add it as I go.
 
 ## 2022-8-15
 

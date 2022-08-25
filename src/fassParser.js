@@ -4,94 +4,109 @@ import antlr4 from 'antlr4';
 import fassListener from './fassListener.js';
 
 const serializedATN = ["\u0003\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786",
-    "\u5964\u00033\u009c\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004",
+    "\u5964\u00035\u00b2\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004",
     "\t\u0004\u0004\u0005\t\u0005\u0004\u0006\t\u0006\u0004\u0007\t\u0007",
     "\u0004\b\t\b\u0004\t\t\t\u0004\n\t\n\u0004\u000b\t\u000b\u0004\f\t\f",
     "\u0004\r\t\r\u0004\u000e\t\u000e\u0004\u000f\t\u000f\u0004\u0010\t\u0010",
     "\u0004\u0011\t\u0011\u0004\u0012\t\u0012\u0004\u0013\t\u0013\u0004\u0014",
     "\t\u0014\u0004\u0015\t\u0015\u0004\u0016\t\u0016\u0004\u0017\t\u0017",
-    "\u0003\u0002\u0005\u00020\n\u0002\u0003\u0002\u0007\u00023\n\u0002\f",
-    "\u0002\u000e\u00026\u000b\u0002\u0003\u0002\u0005\u00029\n\u0002\u0003",
-    "\u0002\u0003\u0002\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0004\u0003",
-    "\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003",
-    "\u0004\u0003\u0004\u0005\u0004I\n\u0004\u0005\u0004K\n\u0004\u0003\u0005",
-    "\u0003\u0005\u0005\u0005O\n\u0005\u0003\u0006\u0003\u0006\u0003\u0006",
-    "\u0003\u0007\u0003\u0007\u0003\u0007\u0003\u0007\u0003\b\u0003\b\u0003",
-    "\b\u0003\b\u0005\b\\\n\b\u0003\t\u0003\t\u0003\t\u0003\t\u0003\t\u0003",
-    "\n\u0003\n\u0003\n\u0005\nf\n\n\u0006\nh\n\n\r\n\u000e\ni\u0003\u000b",
-    "\u0003\u000b\u0003\u000b\u0003\u000b\u0003\u000b\u0005\u000bq\n\u000b",
-    "\u0003\f\u0003\f\u0003\f\u0003\f\u0003\f\u0003\f\u0003\f\u0003\f\u0003",
-    "\f\u0003\f\u0005\f}\n\f\u0003\r\u0003\r\u0005\r\u0081\n\r\u0003\u000e",
-    "\u0003\u000e\u0003\u000f\u0003\u000f\u0003\u000f\u0003\u000f\u0003\u000f",
-    "\u0005\u000f\u008a\n\u000f\u0003\u0010\u0003\u0010\u0003\u0011\u0003",
-    "\u0011\u0003\u0012\u0003\u0012\u0003\u0013\u0003\u0013\u0003\u0014\u0003",
-    "\u0014\u0003\u0015\u0003\u0015\u0003\u0016\u0003\u0016\u0003\u0017\u0003",
-    "\u0017\u0003\u0017\u0002\u0002\u0018\u0002\u0004\u0006\b\n\f\u000e\u0010",
-    "\u0012\u0014\u0016\u0018\u001a\u001c\u001e \"$&(*,\u0002\u0006\u0003",
-    "\u0002\"#\u0003\u0002$%\u0003\u0002+,\u0003\u0002\u000b\r\u0002\u009d",
-    "\u00024\u0003\u0002\u0002\u0002\u0004<\u0003\u0002\u0002\u0002\u0006",
-    "J\u0003\u0002\u0002\u0002\bN\u0003\u0002\u0002\u0002\nP\u0003\u0002",
-    "\u0002\u0002\fS\u0003\u0002\u0002\u0002\u000e[\u0003\u0002\u0002\u0002",
-    "\u0010]\u0003\u0002\u0002\u0002\u0012b\u0003\u0002\u0002\u0002\u0014",
-    "p\u0003\u0002\u0002\u0002\u0016|\u0003\u0002\u0002\u0002\u0018\u0080",
-    "\u0003\u0002\u0002\u0002\u001a\u0082\u0003\u0002\u0002\u0002\u001c\u0089",
-    "\u0003\u0002\u0002\u0002\u001e\u008b\u0003\u0002\u0002\u0002 \u008d",
-    "\u0003\u0002\u0002\u0002\"\u008f\u0003\u0002\u0002\u0002$\u0091\u0003",
-    "\u0002\u0002\u0002&\u0093\u0003\u0002\u0002\u0002(\u0095\u0003\u0002",
-    "\u0002\u0002*\u0097\u0003\u0002\u0002\u0002,\u0099\u0003\u0002\u0002",
-    "\u0002.0\u0005\u0006\u0004\u0002/.\u0003\u0002\u0002\u0002/0\u0003\u0002",
-    "\u0002\u000201\u0003\u0002\u0002\u000213\u00073\u0002\u00022/\u0003",
-    "\u0002\u0002\u000236\u0003\u0002\u0002\u000242\u0003\u0002\u0002\u0002",
-    "45\u0003\u0002\u0002\u000258\u0003\u0002\u0002\u000264\u0003\u0002\u0002",
-    "\u000279\u0005\u0006\u0004\u000287\u0003\u0002\u0002\u000289\u0003\u0002",
-    "\u0002\u00029:\u0003\u0002\u0002\u0002:;\u0007\u0002\u0002\u0003;\u0003",
-    "\u0003\u0002\u0002\u0002<=\u00071\u0002\u0002=>\u0007\u0003\u0002\u0002",
-    ">\u0005\u0003\u0002\u0002\u0002?K\u0005\n\u0006\u0002@K\u0005\f\u0007",
-    "\u0002AK\u0005\u000e\b\u0002BK\u0005\u0010\t\u0002CK\u0005\u0012\n\u0002",
-    "DK\u0005\u0014\u000b\u0002EK\u0005\u0016\f\u0002FH\u0005\u0004\u0003",
-    "\u0002GI\u0005\u0006\u0004\u0002HG\u0003\u0002\u0002\u0002HI\u0003\u0002",
-    "\u0002\u0002IK\u0003\u0002\u0002\u0002J?\u0003\u0002\u0002\u0002J@\u0003",
-    "\u0002\u0002\u0002JA\u0003\u0002\u0002\u0002JB\u0003\u0002\u0002\u0002",
-    "JC\u0003\u0002\u0002\u0002JD\u0003\u0002\u0002\u0002JE\u0003\u0002\u0002",
-    "\u0002JF\u0003\u0002\u0002\u0002K\u0007\u0003\u0002\u0002\u0002LO\u0005",
-    "\"\u0012\u0002MO\u0005 \u0011\u0002NL\u0003\u0002\u0002\u0002NM\u0003",
-    "\u0002\u0002\u0002O\t\u0003\u0002\u0002\u0002PQ\u0007\u000e\u0002\u0002",
-    "QR\u0005\b\u0005\u0002R\u000b\u0003\u0002\u0002\u0002ST\u00071\u0002",
-    "\u0002TU\u0007\u0004\u0002\u0002UV\u0005\b\u0005\u0002V\r\u0003\u0002",
-    "\u0002\u0002WX\u0007\u000f\u0002\u0002X\\\u0005\u0018\r\u0002YZ\u0007",
-    "\u000f\u0002\u0002Z\\\u0007\u0010\u0002\u0002[W\u0003\u0002\u0002\u0002",
-    "[Y\u0003\u0002\u0002\u0002\\\u000f\u0003\u0002\u0002\u0002]^\u0007\u0012",
-    "\u0002\u0002^_\u00071\u0002\u0002_`\u0007\u0005\u0002\u0002`a\u0005",
-    "\u0018\r\u0002a\u0011\u0003\u0002\u0002\u0002bg\u0007\u0011\u0002\u0002",
-    "ce\u0005\u0018\r\u0002df\u0007\u0006\u0002\u0002ed\u0003\u0002\u0002",
-    "\u0002ef\u0003\u0002\u0002\u0002fh\u0003\u0002\u0002\u0002gc\u0003\u0002",
-    "\u0002\u0002hi\u0003\u0002\u0002\u0002ig\u0003\u0002\u0002\u0002ij\u0003",
-    "\u0002\u0002\u0002j\u0013\u0003\u0002\u0002\u0002kl\t\u0002\u0002\u0002",
-    "lm\u0007\u0005\u0002\u0002mq\u0005\"\u0012\u0002no\t\u0003\u0002\u0002",
-    "oq\t\u0004\u0002\u0002pk\u0003\u0002\u0002\u0002pn\u0003\u0002\u0002",
-    "\u0002q\u0015\u0003\u0002\u0002\u0002rs\u0007-\u0002\u0002st\u0007\u0005",
-    "\u0002\u0002t}\u0007\u001b\u0002\u0002uv\u0007\u001a\u0002\u0002v}\u0007",
-    "-\u0002\u0002wx\u0007\u001c\u0002\u0002xy\u0007\u0005\u0002\u0002y}",
-    "\u0007\u001b\u0002\u0002z{\u0007\u001a\u0002\u0002{}\u0007\u001c\u0002",
-    "\u0002|r\u0003\u0002\u0002\u0002|u\u0003\u0002\u0002\u0002|w\u0003\u0002",
-    "\u0002\u0002|z\u0003\u0002\u0002\u0002}\u0017\u0003\u0002\u0002\u0002",
-    "~\u0081\u0005\u001c\u000f\u0002\u007f\u0081\u0005\u001a\u000e\u0002",
-    "\u0080~\u0003\u0002\u0002\u0002\u0080\u007f\u0003\u0002\u0002\u0002",
-    "\u0081\u0019\u0003\u0002\u0002\u0002\u0082\u0083\u00071\u0002\u0002",
-    "\u0083\u001b\u0003\u0002\u0002\u0002\u0084\u008a\u0005 \u0011\u0002",
-    "\u0085\u008a\u0005\"\u0012\u0002\u0086\u008a\u0005$\u0013\u0002\u0087",
-    "\u008a\u0005,\u0017\u0002\u0088\u008a\u0005\u001e\u0010\u0002\u0089",
-    "\u0084\u0003\u0002\u0002\u0002\u0089\u0085\u0003\u0002\u0002\u0002\u0089",
-    "\u0086\u0003\u0002\u0002\u0002\u0089\u0087\u0003\u0002\u0002\u0002\u0089",
-    "\u0088\u0003\u0002\u0002\u0002\u008a\u001d\u0003\u0002\u0002\u0002\u008b",
-    "\u008c\t\u0005\u0002\u0002\u008c\u001f\u0003\u0002\u0002\u0002\u008d",
-    "\u008e\u0007\u0007\u0002\u0002\u008e!\u0003\u0002\u0002\u0002\u008f",
-    "\u0090\u0007\t\u0002\u0002\u0090#\u0003\u0002\u0002\u0002\u0091\u0092",
-    "\u0007\b\u0002\u0002\u0092%\u0003\u0002\u0002\u0002\u0093\u0094\u0007",
-    "\u000b\u0002\u0002\u0094\'\u0003\u0002\u0002\u0002\u0095\u0096\u0007",
-    "\f\u0002\u0002\u0096)\u0003\u0002\u0002\u0002\u0097\u0098\u0007\r\u0002",
-    "\u0002\u0098+\u0003\u0002\u0002\u0002\u0099\u009a\u0007\n\u0002\u0002",
-    "\u009a-\u0003\u0002\u0002\u0002\u000f/48HJN[eip|\u0080\u0089"].join("");
+    "\u0004\u0018\t\u0018\u0004\u0019\t\u0019\u0004\u001a\t\u001a\u0004\u001b",
+    "\t\u001b\u0003\u0002\u0005\u00028\n\u0002\u0003\u0002\u0007\u0002;\n",
+    "\u0002\f\u0002\u000e\u0002>\u000b\u0002\u0003\u0002\u0005\u0002A\n\u0002",
+    "\u0003\u0002\u0003\u0002\u0003\u0003\u0003\u0003\u0003\u0003\u0003\u0004",
+    "\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004\u0003\u0004",
+    "\u0003\u0004\u0003\u0004\u0003\u0004\u0005\u0004R\n\u0004\u0005\u0004",
+    "T\n\u0004\u0003\u0005\u0003\u0005\u0005\u0005X\n\u0005\u0003\u0006\u0003",
+    "\u0006\u0003\u0006\u0003\u0007\u0003\u0007\u0003\u0007\u0003\u0007\u0003",
+    "\b\u0003\b\u0003\b\u0003\b\u0005\be\n\b\u0003\t\u0003\t\u0003\t\u0003",
+    "\t\u0003\t\u0003\n\u0003\n\u0003\n\u0005\no\n\n\u0006\nq\n\n\r\n\u000e",
+    "\nr\u0003\u000b\u0003\u000b\u0003\u000b\u0003\u000b\u0003\u000b\u0005",
+    "\u000bz\n\u000b\u0003\f\u0003\f\u0003\f\u0003\f\u0003\f\u0003\f\u0003",
+    "\f\u0003\f\u0003\f\u0003\f\u0005\f\u0086\n\f\u0003\r\u0003\r\u0003\r",
+    "\u0003\u000e\u0003\u000e\u0005\u000e\u008d\n\u000e\u0003\u000f\u0003",
+    "\u000f\u0003\u0010\u0003\u0010\u0003\u0010\u0003\u0010\u0003\u0011\u0003",
+    "\u0011\u0005\u0011\u0097\n\u0011\u0003\u0012\u0003\u0012\u0003\u0013",
+    "\u0003\u0013\u0003\u0013\u0003\u0013\u0003\u0013\u0005\u0013\u00a0\n",
+    "\u0013\u0003\u0014\u0003\u0014\u0003\u0015\u0003\u0015\u0003\u0016\u0003",
+    "\u0016\u0003\u0017\u0003\u0017\u0003\u0018\u0003\u0018\u0003\u0019\u0003",
+    "\u0019\u0003\u001a\u0003\u001a\u0003\u001b\u0003\u001b\u0003\u001b\u0002",
+    "\u0002\u001c\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018",
+    "\u001a\u001c\u001e \"$&(*,.024\u0002\u0006\u0003\u0002$%\u0003\u0002",
+    "&\'\u0003\u0002-.\u0003\u0002\r\u000f\u0002\u00b1\u0002<\u0003\u0002",
+    "\u0002\u0002\u0004D\u0003\u0002\u0002\u0002\u0006S\u0003\u0002\u0002",
+    "\u0002\bW\u0003\u0002\u0002\u0002\nY\u0003\u0002\u0002\u0002\f\\\u0003",
+    "\u0002\u0002\u0002\u000ed\u0003\u0002\u0002\u0002\u0010f\u0003\u0002",
+    "\u0002\u0002\u0012k\u0003\u0002\u0002\u0002\u0014y\u0003\u0002\u0002",
+    "\u0002\u0016\u0085\u0003\u0002\u0002\u0002\u0018\u0087\u0003\u0002\u0002",
+    "\u0002\u001a\u008c\u0003\u0002\u0002\u0002\u001c\u008e\u0003\u0002\u0002",
+    "\u0002\u001e\u0090\u0003\u0002\u0002\u0002 \u0096\u0003\u0002\u0002",
+    "\u0002\"\u0098\u0003\u0002\u0002\u0002$\u009f\u0003\u0002\u0002\u0002",
+    "&\u00a1\u0003\u0002\u0002\u0002(\u00a3\u0003\u0002\u0002\u0002*\u00a5",
+    "\u0003\u0002\u0002\u0002,\u00a7\u0003\u0002\u0002\u0002.\u00a9\u0003",
+    "\u0002\u0002\u00020\u00ab\u0003\u0002\u0002\u00022\u00ad\u0003\u0002",
+    "\u0002\u00024\u00af\u0003\u0002\u0002\u000268\u0005\u0006\u0004\u0002",
+    "76\u0003\u0002\u0002\u000278\u0003\u0002\u0002\u000289\u0003\u0002\u0002",
+    "\u00029;\u00075\u0002\u0002:7\u0003\u0002\u0002\u0002;>\u0003\u0002",
+    "\u0002\u0002<:\u0003\u0002\u0002\u0002<=\u0003\u0002\u0002\u0002=@\u0003",
+    "\u0002\u0002\u0002><\u0003\u0002\u0002\u0002?A\u0005\u0006\u0004\u0002",
+    "@?\u0003\u0002\u0002\u0002@A\u0003\u0002\u0002\u0002AB\u0003\u0002\u0002",
+    "\u0002BC\u0007\u0002\u0002\u0003C\u0003\u0003\u0002\u0002\u0002DE\u0007",
+    "3\u0002\u0002EF\u0007\u0003\u0002\u0002F\u0005\u0003\u0002\u0002\u0002",
+    "GT\u0005\n\u0006\u0002HT\u0005\f\u0007\u0002IT\u0005\u000e\b\u0002J",
+    "T\u0005\u0010\t\u0002KT\u0005\u0012\n\u0002LT\u0005\u0014\u000b\u0002",
+    "MT\u0005\u0016\f\u0002NT\u0005\u0018\r\u0002OQ\u0005\u0004\u0003\u0002",
+    "PR\u0005\u0006\u0004\u0002QP\u0003\u0002\u0002\u0002QR\u0003\u0002\u0002",
+    "\u0002RT\u0003\u0002\u0002\u0002SG\u0003\u0002\u0002\u0002SH\u0003\u0002",
+    "\u0002\u0002SI\u0003\u0002\u0002\u0002SJ\u0003\u0002\u0002\u0002SK\u0003",
+    "\u0002\u0002\u0002SL\u0003\u0002\u0002\u0002SM\u0003\u0002\u0002\u0002",
+    "SN\u0003\u0002\u0002\u0002SO\u0003\u0002\u0002\u0002T\u0007\u0003\u0002",
+    "\u0002\u0002UX\u0005*\u0016\u0002VX\u0005(\u0015\u0002WU\u0003\u0002",
+    "\u0002\u0002WV\u0003\u0002\u0002\u0002X\t\u0003\u0002\u0002\u0002YZ",
+    "\u0007\u0010\u0002\u0002Z[\u0005\b\u0005\u0002[\u000b\u0003\u0002\u0002",
+    "\u0002\\]\u00073\u0002\u0002]^\u0007\u0004\u0002\u0002^_\u0005\b\u0005",
+    "\u0002_\r\u0003\u0002\u0002\u0002`a\u0007\u0011\u0002\u0002ae\u0005",
+    " \u0011\u0002bc\u0007\u0011\u0002\u0002ce\u0007\u0012\u0002\u0002d`",
+    "\u0003\u0002\u0002\u0002db\u0003\u0002\u0002\u0002e\u000f\u0003\u0002",
+    "\u0002\u0002fg\u0007\u0014\u0002\u0002gh\u00073\u0002\u0002hi\u0007",
+    "\u0005\u0002\u0002ij\u0005 \u0011\u0002j\u0011\u0003\u0002\u0002\u0002",
+    "kp\u0007\u0013\u0002\u0002ln\u0005 \u0011\u0002mo\u0007\u0006\u0002",
+    "\u0002nm\u0003\u0002\u0002\u0002no\u0003\u0002\u0002\u0002oq\u0003\u0002",
+    "\u0002\u0002pl\u0003\u0002\u0002\u0002qr\u0003\u0002\u0002\u0002rp\u0003",
+    "\u0002\u0002\u0002rs\u0003\u0002\u0002\u0002s\u0013\u0003\u0002\u0002",
+    "\u0002tu\t\u0002\u0002\u0002uv\u0007\u0005\u0002\u0002vz\u0005*\u0016",
+    "\u0002wx\t\u0003\u0002\u0002xz\t\u0004\u0002\u0002yt\u0003\u0002\u0002",
+    "\u0002yw\u0003\u0002\u0002\u0002z\u0015\u0003\u0002\u0002\u0002{|\u0007",
+    "/\u0002\u0002|}\u0007\u0005\u0002\u0002}\u0086\u0007\u001d\u0002\u0002",
+    "~\u007f\u0007\u001c\u0002\u0002\u007f\u0086\u0007/\u0002\u0002\u0080",
+    "\u0081\u0007\u001e\u0002\u0002\u0081\u0082\u0007\u0005\u0002\u0002\u0082",
+    "\u0086\u0007\u001d\u0002\u0002\u0083\u0084\u0007\u001c\u0002\u0002\u0084",
+    "\u0086\u0007\u001e\u0002\u0002\u0085{\u0003\u0002\u0002\u0002\u0085",
+    "~\u0003\u0002\u0002\u0002\u0085\u0080\u0003\u0002\u0002\u0002\u0085",
+    "\u0083\u0003\u0002\u0002\u0002\u0086\u0017\u0003\u0002\u0002\u0002\u0087",
+    "\u0088\u0007\u0018\u0002\u0002\u0088\u0089\u0005\u001a\u000e\u0002\u0089",
+    "\u0019\u0003\u0002\u0002\u0002\u008a\u008d\u0005\u001c\u000f\u0002\u008b",
+    "\u008d\u0005\u001e\u0010\u0002\u008c\u008a\u0003\u0002\u0002\u0002\u008c",
+    "\u008b\u0003\u0002\u0002\u0002\u008d\u001b\u0003\u0002\u0002\u0002\u008e",
+    "\u008f\u00073\u0002\u0002\u008f\u001d\u0003\u0002\u0002\u0002\u0090",
+    "\u0091\u0007\u0007\u0002\u0002\u0091\u0092\u00073\u0002\u0002\u0092",
+    "\u0093\u0007\b\u0002\u0002\u0093\u001f\u0003\u0002\u0002\u0002\u0094",
+    "\u0097\u0005$\u0013\u0002\u0095\u0097\u0005\"\u0012\u0002\u0096\u0094",
+    "\u0003\u0002\u0002\u0002\u0096\u0095\u0003\u0002\u0002\u0002\u0097!",
+    "\u0003\u0002\u0002\u0002\u0098\u0099\u00073\u0002\u0002\u0099#\u0003",
+    "\u0002\u0002\u0002\u009a\u00a0\u0005(\u0015\u0002\u009b\u00a0\u0005",
+    "*\u0016\u0002\u009c\u00a0\u0005,\u0017\u0002\u009d\u00a0\u00054\u001b",
+    "\u0002\u009e\u00a0\u0005&\u0014\u0002\u009f\u009a\u0003\u0002\u0002",
+    "\u0002\u009f\u009b\u0003\u0002\u0002\u0002\u009f\u009c\u0003\u0002\u0002",
+    "\u0002\u009f\u009d\u0003\u0002\u0002\u0002\u009f\u009e\u0003\u0002\u0002",
+    "\u0002\u00a0%\u0003\u0002\u0002\u0002\u00a1\u00a2\t\u0005\u0002\u0002",
+    "\u00a2\'\u0003\u0002\u0002\u0002\u00a3\u00a4\u0007\t\u0002\u0002\u00a4",
+    ")\u0003\u0002\u0002\u0002\u00a5\u00a6\u0007\u000b\u0002\u0002\u00a6",
+    "+\u0003\u0002\u0002\u0002\u00a7\u00a8\u0007\n\u0002\u0002\u00a8-\u0003",
+    "\u0002\u0002\u0002\u00a9\u00aa\u0007\r\u0002\u0002\u00aa/\u0003\u0002",
+    "\u0002\u0002\u00ab\u00ac\u0007\u000e\u0002\u0002\u00ac1\u0003\u0002",
+    "\u0002\u0002\u00ad\u00ae\u0007\u000f\u0002\u0002\u00ae3\u0003\u0002",
+    "\u0002\u0002\u00af\u00b0\u0007\f\u0002\u0002\u00b05\u0003\u0002\u0002",
+    "\u0002\u00107<@QSWdnry\u0085\u008c\u0096\u009f"].join("");
 
 
 const atn = new antlr4.atn.ATNDeserializer().deserialize(serializedATN);
@@ -103,8 +118,8 @@ const sharedContextCache = new antlr4.PredictionContextCache();
 export default class fassParser extends antlr4.Parser {
 
     static grammarFileName = "fass.g4";
-    static literalNames = [ null, "':'", "'at'", "'='", "','" ];
-    static symbolicNames = [ null, null, null, null, null, "HEXADECIMAL", 
+    static literalNames = [ null, "':'", "'at'", "'='", "','", "'('", "')'" ];
+    static symbolicNames = [ null, null, null, null, null, null, null, "HEXADECIMAL", 
                              "BINARY", "DECIMAL", "NEGATIVE_NUMBER", "BRK", 
                              "NOP", "NOP3", "ADDRESS_KWD", "FILLER_KWD", 
                              "DEFAULT_KWD", "DATA_KWD", "CONST_KWD", "IF_KWD", 
@@ -118,10 +133,11 @@ export default class fassParser extends antlr4.Parser {
                              "EOL" ];
     static ruleNames = [ "program", "label", "statement", "address", "address_stmt", 
                          "remote_label_stmt", "filler_stmt", "const_stmt", 
-                         "data_stmt", "flag_set_stmt", "stack_stmt", "value", 
-                         "constant", "literal", "opcode_literal", "hexadecimal", 
-                         "decimal", "binary", "brk_literal", "nop_literal", 
-                         "nop3_literal", "negative_number" ];
+                         "data_stmt", "flag_set_stmt", "stack_stmt", "goto_stmt", 
+                         "reference", "direct", "indirect", "value", "constant", 
+                         "literal", "opcode_literal", "hexadecimal", "decimal", 
+                         "binary", "brk_literal", "nop_literal", "nop3_literal", 
+                         "negative_number" ];
 
     constructor(input) {
         super(input);
@@ -143,36 +159,36 @@ export default class fassParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 50;
+	        this.state = 58;
 	        this._errHandler.sync(this);
 	        var _alt = this._interp.adaptivePredict(this._input,1,this._ctx)
 	        while(_alt!=2 && _alt!=antlr4.atn.ATN.INVALID_ALT_NUMBER) {
 	            if(_alt===1) {
-	                this.state = 45;
+	                this.state = 53;
 	                this._errHandler.sync(this);
 	                _la = this._input.LA(1);
-	                if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 32)) & ~0x1f) == 0 && ((1 << (_la - 32)) & ((1 << (fassParser.CARRY - 32)) | (1 << (fassParser.OVERFLOW - 32)) | (1 << (fassParser.INTERRUPT - 32)) | (1 << (fassParser.DECIMAL_MODE - 32)) | (1 << (fassParser.A - 32)) | (1 << (fassParser.IDENTIFIER - 32)))) !== 0)) {
-	                    this.state = 44;
+	                if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 34)) & ~0x1f) == 0 && ((1 << (_la - 34)) & ((1 << (fassParser.CARRY - 34)) | (1 << (fassParser.OVERFLOW - 34)) | (1 << (fassParser.INTERRUPT - 34)) | (1 << (fassParser.DECIMAL_MODE - 34)) | (1 << (fassParser.A - 34)) | (1 << (fassParser.IDENTIFIER - 34)))) !== 0)) {
+	                    this.state = 52;
 	                    this.statement();
 	                }
 
-	                this.state = 47;
+	                this.state = 55;
 	                this.match(fassParser.EOL); 
 	            }
-	            this.state = 52;
+	            this.state = 60;
 	            this._errHandler.sync(this);
 	            _alt = this._interp.adaptivePredict(this._input,1,this._ctx);
 	        }
 
-	        this.state = 54;
+	        this.state = 62;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
-	        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 32)) & ~0x1f) == 0 && ((1 << (_la - 32)) & ((1 << (fassParser.CARRY - 32)) | (1 << (fassParser.OVERFLOW - 32)) | (1 << (fassParser.INTERRUPT - 32)) | (1 << (fassParser.DECIMAL_MODE - 32)) | (1 << (fassParser.A - 32)) | (1 << (fassParser.IDENTIFIER - 32)))) !== 0)) {
-	            this.state = 53;
+	        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 34)) & ~0x1f) == 0 && ((1 << (_la - 34)) & ((1 << (fassParser.CARRY - 34)) | (1 << (fassParser.OVERFLOW - 34)) | (1 << (fassParser.INTERRUPT - 34)) | (1 << (fassParser.DECIMAL_MODE - 34)) | (1 << (fassParser.A - 34)) | (1 << (fassParser.IDENTIFIER - 34)))) !== 0)) {
+	            this.state = 61;
 	            this.statement();
 	        }
 
-	        this.state = 56;
+	        this.state = 64;
 	        this.match(fassParser.EOF);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -195,9 +211,9 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 2, fassParser.RULE_label);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 58;
+	        this.state = 66;
 	        this.match(fassParser.IDENTIFIER);
-	        this.state = 59;
+	        this.state = 67;
 	        this.match(fassParser.T__0);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -220,61 +236,67 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 4, fassParser.RULE_statement);
 	    var _la = 0; // Token type
 	    try {
-	        this.state = 72;
+	        this.state = 81;
 	        this._errHandler.sync(this);
 	        var la_ = this._interp.adaptivePredict(this._input,4,this._ctx);
 	        switch(la_) {
 	        case 1:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 61;
+	            this.state = 69;
 	            this.address_stmt();
 	            break;
 
 	        case 2:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 62;
+	            this.state = 70;
 	            this.remote_label_stmt();
 	            break;
 
 	        case 3:
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 63;
+	            this.state = 71;
 	            this.filler_stmt();
 	            break;
 
 	        case 4:
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 64;
+	            this.state = 72;
 	            this.const_stmt();
 	            break;
 
 	        case 5:
 	            this.enterOuterAlt(localctx, 5);
-	            this.state = 65;
+	            this.state = 73;
 	            this.data_stmt();
 	            break;
 
 	        case 6:
 	            this.enterOuterAlt(localctx, 6);
-	            this.state = 66;
+	            this.state = 74;
 	            this.flag_set_stmt();
 	            break;
 
 	        case 7:
 	            this.enterOuterAlt(localctx, 7);
-	            this.state = 67;
+	            this.state = 75;
 	            this.stack_stmt();
 	            break;
 
 	        case 8:
 	            this.enterOuterAlt(localctx, 8);
-	            this.state = 68;
+	            this.state = 76;
+	            this.goto_stmt();
+	            break;
+
+	        case 9:
+	            this.enterOuterAlt(localctx, 9);
+	            this.state = 77;
 	            this.label();
-	            this.state = 70;
+	            this.state = 79;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
-	            if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 32)) & ~0x1f) == 0 && ((1 << (_la - 32)) & ((1 << (fassParser.CARRY - 32)) | (1 << (fassParser.OVERFLOW - 32)) | (1 << (fassParser.INTERRUPT - 32)) | (1 << (fassParser.DECIMAL_MODE - 32)) | (1 << (fassParser.A - 32)) | (1 << (fassParser.IDENTIFIER - 32)))) !== 0)) {
-	                this.state = 69;
+	            if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 34)) & ~0x1f) == 0 && ((1 << (_la - 34)) & ((1 << (fassParser.CARRY - 34)) | (1 << (fassParser.OVERFLOW - 34)) | (1 << (fassParser.INTERRUPT - 34)) | (1 << (fassParser.DECIMAL_MODE - 34)) | (1 << (fassParser.A - 34)) | (1 << (fassParser.IDENTIFIER - 34)))) !== 0)) {
+	                this.state = 78;
 	                this.statement();
 	            }
 
@@ -301,17 +323,17 @@ export default class fassParser extends antlr4.Parser {
 	    let localctx = new AddressContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 6, fassParser.RULE_address);
 	    try {
-	        this.state = 76;
+	        this.state = 85;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case fassParser.DECIMAL:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 74;
+	            this.state = 83;
 	            this.decimal();
 	            break;
 	        case fassParser.HEXADECIMAL:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 75;
+	            this.state = 84;
 	            this.hexadecimal();
 	            break;
 	        default:
@@ -338,9 +360,9 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 8, fassParser.RULE_address_stmt);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 78;
+	        this.state = 87;
 	        this.match(fassParser.ADDRESS_KWD);
-	        this.state = 79;
+	        this.state = 88;
 	        this.address();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -363,11 +385,11 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 10, fassParser.RULE_remote_label_stmt);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 81;
+	        this.state = 90;
 	        this.match(fassParser.IDENTIFIER);
-	        this.state = 82;
+	        this.state = 91;
 	        this.match(fassParser.T__1);
-	        this.state = 83;
+	        this.state = 92;
 	        this.address();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -389,23 +411,23 @@ export default class fassParser extends antlr4.Parser {
 	    let localctx = new Filler_stmtContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 12, fassParser.RULE_filler_stmt);
 	    try {
-	        this.state = 89;
+	        this.state = 98;
 	        this._errHandler.sync(this);
 	        var la_ = this._interp.adaptivePredict(this._input,6,this._ctx);
 	        switch(la_) {
 	        case 1:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 85;
+	            this.state = 94;
 	            this.match(fassParser.FILLER_KWD);
-	            this.state = 86;
+	            this.state = 95;
 	            this.value();
 	            break;
 
 	        case 2:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 87;
+	            this.state = 96;
 	            this.match(fassParser.FILLER_KWD);
-	            this.state = 88;
+	            this.state = 97;
 	            this.match(fassParser.DEFAULT_KWD);
 	            break;
 
@@ -431,13 +453,13 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 14, fassParser.RULE_const_stmt);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 91;
+	        this.state = 100;
 	        this.match(fassParser.CONST_KWD);
-	        this.state = 92;
+	        this.state = 101;
 	        localctx.const_name = this.match(fassParser.IDENTIFIER);
-	        this.state = 93;
+	        this.state = 102;
 	        this.match(fassParser.T__2);
-	        this.state = 94;
+	        this.state = 103;
 	        this.value();
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -461,24 +483,24 @@ export default class fassParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 96;
+	        this.state = 105;
 	        this.match(fassParser.DATA_KWD);
-	        this.state = 101; 
+	        this.state = 110; 
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
 	        do {
-	            this.state = 97;
+	            this.state = 106;
 	            localctx._value = this.value();
 	            localctx.datas.push(localctx._value);
-	            this.state = 99;
+	            this.state = 108;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	            if(_la===fassParser.T__3) {
-	                this.state = 98;
+	                this.state = 107;
 	                this.match(fassParser.T__3);
 	            }
 
-	            this.state = 103; 
+	            this.state = 112; 
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
 	        } while((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.HEXADECIMAL) | (1 << fassParser.BINARY) | (1 << fassParser.DECIMAL) | (1 << fassParser.NEGATIVE_NUMBER) | (1 << fassParser.BRK) | (1 << fassParser.NOP) | (1 << fassParser.NOP3))) !== 0) || _la===fassParser.IDENTIFIER);
@@ -503,13 +525,13 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 18, fassParser.RULE_flag_set_stmt);
 	    var _la = 0; // Token type
 	    try {
-	        this.state = 110;
+	        this.state = 119;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case fassParser.CARRY:
 	        case fassParser.OVERFLOW:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 105;
+	            this.state = 114;
 	            _la = this._input.LA(1);
 	            if(!(_la===fassParser.CARRY || _la===fassParser.OVERFLOW)) {
 	            this._errHandler.recoverInline(this);
@@ -518,15 +540,15 @@ export default class fassParser extends antlr4.Parser {
 	            	this._errHandler.reportMatch(this);
 	                this.consume();
 	            }
-	            this.state = 106;
+	            this.state = 115;
 	            this.match(fassParser.T__2);
-	            this.state = 107;
+	            this.state = 116;
 	            localctx.one_zero = this.decimal();
 	            break;
 	        case fassParser.INTERRUPT:
 	        case fassParser.DECIMAL_MODE:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 108;
+	            this.state = 117;
 	            _la = this._input.LA(1);
 	            if(!(_la===fassParser.INTERRUPT || _la===fassParser.DECIMAL_MODE)) {
 	            this._errHandler.recoverInline(this);
@@ -535,7 +557,7 @@ export default class fassParser extends antlr4.Parser {
 	            	this._errHandler.reportMatch(this);
 	                this.consume();
 	            }
-	            this.state = 109;
+	            this.state = 118;
 	            _la = this._input.LA(1);
 	            if(!(_la===fassParser.ON || _la===fassParser.OFF)) {
 	            this._errHandler.recoverInline(this);
@@ -568,43 +590,43 @@ export default class fassParser extends antlr4.Parser {
 	    let localctx = new Stack_stmtContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 20, fassParser.RULE_stack_stmt);
 	    try {
-	        this.state = 122;
+	        this.state = 131;
 	        this._errHandler.sync(this);
 	        var la_ = this._interp.adaptivePredict(this._input,10,this._ctx);
 	        switch(la_) {
 	        case 1:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 112;
+	            this.state = 121;
 	            this.match(fassParser.A);
-	            this.state = 113;
+	            this.state = 122;
 	            this.match(fassParser.T__2);
-	            this.state = 114;
+	            this.state = 123;
 	            this.match(fassParser.PULL_KWD);
 	            break;
 
 	        case 2:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 115;
+	            this.state = 124;
 	            this.match(fassParser.PUSH_KWD);
-	            this.state = 116;
+	            this.state = 125;
 	            this.match(fassParser.A);
 	            break;
 
 	        case 3:
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 117;
+	            this.state = 126;
 	            this.match(fassParser.FLAGS_KWD);
-	            this.state = 118;
+	            this.state = 127;
 	            this.match(fassParser.T__2);
-	            this.state = 119;
+	            this.state = 128;
 	            this.match(fassParser.PULL_KWD);
 	            break;
 
 	        case 4:
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 120;
+	            this.state = 129;
 	            this.match(fassParser.PUSH_KWD);
-	            this.state = 121;
+	            this.state = 130;
 	            this.match(fassParser.FLAGS_KWD);
 	            break;
 
@@ -625,11 +647,122 @@ export default class fassParser extends antlr4.Parser {
 
 
 
+	goto_stmt() {
+	    let localctx = new Goto_stmtContext(this, this._ctx, this.state);
+	    this.enterRule(localctx, 22, fassParser.RULE_goto_stmt);
+	    try {
+	        this.enterOuterAlt(localctx, 1);
+	        this.state = 133;
+	        this.match(fassParser.GOTO_KWD);
+	        this.state = 134;
+	        this.reference();
+	    } catch (re) {
+	    	if(re instanceof antlr4.error.RecognitionException) {
+		        localctx.exception = re;
+		        this._errHandler.reportError(this, re);
+		        this._errHandler.recover(this, re);
+		    } else {
+		    	throw re;
+		    }
+	    } finally {
+	        this.exitRule();
+	    }
+	    return localctx;
+	}
+
+
+
+	reference() {
+	    let localctx = new ReferenceContext(this, this._ctx, this.state);
+	    this.enterRule(localctx, 24, fassParser.RULE_reference);
+	    try {
+	        this.state = 138;
+	        this._errHandler.sync(this);
+	        switch(this._input.LA(1)) {
+	        case fassParser.IDENTIFIER:
+	            this.enterOuterAlt(localctx, 1);
+	            this.state = 136;
+	            this.direct();
+	            break;
+	        case fassParser.T__4:
+	            this.enterOuterAlt(localctx, 2);
+	            this.state = 137;
+	            this.indirect();
+	            break;
+	        default:
+	            throw new antlr4.error.NoViableAltException(this);
+	        }
+	    } catch (re) {
+	    	if(re instanceof antlr4.error.RecognitionException) {
+		        localctx.exception = re;
+		        this._errHandler.reportError(this, re);
+		        this._errHandler.recover(this, re);
+		    } else {
+		    	throw re;
+		    }
+	    } finally {
+	        this.exitRule();
+	    }
+	    return localctx;
+	}
+
+
+
+	direct() {
+	    let localctx = new DirectContext(this, this._ctx, this.state);
+	    this.enterRule(localctx, 26, fassParser.RULE_direct);
+	    try {
+	        this.enterOuterAlt(localctx, 1);
+	        this.state = 140;
+	        this.match(fassParser.IDENTIFIER);
+	    } catch (re) {
+	    	if(re instanceof antlr4.error.RecognitionException) {
+		        localctx.exception = re;
+		        this._errHandler.reportError(this, re);
+		        this._errHandler.recover(this, re);
+		    } else {
+		    	throw re;
+		    }
+	    } finally {
+	        this.exitRule();
+	    }
+	    return localctx;
+	}
+
+
+
+	indirect() {
+	    let localctx = new IndirectContext(this, this._ctx, this.state);
+	    this.enterRule(localctx, 28, fassParser.RULE_indirect);
+	    try {
+	        this.enterOuterAlt(localctx, 1);
+	        this.state = 142;
+	        this.match(fassParser.T__4);
+	        this.state = 143;
+	        this.match(fassParser.IDENTIFIER);
+	        this.state = 144;
+	        this.match(fassParser.T__5);
+	    } catch (re) {
+	    	if(re instanceof antlr4.error.RecognitionException) {
+		        localctx.exception = re;
+		        this._errHandler.reportError(this, re);
+		        this._errHandler.recover(this, re);
+		    } else {
+		    	throw re;
+		    }
+	    } finally {
+	        this.exitRule();
+	    }
+	    return localctx;
+	}
+
+
+
 	value() {
 	    let localctx = new ValueContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 22, fassParser.RULE_value);
+	    this.enterRule(localctx, 30, fassParser.RULE_value);
 	    try {
-	        this.state = 126;
+	        this.state = 148;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case fassParser.HEXADECIMAL:
@@ -640,12 +773,12 @@ export default class fassParser extends antlr4.Parser {
 	        case fassParser.NOP:
 	        case fassParser.NOP3:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 124;
+	            this.state = 146;
 	            this.literal();
 	            break;
 	        case fassParser.IDENTIFIER:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 125;
+	            this.state = 147;
 	            this.constant();
 	            break;
 	        default:
@@ -669,10 +802,10 @@ export default class fassParser extends antlr4.Parser {
 
 	constant() {
 	    let localctx = new ConstantContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 24, fassParser.RULE_constant);
+	    this.enterRule(localctx, 32, fassParser.RULE_constant);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 128;
+	        this.state = 150;
 	        this.match(fassParser.IDENTIFIER);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -692,36 +825,36 @@ export default class fassParser extends antlr4.Parser {
 
 	literal() {
 	    let localctx = new LiteralContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 26, fassParser.RULE_literal);
+	    this.enterRule(localctx, 34, fassParser.RULE_literal);
 	    try {
-	        this.state = 135;
+	        this.state = 157;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case fassParser.HEXADECIMAL:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 130;
+	            this.state = 152;
 	            this.hexadecimal();
 	            break;
 	        case fassParser.DECIMAL:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 131;
+	            this.state = 153;
 	            this.decimal();
 	            break;
 	        case fassParser.BINARY:
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 132;
+	            this.state = 154;
 	            this.binary();
 	            break;
 	        case fassParser.NEGATIVE_NUMBER:
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 133;
+	            this.state = 155;
 	            this.negative_number();
 	            break;
 	        case fassParser.BRK:
 	        case fassParser.NOP:
 	        case fassParser.NOP3:
 	            this.enterOuterAlt(localctx, 5);
-	            this.state = 134;
+	            this.state = 156;
 	            this.opcode_literal();
 	            break;
 	        default:
@@ -745,11 +878,11 @@ export default class fassParser extends antlr4.Parser {
 
 	opcode_literal() {
 	    let localctx = new Opcode_literalContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 28, fassParser.RULE_opcode_literal);
+	    this.enterRule(localctx, 36, fassParser.RULE_opcode_literal);
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 137;
+	        this.state = 159;
 	        _la = this._input.LA(1);
 	        if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.BRK) | (1 << fassParser.NOP) | (1 << fassParser.NOP3))) !== 0))) {
 	        this._errHandler.recoverInline(this);
@@ -776,10 +909,10 @@ export default class fassParser extends antlr4.Parser {
 
 	hexadecimal() {
 	    let localctx = new HexadecimalContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 30, fassParser.RULE_hexadecimal);
+	    this.enterRule(localctx, 38, fassParser.RULE_hexadecimal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 139;
+	        this.state = 161;
 	        this.match(fassParser.HEXADECIMAL);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -799,10 +932,10 @@ export default class fassParser extends antlr4.Parser {
 
 	decimal() {
 	    let localctx = new DecimalContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 32, fassParser.RULE_decimal);
+	    this.enterRule(localctx, 40, fassParser.RULE_decimal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 141;
+	        this.state = 163;
 	        this.match(fassParser.DECIMAL);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -822,10 +955,10 @@ export default class fassParser extends antlr4.Parser {
 
 	binary() {
 	    let localctx = new BinaryContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 34, fassParser.RULE_binary);
+	    this.enterRule(localctx, 42, fassParser.RULE_binary);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 143;
+	        this.state = 165;
 	        this.match(fassParser.BINARY);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -845,10 +978,10 @@ export default class fassParser extends antlr4.Parser {
 
 	brk_literal() {
 	    let localctx = new Brk_literalContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 36, fassParser.RULE_brk_literal);
+	    this.enterRule(localctx, 44, fassParser.RULE_brk_literal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 145;
+	        this.state = 167;
 	        this.match(fassParser.BRK);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -868,10 +1001,10 @@ export default class fassParser extends antlr4.Parser {
 
 	nop_literal() {
 	    let localctx = new Nop_literalContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 38, fassParser.RULE_nop_literal);
+	    this.enterRule(localctx, 46, fassParser.RULE_nop_literal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 147;
+	        this.state = 169;
 	        this.match(fassParser.NOP);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -891,10 +1024,10 @@ export default class fassParser extends antlr4.Parser {
 
 	nop3_literal() {
 	    let localctx = new Nop3_literalContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 40, fassParser.RULE_nop3_literal);
+	    this.enterRule(localctx, 48, fassParser.RULE_nop3_literal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 149;
+	        this.state = 171;
 	        this.match(fassParser.NOP3);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -914,10 +1047,10 @@ export default class fassParser extends antlr4.Parser {
 
 	negative_number() {
 	    let localctx = new Negative_numberContext(this, this._ctx, this.state);
-	    this.enterRule(localctx, 42, fassParser.RULE_negative_number);
+	    this.enterRule(localctx, 50, fassParser.RULE_negative_number);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 151;
+	        this.state = 173;
 	        this.match(fassParser.NEGATIVE_NUMBER);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -941,51 +1074,53 @@ fassParser.T__0 = 1;
 fassParser.T__1 = 2;
 fassParser.T__2 = 3;
 fassParser.T__3 = 4;
-fassParser.HEXADECIMAL = 5;
-fassParser.BINARY = 6;
-fassParser.DECIMAL = 7;
-fassParser.NEGATIVE_NUMBER = 8;
-fassParser.BRK = 9;
-fassParser.NOP = 10;
-fassParser.NOP3 = 11;
-fassParser.ADDRESS_KWD = 12;
-fassParser.FILLER_KWD = 13;
-fassParser.DEFAULT_KWD = 14;
-fassParser.DATA_KWD = 15;
-fassParser.CONST_KWD = 16;
-fassParser.IF_KWD = 17;
-fassParser.THEN_KWD = 18;
-fassParser.ELSE_KWD = 19;
-fassParser.GOTO_KWD = 20;
-fassParser.GOSUB_KWD = 21;
-fassParser.RETURN_KWD = 22;
-fassParser.RETINT_KWD = 23;
-fassParser.PUSH_KWD = 24;
-fassParser.PULL_KWD = 25;
-fassParser.FLAGS_KWD = 26;
-fassParser.AND_KWD = 27;
-fassParser.OR_KWD = 28;
-fassParser.XOR_KWD = 29;
-fassParser.BITTEST_KWD = 30;
-fassParser.COMPARE_KWD = 31;
-fassParser.CARRY = 32;
-fassParser.OVERFLOW = 33;
-fassParser.INTERRUPT = 34;
-fassParser.DECIMAL_MODE = 35;
-fassParser.NOT = 36;
-fassParser.ZERO = 37;
-fassParser.POSITIVE = 38;
-fassParser.NEGATIVE = 39;
-fassParser.EQUAL = 40;
-fassParser.ON = 41;
-fassParser.OFF = 42;
-fassParser.A = 43;
-fassParser.X = 44;
-fassParser.Y = 45;
-fassParser.STACK = 46;
-fassParser.IDENTIFIER = 47;
-fassParser.WHITESPACE = 48;
-fassParser.EOL = 49;
+fassParser.T__4 = 5;
+fassParser.T__5 = 6;
+fassParser.HEXADECIMAL = 7;
+fassParser.BINARY = 8;
+fassParser.DECIMAL = 9;
+fassParser.NEGATIVE_NUMBER = 10;
+fassParser.BRK = 11;
+fassParser.NOP = 12;
+fassParser.NOP3 = 13;
+fassParser.ADDRESS_KWD = 14;
+fassParser.FILLER_KWD = 15;
+fassParser.DEFAULT_KWD = 16;
+fassParser.DATA_KWD = 17;
+fassParser.CONST_KWD = 18;
+fassParser.IF_KWD = 19;
+fassParser.THEN_KWD = 20;
+fassParser.ELSE_KWD = 21;
+fassParser.GOTO_KWD = 22;
+fassParser.GOSUB_KWD = 23;
+fassParser.RETURN_KWD = 24;
+fassParser.RETINT_KWD = 25;
+fassParser.PUSH_KWD = 26;
+fassParser.PULL_KWD = 27;
+fassParser.FLAGS_KWD = 28;
+fassParser.AND_KWD = 29;
+fassParser.OR_KWD = 30;
+fassParser.XOR_KWD = 31;
+fassParser.BITTEST_KWD = 32;
+fassParser.COMPARE_KWD = 33;
+fassParser.CARRY = 34;
+fassParser.OVERFLOW = 35;
+fassParser.INTERRUPT = 36;
+fassParser.DECIMAL_MODE = 37;
+fassParser.NOT = 38;
+fassParser.ZERO = 39;
+fassParser.POSITIVE = 40;
+fassParser.NEGATIVE = 41;
+fassParser.EQUAL = 42;
+fassParser.ON = 43;
+fassParser.OFF = 44;
+fassParser.A = 45;
+fassParser.X = 46;
+fassParser.Y = 47;
+fassParser.STACK = 48;
+fassParser.IDENTIFIER = 49;
+fassParser.WHITESPACE = 50;
+fassParser.EOL = 51;
 
 fassParser.RULE_program = 0;
 fassParser.RULE_label = 1;
@@ -998,17 +1133,21 @@ fassParser.RULE_const_stmt = 7;
 fassParser.RULE_data_stmt = 8;
 fassParser.RULE_flag_set_stmt = 9;
 fassParser.RULE_stack_stmt = 10;
-fassParser.RULE_value = 11;
-fassParser.RULE_constant = 12;
-fassParser.RULE_literal = 13;
-fassParser.RULE_opcode_literal = 14;
-fassParser.RULE_hexadecimal = 15;
-fassParser.RULE_decimal = 16;
-fassParser.RULE_binary = 17;
-fassParser.RULE_brk_literal = 18;
-fassParser.RULE_nop_literal = 19;
-fassParser.RULE_nop3_literal = 20;
-fassParser.RULE_negative_number = 21;
+fassParser.RULE_goto_stmt = 11;
+fassParser.RULE_reference = 12;
+fassParser.RULE_direct = 13;
+fassParser.RULE_indirect = 14;
+fassParser.RULE_value = 15;
+fassParser.RULE_constant = 16;
+fassParser.RULE_literal = 17;
+fassParser.RULE_opcode_literal = 18;
+fassParser.RULE_hexadecimal = 19;
+fassParser.RULE_decimal = 20;
+fassParser.RULE_binary = 21;
+fassParser.RULE_brk_literal = 22;
+fassParser.RULE_nop_literal = 23;
+fassParser.RULE_nop3_literal = 24;
+fassParser.RULE_negative_number = 25;
 
 class ProgramContext extends antlr4.ParserRuleContext {
 
@@ -1143,6 +1282,10 @@ class StatementContext extends antlr4.ParserRuleContext {
 
 	stack_stmt() {
 	    return this.getTypedRuleContext(Stack_stmtContext,0);
+	};
+
+	goto_stmt() {
+	    return this.getTypedRuleContext(Goto_stmtContext,0);
 	};
 
 	label() {
@@ -1521,6 +1664,154 @@ class Stack_stmtContext extends antlr4.ParserRuleContext {
 	exitRule(listener) {
 	    if(listener instanceof fassListener ) {
 	        listener.exitStack_stmt(this);
+		}
+	}
+
+
+}
+
+
+
+class Goto_stmtContext extends antlr4.ParserRuleContext {
+
+    constructor(parser, parent, invokingState) {
+        if(parent===undefined) {
+            parent = null;
+        }
+        if(invokingState===undefined || invokingState===null) {
+            invokingState = -1;
+        }
+        super(parent, invokingState);
+        this.parser = parser;
+        this.ruleIndex = fassParser.RULE_goto_stmt;
+    }
+
+	GOTO_KWD() {
+	    return this.getToken(fassParser.GOTO_KWD, 0);
+	};
+
+	reference() {
+	    return this.getTypedRuleContext(ReferenceContext,0);
+	};
+
+	enterRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.enterGoto_stmt(this);
+		}
+	}
+
+	exitRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.exitGoto_stmt(this);
+		}
+	}
+
+
+}
+
+
+
+class ReferenceContext extends antlr4.ParserRuleContext {
+
+    constructor(parser, parent, invokingState) {
+        if(parent===undefined) {
+            parent = null;
+        }
+        if(invokingState===undefined || invokingState===null) {
+            invokingState = -1;
+        }
+        super(parent, invokingState);
+        this.parser = parser;
+        this.ruleIndex = fassParser.RULE_reference;
+    }
+
+	direct() {
+	    return this.getTypedRuleContext(DirectContext,0);
+	};
+
+	indirect() {
+	    return this.getTypedRuleContext(IndirectContext,0);
+	};
+
+	enterRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.enterReference(this);
+		}
+	}
+
+	exitRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.exitReference(this);
+		}
+	}
+
+
+}
+
+
+
+class DirectContext extends antlr4.ParserRuleContext {
+
+    constructor(parser, parent, invokingState) {
+        if(parent===undefined) {
+            parent = null;
+        }
+        if(invokingState===undefined || invokingState===null) {
+            invokingState = -1;
+        }
+        super(parent, invokingState);
+        this.parser = parser;
+        this.ruleIndex = fassParser.RULE_direct;
+    }
+
+	IDENTIFIER() {
+	    return this.getToken(fassParser.IDENTIFIER, 0);
+	};
+
+	enterRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.enterDirect(this);
+		}
+	}
+
+	exitRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.exitDirect(this);
+		}
+	}
+
+
+}
+
+
+
+class IndirectContext extends antlr4.ParserRuleContext {
+
+    constructor(parser, parent, invokingState) {
+        if(parent===undefined) {
+            parent = null;
+        }
+        if(invokingState===undefined || invokingState===null) {
+            invokingState = -1;
+        }
+        super(parent, invokingState);
+        this.parser = parser;
+        this.ruleIndex = fassParser.RULE_indirect;
+    }
+
+	IDENTIFIER() {
+	    return this.getToken(fassParser.IDENTIFIER, 0);
+	};
+
+	enterRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.enterIndirect(this);
+		}
+	}
+
+	exitRule(listener) {
+	    if(listener instanceof fassListener ) {
+	        listener.exitIndirect(this);
 		}
 	}
 
@@ -1954,6 +2245,10 @@ fassParser.Const_stmtContext = Const_stmtContext;
 fassParser.Data_stmtContext = Data_stmtContext; 
 fassParser.Flag_set_stmtContext = Flag_set_stmtContext; 
 fassParser.Stack_stmtContext = Stack_stmtContext; 
+fassParser.Goto_stmtContext = Goto_stmtContext; 
+fassParser.ReferenceContext = ReferenceContext; 
+fassParser.DirectContext = DirectContext; 
+fassParser.IndirectContext = IndirectContext; 
 fassParser.ValueContext = ValueContext; 
 fassParser.ConstantContext = ConstantContext; 
 fassParser.LiteralContext = LiteralContext; 

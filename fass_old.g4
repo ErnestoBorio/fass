@@ -1,4 +1,4 @@
-grammar fass;
+grammar fass_old;
 
 program:
 	(statement? EOL)* // optional statements ending in newlines
@@ -102,10 +102,10 @@ name: lbl = IDENTIFIER;
 indexed: lbl = IDENTIFIER '[' reg = (X | Y) ']';
 indir_x: '(' lbl = IDENTIFIER '[' reg = X ']' ')';
 indir_y: '(' lbl = IDENTIFIER ')' '[' reg = Y ']';
-indirect: '(' lbl = IDENTIFIER ')';
-// only JMP uses it References <--
+indirect: '(' lbl = IDENTIFIER ')'; // only JMP uses it 
 
 // --> Values
+
 value: literal | constant;
 constant: IDENTIFIER;
 literal:

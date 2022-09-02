@@ -17,6 +17,7 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| goto_stmt
+	| bit_shift_stmt
 	// | if_then_stmt
 	| label statement?;
 
@@ -37,6 +38,7 @@ data_stmt: DATA_KWD ( datas += value ','?)+;
 // if_then_stmt: IF_KWD condition THEN_KWD single_stmt (ELSE_KWD single_stmt)?;
 
 // condition: ZERO | NOT ZERO | POSITIVE | NEGATIVE | CARRY | NOT CARRY | OVERFLOW | NOT OVERFLOW;
+
 flag_set_stmt:
 	(CARRY | OVERFLOW) '=' one_zero = decimal
 	| (INTERRUPT | DECIMAL_MODE) (ON | OFF);
@@ -49,14 +51,19 @@ stack_stmt:
 
 goto_stmt: GOTO_KWD reference;
 
+bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
+		A
+		| reference
+	);
+
 // --> References
 
-reference:
-	direct
-	| indirect; // | indexed_x | indexed_y | indirect_y | x_indirect
+reference: direct | indirect | indexed;
+//| indirect_y | x_indirect
 
 direct: IDENTIFIER;
 indirect: '(' IDENTIFIER ')';
+indexed: IDENTIFIER ',' (X | Y);
 
 // --> Values
 
@@ -108,6 +115,12 @@ OR_KWD: [oO][rR]'=';
 XOR_KWD: [xX][oO][rR]'=';
 BITTEST_KWD: [bB][iI][tT][tT][eE][sS][tT];
 COMPARE_KWD: [cC][oO][mM][pP][aA][rR][eE];
+ROTATE_KWD: [rR][oO][tT][aA][tT][eE];
+SHIFT_KWD: [sS][hH][iI][fF][tT];
+ROL_KWD: ROTATE_KWD '<';
+ROR_KWD: ROTATE_KWD '>';
+ASL_KWD: SHIFT_KWD '<';
+LSR_KWD: SHIFT_KWD '>';
 // Keywords <--
 
 // --> Flags

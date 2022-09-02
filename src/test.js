@@ -3,7 +3,9 @@ import FassListener from "./FassListener.js";
 import { opcodes as op } from "./opcodes.js";
 
 test("Address and Label", () => {
-	expect(compile("address $FAFA \n Mafalda:").labels.get("mafalda")).toEqual(0xfafa);
+	const fass = compile("address $1000 \n Mafalda: data 1 2 3\n Manolito:");
+	expect(fass.labels.get("mafalda")).toEqual(0x1000);
+	expect(fass.labels.get("manolito")).toEqual(0x1003);
 	expect(() => compile("peto:\n peto:")).toThrow();
 });
 

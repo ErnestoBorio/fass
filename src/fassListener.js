@@ -1,11 +1,23 @@
 import FassBaseListener from "./fassBaseListener.js";
 import { opcodes as op } from "./opcodes.js";
 import { FassError } from "./error.js";
+import FassParser from "./fassParser.js";
 
 const NOP = 0xea;
 const NOP3 = 4;
 const BRK = 0;
 const defaultFiller = NOP;
+
+const IMM = "IMM";
+const ZP = "ZP";
+const ZPX = "ZPX";
+const ZPY = "ZPY";
+const ABS = "ABS";
+const ABSX = "ABSX";
+const ABSY = "ABSY";
+const INDX = "INDX";
+const INDY = "INDY";
+const IND = "IND";
 
 export default class FassListener extends FassBaseListener {
 	address = 0;
@@ -21,7 +33,18 @@ export default class FassListener extends FassBaseListener {
 		}
 		bytes.forEach(val => {
 			this.output.push(val);
+			this.address += 1;
 		});
+	}
+
+	/**
+	 * Throws an error on a non-existent label or returns its address
+	 */
+	assertLabel(label) {
+		if (!this.labels.has(label)) {
+			throw new FassError(`Label ${label} does not exist or is a forward reference`, ctx);
+		}
+		return this.labels.get(label);
 	}
 
 	// Keep a stack of contexts to access them outside rule handlers, most likely in error reporting
@@ -190,20 +213,71 @@ export default class FassListener extends FassBaseListener {
 		if (ctx.reference()?.direct()) {
 			name = ctx.reference().direct().IDENTIFIER().getText();
 			this.pushBytes(op.JMP.ABS);
-		} else {
+		} else if (ctx.reference()?.indirect()) {
 			name = ctx.reference().indirect().IDENTIFIER().getText();
 			this.pushBytes(op.JMP.IND);
+		} else {
+			throw new FassError(`Goto only accepts absolute or absolute-indirect references`, ctx);
 		}
 
 		const normalized_name = name.toLowerCase();
-		if (!this.labels.has(normalized_name)) {
-			throw new FassError(
-				`Reference "${name}" is either non existent or is defined later, which is not yet implemented`,
-				ctx
-			);
-		}
-		const ref_value = this.labels.get(normalized_name);
+		const ref_value = this.assertLabel(normalized_name);
+
 		return this.pushBytes(littleEndian(ref_value));
+	}
+
+	exitBit_shift_stmt(ctx) {
+		let addressing;
+		if (ctx.A()) {
+			addressing = "ACC";
+		} else if (!new Set(["ZP", "ZPX", "ABS", "ABSX"]).has(ctx.reference()?.addressing)) {
+			throw new FassError("Bit-wise statements only accept A, direct or indexed references", ctx);
+		} else {
+			addressing = ctx.reference()?.addressing;
+		}
+		if (ctx.LSR_KWD()) {
+			this.pushBytes(op.LSR[addressing]);
+		} else if (ctx.ASL_KWD()) {
+			this.pushBytes(op.ASL[addressing]);
+		} else if (ctx.ROR_KWD()) {
+			this.pushBytes(op.ROR[addressing]);
+		} else if (ctx.ROL_KWD()) {
+			this.pushBytes(op.ROL[addressing]);
+		}
+	}
+
+	populateReferenceLabel(ctx) {
+		ctx.parentCtx.label = ctx.IDENTIFIER().getText().toLowerCase();
+		return ctx.parentCtx.label;
+	}
+	exitDirect(ctx) {
+		const label = this.populateReferenceLabel(ctx);
+		if (label <= 0xff) {
+			ctx.parentCtx.addressing = "ZP";
+			return;
+		}
+		ctx.parentCtx.addressing = "ABS";
+	}
+
+	exitIndirect(ctx) {
+		this.populateReferenceLabel(ctx);
+		ctx.addressing = IND;
+	}
+
+	exitIndexed(ctx) {
+		const label = this.populateReferenceLabel(ctx);
+		if (label <= 0xff) {
+			ctx.parentCtx.addressing = "ZP";
+		} else {
+			ctx.parentCtx.addressing = "ABS";
+		}
+		if (ctx.X()) {
+			ctx.parentCtx.addressing += "X";
+		} else if (ctx.Y()) {
+			ctx.parentCtx.addressing += "Y";
+		} else {
+			throw new FassError("Unexpected error", ctx);
+		}
 	}
 }
 

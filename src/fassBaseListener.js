@@ -113,6 +113,15 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 	}
 
 
+	// Enter a parse tree produced by fassParser#bit_shift_stmt.
+	enterBit_shift_stmt(ctx) {
+	}
+
+	// Exit a parse tree produced by fassParser#bit_shift_stmt.
+	exitBit_shift_stmt(ctx) {
+	}
+
+
 	// Enter a parse tree produced by fassParser#reference.
 	enterReference(ctx) {
 	}
@@ -137,6 +146,15 @@ export default class fassListener extends antlr4.tree.ParseTreeListener {
 
 	// Exit a parse tree produced by fassParser#indirect.
 	exitIndirect(ctx) {
+	}
+
+
+	// Enter a parse tree produced by fassParser#indexed.
+	enterIndexed(ctx) {
+	}
+
+	// Exit a parse tree produced by fassParser#indexed.
+	exitIndexed(ctx) {
 	}
 
 

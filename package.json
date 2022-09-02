@@ -8,7 +8,7 @@
 		"start": "node src/fassRun.js ./program.fass",
 		"build": "./build",
 		"test": "NODE_OPTIONS=--experimental-vm-modules jest",
-		"build & test": "npm run build && npm run test"
+		"build-test": "npm run build && npm run test"
 	},
 	"repository": {
 		"type": "git",

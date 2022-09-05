@@ -22,6 +22,7 @@
 	"homepage": "https://github.com/Drean64/fass#readme",
 	"devDependencies": {
 		"@types/antlr4": "^4.7.2",
+		"@types/jest": "^29.0.0",
 		"eslint": "^8.8.0",
 		"jest": "^28.1.3",
 		"prettier-eslint": "^13.0.0"

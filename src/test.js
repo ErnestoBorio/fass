@@ -26,8 +26,8 @@ test("Const", () => {
 });
 
 test("Data", () => {
-	const result = compile("data 0 1 BRK $FF NOP $ABCD NOP3");
-	expect(result.output).toEqual([0, 1, 0, 255, 0xea, 0xab, 0xcd, 4]);
+	const fass = compile("data 0 1 BRK $FF NOP $ABCD NOP3");
+	expect(fass.output).toEqual([0, 1, 0, 255, 0xea, 0xab, 0xcd, 4]);
 	expect(() => compile("data $10000 65536")).toThrow();
 });
 
@@ -66,4 +66,31 @@ test("Goto (JMP)", () => {
 		0xab
 	]);
 	expect(() => compile("goto nowhere")).toThrow();
+});
+
+test("Bitwise Shift & Rotation", () => {
+	const fass = compile(
+		`address $10
+		zeropage:
+		rotate> zeropage
+		shift< zeropage[x]
+
+		address $ABCD
+		absolute:
+		rotate< absolute[x]
+		shift> absolute`
+	);
+	console.log(fass.output);
+	expect(fass.output).toEqual([
+		op.ROR.ZP,
+		0x10,
+		op.ASL.ZPX,
+		0x10,
+		op.ROL.ABSX,
+		0xcd,
+		0xab,
+		op.LSR.ABS,
+		0xcd,
+		0xab
+	]);
 });

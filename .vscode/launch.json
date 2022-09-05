@@ -13,6 +13,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Fass",
+			"internalConsoleOptions": "openOnSessionStart",
 			"skipFiles": ["<node_internals>/**"],
 			"program": "${workspaceFolder}/src/fassRun.js",
 			"args": ["${workspaceFolder}/program.fass"]

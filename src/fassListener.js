@@ -42,7 +42,10 @@ export default class FassListener extends FassBaseListener {
 	 */
 	assertLabel(label) {
 		if (!this.labels.has(label)) {
-			throw new FassError(`Label ${label} does not exist or is a forward reference`, ctx);
+			throw new FassError(
+				`Label ${label} does not exist or is a forward reference`,
+				this.ctx.pop()
+			);
 		}
 		return this.labels.get(label);
 	}
@@ -229,8 +232,8 @@ export default class FassListener extends FassBaseListener {
 	exitBit_shift_stmt(ctx) {
 		let addressing;
 		if (ctx.A()) {
-			addressing = "ACC";
-		} else if (!new Set(["ZP", "ZPX", "ABS", "ABSX"]).has(ctx.reference()?.addressing)) {
+			addressing = ACC;
+		} else if (!new Set([ZP, ZPX, ABS, ABSX]).has(ctx.reference()?.addressing)) {
 			throw new FassError("Bit-wise statements only accept A, direct or indexed references", ctx);
 		} else {
 			addressing = ctx.reference()?.addressing;
@@ -244,6 +247,24 @@ export default class FassListener extends FassBaseListener {
 		} else if (ctx.ROL_KWD()) {
 			this.pushBytes(op.ROL[addressing]);
 		}
+
+		if (ctx.A()) {
+			return;
+		}
+
+		const address = this.assertLabel(ctx.reference().label);
+		switch (addressing) {
+			case ZP:
+			case ZPX:
+				this.pushBytes(shrink(littleEndian(address)));
+				break;
+			case ABS:
+			case ABSX:
+				this.pushBytes(littleEndian(address));
+				break;
+			default:
+				throw new FassError("Unexpected error", ctx);
+		}
 	}
 
 	populateReferenceLabel(ctx) {
@@ -252,11 +273,11 @@ export default class FassListener extends FassBaseListener {
 	}
 	exitDirect(ctx) {
 		const label = this.populateReferenceLabel(ctx);
-		if (label <= 0xff) {
-			ctx.parentCtx.addressing = "ZP";
+		if (this.assertLabel(label) <= 0xff) {
+			ctx.parentCtx.addressing = ZP;
 			return;
 		}
-		ctx.parentCtx.addressing = "ABS";
+		ctx.parentCtx.addressing = ABS;
 	}
 
 	exitIndirect(ctx) {
@@ -266,7 +287,8 @@ export default class FassListener extends FassBaseListener {
 
 	exitIndexed(ctx) {
 		const label = this.populateReferenceLabel(ctx);
-		if (label <= 0xff) {
+		const value = this.assertLabel(label);
+		if (value <= 0xff) {
 			ctx.parentCtx.addressing = "ZP";
 		} else {
 			ctx.parentCtx.addressing = "ABS";
@@ -304,6 +326,21 @@ function getTypedAncestor(type, ctx) {
 		ancestor = ancestor.parentCtx;
 	}
 	return undefined;
+}
+
+/**
+ * If the first byte is zero, strips it out.
+ * As this excpects little endian values, the first byte is the most significant
+ */
+function shrink(value) {
+	if (!Array.isArray(value) || value.length !== 2) {
+		throw new Error("Error trying to shrink a non 2 elements array");
+	}
+	if (value[1] == 0) {
+		value = [value[0]];
+		value.splice();
+	}
+	return value;
 }
 
 function littleEndian(value) {

@@ -63,7 +63,7 @@ reference: direct | indirect | indexed;
 
 direct: IDENTIFIER;
 indirect: '(' IDENTIFIER ')';
-indexed: IDENTIFIER ',' (X | Y);
+indexed: IDENTIFIER '[' (X | Y) ']';
 
 // --> Values
 

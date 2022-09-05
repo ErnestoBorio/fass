@@ -4,7 +4,7 @@ import antlr4 from 'antlr4';
 import fassListener from './fassListener.js';
 
 const serializedATN = ["\u0003\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786",
-    "\u5964\u0003;\u00c1\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004",
+    "\u5964\u0003=\u00c2\u0004\u0002\t\u0002\u0004\u0003\t\u0003\u0004\u0004",
     "\t\u0004\u0004\u0005\t\u0005\u0004\u0006\t\u0006\u0004\u0007\t\u0007",
     "\u0004\b\t\b\u0004\t\t\t\u0004\n\t\n\u0004\u000b\t\u000b\u0004\f\t\f",
     "\u0004\r\t\r\u0004\u000e\t\u000e\u0004\u000f\t\u000f\u0004\u0010\t\u0010",
@@ -27,97 +27,98 @@ const serializedATN = ["\u0003\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786",
     "\u0003\u000e\u0003\u000e\u0005\u000e\u0093\n\u000e\u0003\u000f\u0003",
     "\u000f\u0003\u000f\u0005\u000f\u0098\n\u000f\u0003\u0010\u0003\u0010",
     "\u0003\u0011\u0003\u0011\u0003\u0011\u0003\u0011\u0003\u0012\u0003\u0012",
-    "\u0003\u0012\u0003\u0012\u0003\u0013\u0003\u0013\u0005\u0013\u00a6\n",
-    "\u0013\u0003\u0014\u0003\u0014\u0003\u0015\u0003\u0015\u0003\u0015\u0003",
-    "\u0015\u0003\u0015\u0005\u0015\u00af\n\u0015\u0003\u0016\u0003\u0016",
-    "\u0003\u0017\u0003\u0017\u0003\u0018\u0003\u0018\u0003\u0019\u0003\u0019",
-    "\u0003\u001a\u0003\u001a\u0003\u001b\u0003\u001b\u0003\u001c\u0003\u001c",
-    "\u0003\u001d\u0003\u001d\u0003\u001d\u0002\u0002\u001e\u0002\u0004\u0006",
-    "\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a\u001c\u001e \"$&(*",
-    ",.02468\u0002\b\u0003\u0002*+\u0003\u0002,-\u0003\u000234\u0003\u0002",
-    "&)\u0003\u000267\u0003\u0002\r\u000f\u0002\u00c1\u0002@\u0003\u0002",
-    "\u0002\u0002\u0004H\u0003\u0002\u0002\u0002\u0006X\u0003\u0002\u0002",
-    "\u0002\b\\\u0003\u0002\u0002\u0002\n^\u0003\u0002\u0002\u0002\fa\u0003",
-    "\u0002\u0002\u0002\u000ei\u0003\u0002\u0002\u0002\u0010k\u0003\u0002",
-    "\u0002\u0002\u0012p\u0003\u0002\u0002\u0002\u0014~\u0003\u0002\u0002",
-    "\u0002\u0016\u008a\u0003\u0002\u0002\u0002\u0018\u008c\u0003\u0002\u0002",
-    "\u0002\u001a\u008f\u0003\u0002\u0002\u0002\u001c\u0097\u0003\u0002\u0002",
-    "\u0002\u001e\u0099\u0003\u0002\u0002\u0002 \u009b\u0003\u0002\u0002",
-    "\u0002\"\u009f\u0003\u0002\u0002\u0002$\u00a5\u0003\u0002\u0002\u0002",
-    "&\u00a7\u0003\u0002\u0002\u0002(\u00ae\u0003\u0002\u0002\u0002*\u00b0",
-    "\u0003\u0002\u0002\u0002,\u00b2\u0003\u0002\u0002\u0002.\u00b4\u0003",
-    "\u0002\u0002\u00020\u00b6\u0003\u0002\u0002\u00022\u00b8\u0003\u0002",
-    "\u0002\u00024\u00ba\u0003\u0002\u0002\u00026\u00bc\u0003\u0002\u0002",
-    "\u00028\u00be\u0003\u0002\u0002\u0002:<\u0005\u0006\u0004\u0002;:\u0003",
-    "\u0002\u0002\u0002;<\u0003\u0002\u0002\u0002<=\u0003\u0002\u0002\u0002",
-    "=?\u0007;\u0002\u0002>;\u0003\u0002\u0002\u0002?B\u0003\u0002\u0002",
-    "\u0002@>\u0003\u0002\u0002\u0002@A\u0003\u0002\u0002\u0002AD\u0003\u0002",
-    "\u0002\u0002B@\u0003\u0002\u0002\u0002CE\u0005\u0006\u0004\u0002DC\u0003",
-    "\u0002\u0002\u0002DE\u0003\u0002\u0002\u0002EF\u0003\u0002\u0002\u0002",
-    "FG\u0007\u0002\u0002\u0003G\u0003\u0003\u0002\u0002\u0002HI\u00079\u0002",
-    "\u0002IJ\u0007\u0003\u0002\u0002J\u0005\u0003\u0002\u0002\u0002KY\u0005",
-    "\n\u0006\u0002LY\u0005\f\u0007\u0002MY\u0005\u000e\b\u0002NY\u0005\u0010",
-    "\t\u0002OY\u0005\u0012\n\u0002PY\u0005\u0014\u000b\u0002QY\u0005\u0016",
-    "\f\u0002RY\u0005\u0018\r\u0002SY\u0005\u001a\u000e\u0002TV\u0005\u0004",
-    "\u0003\u0002UW\u0005\u0006\u0004\u0002VU\u0003\u0002\u0002\u0002VW\u0003",
-    "\u0002\u0002\u0002WY\u0003\u0002\u0002\u0002XK\u0003\u0002\u0002\u0002",
-    "XL\u0003\u0002\u0002\u0002XM\u0003\u0002\u0002\u0002XN\u0003\u0002\u0002",
-    "\u0002XO\u0003\u0002\u0002\u0002XP\u0003\u0002\u0002\u0002XQ\u0003\u0002",
-    "\u0002\u0002XR\u0003\u0002\u0002\u0002XS\u0003\u0002\u0002\u0002XT\u0003",
-    "\u0002\u0002\u0002Y\u0007\u0003\u0002\u0002\u0002Z]\u0005.\u0018\u0002",
-    "[]\u0005,\u0017\u0002\\Z\u0003\u0002\u0002\u0002\\[\u0003\u0002\u0002",
-    "\u0002]\t\u0003\u0002\u0002\u0002^_\u0007\u0010\u0002\u0002_`\u0005",
-    "\b\u0005\u0002`\u000b\u0003\u0002\u0002\u0002ab\u00079\u0002\u0002b",
-    "c\u0007\u0004\u0002\u0002cd\u0005\b\u0005\u0002d\r\u0003\u0002\u0002",
-    "\u0002ef\u0007\u0011\u0002\u0002fj\u0005$\u0013\u0002gh\u0007\u0011",
-    "\u0002\u0002hj\u0007\u0012\u0002\u0002ie\u0003\u0002\u0002\u0002ig\u0003",
-    "\u0002\u0002\u0002j\u000f\u0003\u0002\u0002\u0002kl\u0007\u0014\u0002",
-    "\u0002lm\u00079\u0002\u0002mn\u0007\u0005\u0002\u0002no\u0005$\u0013",
-    "\u0002o\u0011\u0003\u0002\u0002\u0002pu\u0007\u0013\u0002\u0002qs\u0005",
-    "$\u0013\u0002rt\u0007\u0006\u0002\u0002sr\u0003\u0002\u0002\u0002st",
-    "\u0003\u0002\u0002\u0002tv\u0003\u0002\u0002\u0002uq\u0003\u0002\u0002",
-    "\u0002vw\u0003\u0002\u0002\u0002wu\u0003\u0002\u0002\u0002wx\u0003\u0002",
-    "\u0002\u0002x\u0013\u0003\u0002\u0002\u0002yz\t\u0002\u0002\u0002z{",
-    "\u0007\u0005\u0002\u0002{\u007f\u0005.\u0018\u0002|}\t\u0003\u0002\u0002",
-    "}\u007f\t\u0004\u0002\u0002~y\u0003\u0002\u0002\u0002~|\u0003\u0002",
-    "\u0002\u0002\u007f\u0015\u0003\u0002\u0002\u0002\u0080\u0081\u00075",
-    "\u0002\u0002\u0081\u0082\u0007\u0005\u0002\u0002\u0082\u008b\u0007\u001d",
-    "\u0002\u0002\u0083\u0084\u0007\u001c\u0002\u0002\u0084\u008b\u00075",
-    "\u0002\u0002\u0085\u0086\u0007\u001e\u0002\u0002\u0086\u0087\u0007\u0005",
-    "\u0002\u0002\u0087\u008b\u0007\u001d\u0002\u0002\u0088\u0089\u0007\u001c",
-    "\u0002\u0002\u0089\u008b\u0007\u001e\u0002\u0002\u008a\u0080\u0003\u0002",
+    "\u0003\u0012\u0003\u0012\u0003\u0012\u0003\u0013\u0003\u0013\u0005\u0013",
+    "\u00a7\n\u0013\u0003\u0014\u0003\u0014\u0003\u0015\u0003\u0015\u0003",
+    "\u0015\u0003\u0015\u0003\u0015\u0005\u0015\u00b0\n\u0015\u0003\u0016",
+    "\u0003\u0016\u0003\u0017\u0003\u0017\u0003\u0018\u0003\u0018\u0003\u0019",
+    "\u0003\u0019\u0003\u001a\u0003\u001a\u0003\u001b\u0003\u001b\u0003\u001c",
+    "\u0003\u001c\u0003\u001d\u0003\u001d\u0003\u001d\u0002\u0002\u001e\u0002",
+    "\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a\u001c\u001e",
+    " \"$&(*,.02468\u0002\b\u0003\u0002,-\u0003\u0002./\u0003\u000256\u0003",
+    "\u0002(+\u0003\u000289\u0003\u0002\u000f\u0011\u0002\u00c2\u0002@\u0003",
+    "\u0002\u0002\u0002\u0004H\u0003\u0002\u0002\u0002\u0006X\u0003\u0002",
+    "\u0002\u0002\b\\\u0003\u0002\u0002\u0002\n^\u0003\u0002\u0002\u0002",
+    "\fa\u0003\u0002\u0002\u0002\u000ei\u0003\u0002\u0002\u0002\u0010k\u0003",
+    "\u0002\u0002\u0002\u0012p\u0003\u0002\u0002\u0002\u0014~\u0003\u0002",
+    "\u0002\u0002\u0016\u008a\u0003\u0002\u0002\u0002\u0018\u008c\u0003\u0002",
+    "\u0002\u0002\u001a\u008f\u0003\u0002\u0002\u0002\u001c\u0097\u0003\u0002",
+    "\u0002\u0002\u001e\u0099\u0003\u0002\u0002\u0002 \u009b\u0003\u0002",
+    "\u0002\u0002\"\u009f\u0003\u0002\u0002\u0002$\u00a6\u0003\u0002\u0002",
+    "\u0002&\u00a8\u0003\u0002\u0002\u0002(\u00af\u0003\u0002\u0002\u0002",
+    "*\u00b1\u0003\u0002\u0002\u0002,\u00b3\u0003\u0002\u0002\u0002.\u00b5",
+    "\u0003\u0002\u0002\u00020\u00b7\u0003\u0002\u0002\u00022\u00b9\u0003",
+    "\u0002\u0002\u00024\u00bb\u0003\u0002\u0002\u00026\u00bd\u0003\u0002",
+    "\u0002\u00028\u00bf\u0003\u0002\u0002\u0002:<\u0005\u0006\u0004\u0002",
+    ";:\u0003\u0002\u0002\u0002;<\u0003\u0002\u0002\u0002<=\u0003\u0002\u0002",
+    "\u0002=?\u0007=\u0002\u0002>;\u0003\u0002\u0002\u0002?B\u0003\u0002",
+    "\u0002\u0002@>\u0003\u0002\u0002\u0002@A\u0003\u0002\u0002\u0002AD\u0003",
+    "\u0002\u0002\u0002B@\u0003\u0002\u0002\u0002CE\u0005\u0006\u0004\u0002",
+    "DC\u0003\u0002\u0002\u0002DE\u0003\u0002\u0002\u0002EF\u0003\u0002\u0002",
+    "\u0002FG\u0007\u0002\u0002\u0003G\u0003\u0003\u0002\u0002\u0002HI\u0007",
+    ";\u0002\u0002IJ\u0007\u0003\u0002\u0002J\u0005\u0003\u0002\u0002\u0002",
+    "KY\u0005\n\u0006\u0002LY\u0005\f\u0007\u0002MY\u0005\u000e\b\u0002N",
+    "Y\u0005\u0010\t\u0002OY\u0005\u0012\n\u0002PY\u0005\u0014\u000b\u0002",
+    "QY\u0005\u0016\f\u0002RY\u0005\u0018\r\u0002SY\u0005\u001a\u000e\u0002",
+    "TV\u0005\u0004\u0003\u0002UW\u0005\u0006\u0004\u0002VU\u0003\u0002\u0002",
+    "\u0002VW\u0003\u0002\u0002\u0002WY\u0003\u0002\u0002\u0002XK\u0003\u0002",
+    "\u0002\u0002XL\u0003\u0002\u0002\u0002XM\u0003\u0002\u0002\u0002XN\u0003",
+    "\u0002\u0002\u0002XO\u0003\u0002\u0002\u0002XP\u0003\u0002\u0002\u0002",
+    "XQ\u0003\u0002\u0002\u0002XR\u0003\u0002\u0002\u0002XS\u0003\u0002\u0002",
+    "\u0002XT\u0003\u0002\u0002\u0002Y\u0007\u0003\u0002\u0002\u0002Z]\u0005",
+    ".\u0018\u0002[]\u0005,\u0017\u0002\\Z\u0003\u0002\u0002\u0002\\[\u0003",
+    "\u0002\u0002\u0002]\t\u0003\u0002\u0002\u0002^_\u0007\u0012\u0002\u0002",
+    "_`\u0005\b\u0005\u0002`\u000b\u0003\u0002\u0002\u0002ab\u0007;\u0002",
+    "\u0002bc\u0007\u0004\u0002\u0002cd\u0005\b\u0005\u0002d\r\u0003\u0002",
+    "\u0002\u0002ef\u0007\u0013\u0002\u0002fj\u0005$\u0013\u0002gh\u0007",
+    "\u0013\u0002\u0002hj\u0007\u0014\u0002\u0002ie\u0003\u0002\u0002\u0002",
+    "ig\u0003\u0002\u0002\u0002j\u000f\u0003\u0002\u0002\u0002kl\u0007\u0016",
+    "\u0002\u0002lm\u0007;\u0002\u0002mn\u0007\u0005\u0002\u0002no\u0005",
+    "$\u0013\u0002o\u0011\u0003\u0002\u0002\u0002pu\u0007\u0015\u0002\u0002",
+    "qs\u0005$\u0013\u0002rt\u0007\u0006\u0002\u0002sr\u0003\u0002\u0002",
+    "\u0002st\u0003\u0002\u0002\u0002tv\u0003\u0002\u0002\u0002uq\u0003\u0002",
+    "\u0002\u0002vw\u0003\u0002\u0002\u0002wu\u0003\u0002\u0002\u0002wx\u0003",
+    "\u0002\u0002\u0002x\u0013\u0003\u0002\u0002\u0002yz\t\u0002\u0002\u0002",
+    "z{\u0007\u0005\u0002\u0002{\u007f\u0005.\u0018\u0002|}\t\u0003\u0002",
+    "\u0002}\u007f\t\u0004\u0002\u0002~y\u0003\u0002\u0002\u0002~|\u0003",
+    "\u0002\u0002\u0002\u007f\u0015\u0003\u0002\u0002\u0002\u0080\u0081\u0007",
+    "7\u0002\u0002\u0081\u0082\u0007\u0005\u0002\u0002\u0082\u008b\u0007",
+    "\u001f\u0002\u0002\u0083\u0084\u0007\u001e\u0002\u0002\u0084\u008b\u0007",
+    "7\u0002\u0002\u0085\u0086\u0007 \u0002\u0002\u0086\u0087\u0007\u0005",
+    "\u0002\u0002\u0087\u008b\u0007\u001f\u0002\u0002\u0088\u0089\u0007\u001e",
+    "\u0002\u0002\u0089\u008b\u0007 \u0002\u0002\u008a\u0080\u0003\u0002",
     "\u0002\u0002\u008a\u0083\u0003\u0002\u0002\u0002\u008a\u0085\u0003\u0002",
     "\u0002\u0002\u008a\u0088\u0003\u0002\u0002\u0002\u008b\u0017\u0003\u0002",
-    "\u0002\u0002\u008c\u008d\u0007\u0018\u0002\u0002\u008d\u008e\u0005\u001c",
+    "\u0002\u0002\u008c\u008d\u0007\u001a\u0002\u0002\u008d\u008e\u0005\u001c",
     "\u000f\u0002\u008e\u0019\u0003\u0002\u0002\u0002\u008f\u0092\t\u0005",
-    "\u0002\u0002\u0090\u0093\u00075\u0002\u0002\u0091\u0093\u0005\u001c",
+    "\u0002\u0002\u0090\u0093\u00077\u0002\u0002\u0091\u0093\u0005\u001c",
     "\u000f\u0002\u0092\u0090\u0003\u0002\u0002\u0002\u0092\u0091\u0003\u0002",
     "\u0002\u0002\u0093\u001b\u0003\u0002\u0002\u0002\u0094\u0098\u0005\u001e",
     "\u0010\u0002\u0095\u0098\u0005 \u0011\u0002\u0096\u0098\u0005\"\u0012",
     "\u0002\u0097\u0094\u0003\u0002\u0002\u0002\u0097\u0095\u0003\u0002\u0002",
     "\u0002\u0097\u0096\u0003\u0002\u0002\u0002\u0098\u001d\u0003\u0002\u0002",
-    "\u0002\u0099\u009a\u00079\u0002\u0002\u009a\u001f\u0003\u0002\u0002",
-    "\u0002\u009b\u009c\u0007\u0007\u0002\u0002\u009c\u009d\u00079\u0002",
+    "\u0002\u0099\u009a\u0007;\u0002\u0002\u009a\u001f\u0003\u0002\u0002",
+    "\u0002\u009b\u009c\u0007\u0007\u0002\u0002\u009c\u009d\u0007;\u0002",
     "\u0002\u009d\u009e\u0007\b\u0002\u0002\u009e!\u0003\u0002\u0002\u0002",
-    "\u009f\u00a0\u00079\u0002\u0002\u00a0\u00a1\u0007\u0006\u0002\u0002",
-    "\u00a1\u00a2\t\u0006\u0002\u0002\u00a2#\u0003\u0002\u0002\u0002\u00a3",
-    "\u00a6\u0005(\u0015\u0002\u00a4\u00a6\u0005&\u0014\u0002\u00a5\u00a3",
-    "\u0003\u0002\u0002\u0002\u00a5\u00a4\u0003\u0002\u0002\u0002\u00a6%",
-    "\u0003\u0002\u0002\u0002\u00a7\u00a8\u00079\u0002\u0002\u00a8\'\u0003",
-    "\u0002\u0002\u0002\u00a9\u00af\u0005,\u0017\u0002\u00aa\u00af\u0005",
-    ".\u0018\u0002\u00ab\u00af\u00050\u0019\u0002\u00ac\u00af\u00058\u001d",
-    "\u0002\u00ad\u00af\u0005*\u0016\u0002\u00ae\u00a9\u0003\u0002\u0002",
-    "\u0002\u00ae\u00aa\u0003\u0002\u0002\u0002\u00ae\u00ab\u0003\u0002\u0002",
-    "\u0002\u00ae\u00ac\u0003\u0002\u0002\u0002\u00ae\u00ad\u0003\u0002\u0002",
-    "\u0002\u00af)\u0003\u0002\u0002\u0002\u00b0\u00b1\t\u0007\u0002\u0002",
-    "\u00b1+\u0003\u0002\u0002\u0002\u00b2\u00b3\u0007\t\u0002\u0002\u00b3",
-    "-\u0003\u0002\u0002\u0002\u00b4\u00b5\u0007\u000b\u0002\u0002\u00b5",
-    "/\u0003\u0002\u0002\u0002\u00b6\u00b7\u0007\n\u0002\u0002\u00b71\u0003",
-    "\u0002\u0002\u0002\u00b8\u00b9\u0007\r\u0002\u0002\u00b93\u0003\u0002",
-    "\u0002\u0002\u00ba\u00bb\u0007\u000e\u0002\u0002\u00bb5\u0003\u0002",
-    "\u0002\u0002\u00bc\u00bd\u0007\u000f\u0002\u0002\u00bd7\u0003\u0002",
-    "\u0002\u0002\u00be\u00bf\u0007\f\u0002\u0002\u00bf9\u0003\u0002\u0002",
-    "\u0002\u0011;@DVX\\isw~\u008a\u0092\u0097\u00a5\u00ae"].join("");
+    "\u009f\u00a0\u0007;\u0002\u0002\u00a0\u00a1\u0007\t\u0002\u0002\u00a1",
+    "\u00a2\t\u0006\u0002\u0002\u00a2\u00a3\u0007\n\u0002\u0002\u00a3#\u0003",
+    "\u0002\u0002\u0002\u00a4\u00a7\u0005(\u0015\u0002\u00a5\u00a7\u0005",
+    "&\u0014\u0002\u00a6\u00a4\u0003\u0002\u0002\u0002\u00a6\u00a5\u0003",
+    "\u0002\u0002\u0002\u00a7%\u0003\u0002\u0002\u0002\u00a8\u00a9\u0007",
+    ";\u0002\u0002\u00a9\'\u0003\u0002\u0002\u0002\u00aa\u00b0\u0005,\u0017",
+    "\u0002\u00ab\u00b0\u0005.\u0018\u0002\u00ac\u00b0\u00050\u0019\u0002",
+    "\u00ad\u00b0\u00058\u001d\u0002\u00ae\u00b0\u0005*\u0016\u0002\u00af",
+    "\u00aa\u0003\u0002\u0002\u0002\u00af\u00ab\u0003\u0002\u0002\u0002\u00af",
+    "\u00ac\u0003\u0002\u0002\u0002\u00af\u00ad\u0003\u0002\u0002\u0002\u00af",
+    "\u00ae\u0003\u0002\u0002\u0002\u00b0)\u0003\u0002\u0002\u0002\u00b1",
+    "\u00b2\t\u0007\u0002\u0002\u00b2+\u0003\u0002\u0002\u0002\u00b3\u00b4",
+    "\u0007\u000b\u0002\u0002\u00b4-\u0003\u0002\u0002\u0002\u00b5\u00b6",
+    "\u0007\r\u0002\u0002\u00b6/\u0003\u0002\u0002\u0002\u00b7\u00b8\u0007",
+    "\f\u0002\u0002\u00b81\u0003\u0002\u0002\u0002\u00b9\u00ba\u0007\u000f",
+    "\u0002\u0002\u00ba3\u0003\u0002\u0002\u0002\u00bb\u00bc\u0007\u0010",
+    "\u0002\u0002\u00bc5\u0003\u0002\u0002\u0002\u00bd\u00be\u0007\u0011",
+    "\u0002\u0002\u00be7\u0003\u0002\u0002\u0002\u00bf\u00c0\u0007\u000e",
+    "\u0002\u0002\u00c09\u0003\u0002\u0002\u0002\u0011;@DVX\\isw~\u008a\u0092",
+    "\u0097\u00a6\u00af"].join("");
 
 
 const atn = new antlr4.atn.ATNDeserializer().deserialize(serializedATN);
@@ -129,10 +130,11 @@ const sharedContextCache = new antlr4.PredictionContextCache();
 export default class fassParser extends antlr4.Parser {
 
     static grammarFileName = "fass.g4";
-    static literalNames = [ null, "':'", "'at'", "'='", "','", "'('", "')'" ];
-    static symbolicNames = [ null, null, null, null, null, null, null, "HEXADECIMAL", 
-                             "BINARY", "DECIMAL", "NEGATIVE_NUMBER", "BRK", 
-                             "NOP", "NOP3", "ADDRESS_KWD", "FILLER_KWD", 
+    static literalNames = [ null, "':'", "'at'", "'='", "','", "'('", "')'", 
+                            "'['", "']'" ];
+    static symbolicNames = [ null, null, null, null, null, null, null, null, 
+                             null, "HEXADECIMAL", "BINARY", "DECIMAL", "NEGATIVE_NUMBER", 
+                             "BRK", "NOP", "NOP3", "ADDRESS_KWD", "FILLER_KWD", 
                              "DEFAULT_KWD", "DATA_KWD", "CONST_KWD", "IF_KWD", 
                              "THEN_KWD", "ELSE_KWD", "GOTO_KWD", "GOSUB_KWD", 
                              "RETURN_KWD", "RETINT_KWD", "PUSH_KWD", "PULL_KWD", 
@@ -179,7 +181,7 @@ export default class fassParser extends antlr4.Parser {
 	                this.state = 57;
 	                this._errHandler.sync(this);
 	                _la = this._input.LA(1);
-	                if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 36)) & ~0x1f) == 0 && ((1 << (_la - 36)) & ((1 << (fassParser.ROL_KWD - 36)) | (1 << (fassParser.ROR_KWD - 36)) | (1 << (fassParser.ASL_KWD - 36)) | (1 << (fassParser.LSR_KWD - 36)) | (1 << (fassParser.CARRY - 36)) | (1 << (fassParser.OVERFLOW - 36)) | (1 << (fassParser.INTERRUPT - 36)) | (1 << (fassParser.DECIMAL_MODE - 36)) | (1 << (fassParser.A - 36)) | (1 << (fassParser.IDENTIFIER - 36)))) !== 0)) {
+	                if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 38)) & ~0x1f) == 0 && ((1 << (_la - 38)) & ((1 << (fassParser.ROL_KWD - 38)) | (1 << (fassParser.ROR_KWD - 38)) | (1 << (fassParser.ASL_KWD - 38)) | (1 << (fassParser.LSR_KWD - 38)) | (1 << (fassParser.CARRY - 38)) | (1 << (fassParser.OVERFLOW - 38)) | (1 << (fassParser.INTERRUPT - 38)) | (1 << (fassParser.DECIMAL_MODE - 38)) | (1 << (fassParser.A - 38)) | (1 << (fassParser.IDENTIFIER - 38)))) !== 0)) {
 	                    this.state = 56;
 	                    this.statement();
 	                }
@@ -195,7 +197,7 @@ export default class fassParser extends antlr4.Parser {
 	        this.state = 66;
 	        this._errHandler.sync(this);
 	        _la = this._input.LA(1);
-	        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 36)) & ~0x1f) == 0 && ((1 << (_la - 36)) & ((1 << (fassParser.ROL_KWD - 36)) | (1 << (fassParser.ROR_KWD - 36)) | (1 << (fassParser.ASL_KWD - 36)) | (1 << (fassParser.LSR_KWD - 36)) | (1 << (fassParser.CARRY - 36)) | (1 << (fassParser.OVERFLOW - 36)) | (1 << (fassParser.INTERRUPT - 36)) | (1 << (fassParser.DECIMAL_MODE - 36)) | (1 << (fassParser.A - 36)) | (1 << (fassParser.IDENTIFIER - 36)))) !== 0)) {
+	        if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 38)) & ~0x1f) == 0 && ((1 << (_la - 38)) & ((1 << (fassParser.ROL_KWD - 38)) | (1 << (fassParser.ROR_KWD - 38)) | (1 << (fassParser.ASL_KWD - 38)) | (1 << (fassParser.LSR_KWD - 38)) | (1 << (fassParser.CARRY - 38)) | (1 << (fassParser.OVERFLOW - 38)) | (1 << (fassParser.INTERRUPT - 38)) | (1 << (fassParser.DECIMAL_MODE - 38)) | (1 << (fassParser.A - 38)) | (1 << (fassParser.IDENTIFIER - 38)))) !== 0)) {
 	            this.state = 65;
 	            this.statement();
 	        }
@@ -313,7 +315,7 @@ export default class fassParser extends antlr4.Parser {
 	            this.state = 84;
 	            this._errHandler.sync(this);
 	            _la = this._input.LA(1);
-	            if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 36)) & ~0x1f) == 0 && ((1 << (_la - 36)) & ((1 << (fassParser.ROL_KWD - 36)) | (1 << (fassParser.ROR_KWD - 36)) | (1 << (fassParser.ASL_KWD - 36)) | (1 << (fassParser.LSR_KWD - 36)) | (1 << (fassParser.CARRY - 36)) | (1 << (fassParser.OVERFLOW - 36)) | (1 << (fassParser.INTERRUPT - 36)) | (1 << (fassParser.DECIMAL_MODE - 36)) | (1 << (fassParser.A - 36)) | (1 << (fassParser.IDENTIFIER - 36)))) !== 0)) {
+	            if((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.ADDRESS_KWD) | (1 << fassParser.FILLER_KWD) | (1 << fassParser.DATA_KWD) | (1 << fassParser.CONST_KWD) | (1 << fassParser.GOTO_KWD) | (1 << fassParser.PUSH_KWD) | (1 << fassParser.FLAGS_KWD))) !== 0) || ((((_la - 38)) & ~0x1f) == 0 && ((1 << (_la - 38)) & ((1 << (fassParser.ROL_KWD - 38)) | (1 << (fassParser.ROR_KWD - 38)) | (1 << (fassParser.ASL_KWD - 38)) | (1 << (fassParser.LSR_KWD - 38)) | (1 << (fassParser.CARRY - 38)) | (1 << (fassParser.OVERFLOW - 38)) | (1 << (fassParser.INTERRUPT - 38)) | (1 << (fassParser.DECIMAL_MODE - 38)) | (1 << (fassParser.A - 38)) | (1 << (fassParser.IDENTIFIER - 38)))) !== 0)) {
 	                this.state = 83;
 	                this.statement();
 	            }
@@ -698,7 +700,7 @@ export default class fassParser extends antlr4.Parser {
 	        this.enterOuterAlt(localctx, 1);
 	        this.state = 141;
 	        _la = this._input.LA(1);
-	        if(!(((((_la - 36)) & ~0x1f) == 0 && ((1 << (_la - 36)) & ((1 << (fassParser.ROL_KWD - 36)) | (1 << (fassParser.ROR_KWD - 36)) | (1 << (fassParser.ASL_KWD - 36)) | (1 << (fassParser.LSR_KWD - 36)))) !== 0))) {
+	        if(!(((((_la - 38)) & ~0x1f) == 0 && ((1 << (_la - 38)) & ((1 << (fassParser.ROL_KWD - 38)) | (1 << (fassParser.ROR_KWD - 38)) | (1 << (fassParser.ASL_KWD - 38)) | (1 << (fassParser.LSR_KWD - 38)))) !== 0))) {
 	        this._errHandler.recoverInline(this);
 	        }
 	        else {
@@ -838,7 +840,7 @@ export default class fassParser extends antlr4.Parser {
 	        this.state = 157;
 	        this.match(fassParser.IDENTIFIER);
 	        this.state = 158;
-	        this.match(fassParser.T__3);
+	        this.match(fassParser.T__6);
 	        this.state = 159;
 	        _la = this._input.LA(1);
 	        if(!(_la===fassParser.X || _la===fassParser.Y)) {
@@ -848,6 +850,8 @@ export default class fassParser extends antlr4.Parser {
 	        	this._errHandler.reportMatch(this);
 	            this.consume();
 	        }
+	        this.state = 160;
+	        this.match(fassParser.T__7);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
 		        localctx.exception = re;
@@ -868,7 +872,7 @@ export default class fassParser extends antlr4.Parser {
 	    let localctx = new ValueContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 34, fassParser.RULE_value);
 	    try {
-	        this.state = 163;
+	        this.state = 164;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case fassParser.HEXADECIMAL:
@@ -879,12 +883,12 @@ export default class fassParser extends antlr4.Parser {
 	        case fassParser.NOP:
 	        case fassParser.NOP3:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 161;
+	            this.state = 162;
 	            this.literal();
 	            break;
 	        case fassParser.IDENTIFIER:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 162;
+	            this.state = 163;
 	            this.constant();
 	            break;
 	        default:
@@ -911,7 +915,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 36, fassParser.RULE_constant);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 165;
+	        this.state = 166;
 	        this.match(fassParser.IDENTIFIER);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -933,34 +937,34 @@ export default class fassParser extends antlr4.Parser {
 	    let localctx = new LiteralContext(this, this._ctx, this.state);
 	    this.enterRule(localctx, 38, fassParser.RULE_literal);
 	    try {
-	        this.state = 172;
+	        this.state = 173;
 	        this._errHandler.sync(this);
 	        switch(this._input.LA(1)) {
 	        case fassParser.HEXADECIMAL:
 	            this.enterOuterAlt(localctx, 1);
-	            this.state = 167;
+	            this.state = 168;
 	            this.hexadecimal();
 	            break;
 	        case fassParser.DECIMAL:
 	            this.enterOuterAlt(localctx, 2);
-	            this.state = 168;
+	            this.state = 169;
 	            this.decimal();
 	            break;
 	        case fassParser.BINARY:
 	            this.enterOuterAlt(localctx, 3);
-	            this.state = 169;
+	            this.state = 170;
 	            this.binary();
 	            break;
 	        case fassParser.NEGATIVE_NUMBER:
 	            this.enterOuterAlt(localctx, 4);
-	            this.state = 170;
+	            this.state = 171;
 	            this.negative_number();
 	            break;
 	        case fassParser.BRK:
 	        case fassParser.NOP:
 	        case fassParser.NOP3:
 	            this.enterOuterAlt(localctx, 5);
-	            this.state = 171;
+	            this.state = 172;
 	            this.opcode_literal();
 	            break;
 	        default:
@@ -988,7 +992,7 @@ export default class fassParser extends antlr4.Parser {
 	    var _la = 0; // Token type
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 174;
+	        this.state = 175;
 	        _la = this._input.LA(1);
 	        if(!((((_la) & ~0x1f) == 0 && ((1 << _la) & ((1 << fassParser.BRK) | (1 << fassParser.NOP) | (1 << fassParser.NOP3))) !== 0))) {
 	        this._errHandler.recoverInline(this);
@@ -1018,7 +1022,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 42, fassParser.RULE_hexadecimal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 176;
+	        this.state = 177;
 	        this.match(fassParser.HEXADECIMAL);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1041,7 +1045,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 44, fassParser.RULE_decimal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 178;
+	        this.state = 179;
 	        this.match(fassParser.DECIMAL);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1064,7 +1068,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 46, fassParser.RULE_binary);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 180;
+	        this.state = 181;
 	        this.match(fassParser.BINARY);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1087,7 +1091,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 48, fassParser.RULE_brk_literal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 182;
+	        this.state = 183;
 	        this.match(fassParser.BRK);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1110,7 +1114,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 50, fassParser.RULE_nop_literal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 184;
+	        this.state = 185;
 	        this.match(fassParser.NOP);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1133,7 +1137,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 52, fassParser.RULE_nop3_literal);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 186;
+	        this.state = 187;
 	        this.match(fassParser.NOP3);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1156,7 +1160,7 @@ export default class fassParser extends antlr4.Parser {
 	    this.enterRule(localctx, 54, fassParser.RULE_negative_number);
 	    try {
 	        this.enterOuterAlt(localctx, 1);
-	        this.state = 188;
+	        this.state = 189;
 	        this.match(fassParser.NEGATIVE_NUMBER);
 	    } catch (re) {
 	    	if(re instanceof antlr4.error.RecognitionException) {
@@ -1182,57 +1186,59 @@ fassParser.T__2 = 3;
 fassParser.T__3 = 4;
 fassParser.T__4 = 5;
 fassParser.T__5 = 6;
-fassParser.HEXADECIMAL = 7;
-fassParser.BINARY = 8;
-fassParser.DECIMAL = 9;
-fassParser.NEGATIVE_NUMBER = 10;
-fassParser.BRK = 11;
-fassParser.NOP = 12;
-fassParser.NOP3 = 13;
-fassParser.ADDRESS_KWD = 14;
-fassParser.FILLER_KWD = 15;
-fassParser.DEFAULT_KWD = 16;
-fassParser.DATA_KWD = 17;
-fassParser.CONST_KWD = 18;
-fassParser.IF_KWD = 19;
-fassParser.THEN_KWD = 20;
-fassParser.ELSE_KWD = 21;
-fassParser.GOTO_KWD = 22;
-fassParser.GOSUB_KWD = 23;
-fassParser.RETURN_KWD = 24;
-fassParser.RETINT_KWD = 25;
-fassParser.PUSH_KWD = 26;
-fassParser.PULL_KWD = 27;
-fassParser.FLAGS_KWD = 28;
-fassParser.AND_KWD = 29;
-fassParser.OR_KWD = 30;
-fassParser.XOR_KWD = 31;
-fassParser.BITTEST_KWD = 32;
-fassParser.COMPARE_KWD = 33;
-fassParser.ROTATE_KWD = 34;
-fassParser.SHIFT_KWD = 35;
-fassParser.ROL_KWD = 36;
-fassParser.ROR_KWD = 37;
-fassParser.ASL_KWD = 38;
-fassParser.LSR_KWD = 39;
-fassParser.CARRY = 40;
-fassParser.OVERFLOW = 41;
-fassParser.INTERRUPT = 42;
-fassParser.DECIMAL_MODE = 43;
-fassParser.NOT = 44;
-fassParser.ZERO = 45;
-fassParser.POSITIVE = 46;
-fassParser.NEGATIVE = 47;
-fassParser.EQUAL = 48;
-fassParser.ON = 49;
-fassParser.OFF = 50;
-fassParser.A = 51;
-fassParser.X = 52;
-fassParser.Y = 53;
-fassParser.STACK = 54;
-fassParser.IDENTIFIER = 55;
-fassParser.WHITESPACE = 56;
-fassParser.EOL = 57;
+fassParser.T__6 = 7;
+fassParser.T__7 = 8;
+fassParser.HEXADECIMAL = 9;
+fassParser.BINARY = 10;
+fassParser.DECIMAL = 11;
+fassParser.NEGATIVE_NUMBER = 12;
+fassParser.BRK = 13;
+fassParser.NOP = 14;
+fassParser.NOP3 = 15;
+fassParser.ADDRESS_KWD = 16;
+fassParser.FILLER_KWD = 17;
+fassParser.DEFAULT_KWD = 18;
+fassParser.DATA_KWD = 19;
+fassParser.CONST_KWD = 20;
+fassParser.IF_KWD = 21;
+fassParser.THEN_KWD = 22;
+fassParser.ELSE_KWD = 23;
+fassParser.GOTO_KWD = 24;
+fassParser.GOSUB_KWD = 25;
+fassParser.RETURN_KWD = 26;
+fassParser.RETINT_KWD = 27;
+fassParser.PUSH_KWD = 28;
+fassParser.PULL_KWD = 29;
+fassParser.FLAGS_KWD = 30;
+fassParser.AND_KWD = 31;
+fassParser.OR_KWD = 32;
+fassParser.XOR_KWD = 33;
+fassParser.BITTEST_KWD = 34;
+fassParser.COMPARE_KWD = 35;
+fassParser.ROTATE_KWD = 36;
+fassParser.SHIFT_KWD = 37;
+fassParser.ROL_KWD = 38;
+fassParser.ROR_KWD = 39;
+fassParser.ASL_KWD = 40;
+fassParser.LSR_KWD = 41;
+fassParser.CARRY = 42;
+fassParser.OVERFLOW = 43;
+fassParser.INTERRUPT = 44;
+fassParser.DECIMAL_MODE = 45;
+fassParser.NOT = 46;
+fassParser.ZERO = 47;
+fassParser.POSITIVE = 48;
+fassParser.NEGATIVE = 49;
+fassParser.EQUAL = 50;
+fassParser.ON = 51;
+fassParser.OFF = 52;
+fassParser.A = 53;
+fassParser.X = 54;
+fassParser.Y = 55;
+fassParser.STACK = 56;
+fassParser.IDENTIFIER = 57;
+fassParser.WHITESPACE = 58;
+fassParser.EOL = 59;
 
 fassParser.RULE_program = 0;
 fassParser.RULE_label = 1;

@@ -1,7 +1,7 @@
-import FassBaseListener from "./fassBaseListener.js";
+import FassBaseListener from "./fassBaseListener.js.js";
 import { opcodes as op } from "./opcodes.js";
 import { FassError } from "./error.js";
-import FassParser from "./fassParser.js";
+import FassParser from "./fassParser.js.js";
 
 const NOP = 0xea;
 const NOP3 = 4;

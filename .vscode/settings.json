@@ -1,9 +1,5 @@
 {
 	"editor.formatOnSave": true,
-	"editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
-	"eslint.codeActionsOnSave.mode": "problems",
-	"eslint.alwaysShowStatus": true,
-	"eslint.run": "onSave",
 	"editor.insertSpaces": false,
 	"files.exclude": {
 		"**/.git": true,

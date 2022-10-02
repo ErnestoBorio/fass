@@ -3,5 +3,8 @@
 *.interp
 .antlr
 .java_files
-antlr_files
+.antlr_files
+.dart_tool/
+.packages
+build/
 program.fass

@@ -2,6 +2,12 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Fass",
+			"type": "dart",
+			"request": "launch",
+			"program": "src/main.dart",
+		},
+		{
 			"type": "antlr-debug",
 			"request": "launch",
 			"name": "Debug Current Grammar",
@@ -9,35 +15,5 @@
 			"input": "program.fass",
 			"visualParseTree": true
 		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "Fass",
-			"internalConsoleOptions": "openOnSessionStart",
-			"skipFiles": ["<node_internals>/**"],
-			"program": "${workspaceFolder}/src/fassRun.js",
-			"args": ["${workspaceFolder}/program.fass"]
-		},
-		{
-			"name": "Run file",
-			"type": "node",
-			"request": "launch",
-			"program": "${file}"
-		},
-		{
-			"type": "node",
-			"request": "launch",
-			"name": "npm start",
-			"skipFiles": ["<node_internals>/**"],
-			"program": "npm run start",
-			"args": ["<", "${workspaceFolder}/program.fass"]
-		},
-		{
-			"name": "Test",
-			"type": "node-terminal",
-			"request": "launch",
-			"command": "jest",
-			"env": { "NODE_OPTIONS": "--experimental-vm-modules" }
-		}
 	]
 }

@@ -18,7 +18,6 @@ statement:
 	| stack_stmt
 	| goto_stmt
 	| bit_shift_stmt
-	// | if_then_stmt
 	| label statement?;
 
 // single_stmt: data_stmt | flag_set_stmt | stack_stmt;

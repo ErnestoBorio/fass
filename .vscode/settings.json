@@ -1,14 +1,11 @@
 {
-	"editor.formatOnSave": true,
-	"editor.insertSpaces": false,
 	"files.exclude": {
 		"**/.git": true,
 		"**/.DS_Store": true,
 		"node_modules": true
-		// "antlr_files": true
-		// "src/.antlr": true
 	},
 	"[antlr]": {
 		"editor.defaultFormatter": "mike-lischke.vscode-antlr4"
-	}
+	},
+	"editor.formatOnSave": true,
 }

@@ -1,13 +1,13 @@
 # Implemented
 
-~~address_stmt~~  
-~~label~~
-~~remote_label_stmt~~  
-~~filler_stmt~~  
-~~const_stmt~~  
-~~data_stmt~~  
-~~flag_set_stmt~~  
-~~stack_stmt~~  
+~~address_stmt~~
+label
+remote_label_stmt  
+filler_stmt  
+const_stmt  
+data_stmt  
+flag_set_stmt  
+stack_stmt  
 goto_stmt  
 bit_shift_stmt  
 logic_stmt  
@@ -24,6 +24,11 @@ arithmetic_stmt
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
 
 ---
+
+## 2022-10-1
+
+Well, I forked a try to use visitors and the Dart language, let's see how this goes.
+Update: both seem like a very good idea.
 
 ## 2022-8-20
 

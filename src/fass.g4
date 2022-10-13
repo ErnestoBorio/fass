@@ -66,15 +66,15 @@ indexed: IDENTIFIER '[' (X | Y) ']';
 
 // --> Values
 
-value: literal | constant;
-constant: IDENTIFIER;
-literal:
+value:
 	hexadecimal
 	| decimal
 	| binary
 	| negative_number
-	| opcode_literal;
+	| opcode_literal
+	| constant;
 
+constant: IDENTIFIER;
 opcode_literal: BRK | NOP | NOP3;
 hexadecimal: HEXADECIMAL;
 decimal: DECIMAL;

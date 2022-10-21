@@ -1,0 +1,172 @@
+const LDA_IMM = 0xa9;
+const LDA_ZP = 0xa5;
+const LDA_ZPX = 0xb5;
+const LDA_ABS = 0xad;
+const LDA_ABSX = 0xbd;
+const LDA_ABSY = 0xb9;
+const LDA_INDX = 0xa1;
+const LDA_INDY = 0xb1;
+
+const LDX_IMM = 0xa2;
+const LDX_ZP = 0xa6;
+const LDX_ZPY = 0xb6;
+const LDX_ABS = 0xae;
+const LDX_ABSY = 0xbe;
+
+const LDY_IMM = 0xa0;
+const LDY_ZP = 0xa4;
+const LDY_ZPX = 0xb4;
+const LDY_ABS = 0xac;
+const LDY_ABSX = 0xbc;
+
+const STA_ZP = 0x85;
+const STA_ZPX = 0x95;
+const STA_ABS = 0x8d;
+const STA_ABSX = 0x9d;
+const STA_ABSY = 0x99;
+const STA_INDX = 0x81;
+const STA_INDY = 0x91;
+
+const STX_ZP = 0x86;
+const STX_ZPY = 0x96;
+const STX_ABS = 0x8e;
+
+const STY_ZP = 0x84;
+const STY_ZPX = 0x94;
+const STY_ABS = 0x8c;
+
+const ADC_IMM = 0x69;
+const ADC_ZP = 0x65;
+const ADC_ZPX = 0x75;
+const ADC_ABS = 0x6d;
+const ADC_ABSX = 0x7d;
+const ADC_ABSY = 0x79;
+const ADC_INDX = 0x61;
+const ADC_INDY = 0x71;
+
+const SBC_IMM = 0xe9;
+const SBC_ZP = 0xe5;
+const SBC_ZPX = 0xf5;
+const SBC_ABS = 0xed;
+const SBC_ABSX = 0xfd;
+const SBC_ABSY = 0xf9;
+const SBC_INDX = 0xe1;
+const SBC_INDY = 0xf1;
+
+const INC_ZP = 0xe6;
+const INC_ZPX = 0xf6;
+const INC_ABS = 0xee;
+const INC_ABSX = 0xfe;
+
+const DEC_ZP = 0xc6;
+const DEC_ZPX = 0xd6;
+const DEC_ABS = 0xce;
+const DEC_ABSX = 0xde;
+
+const JMP_ABS = 0x4c;
+const JMP_IND = 0x6c;
+const JSR_ABS = 0x20;
+
+const RTS = 0x60;
+const RTI = 0x40;
+const TAX = 0xaa;
+const TXA = 0x8a;
+const TAY = 0xa8;
+const TYA = 0x98;
+const TSX = 0xba;
+const TXS = 0x9a;
+const INX = 0xe8;
+const INY = 0xc8;
+const DEX = 0xca;
+const DEY = 0x88;
+const CLV = 0xb8;
+const CLC = 0x18;
+const SEC = 0x38;
+const CLI = 0x58;
+const SEI = 0x78;
+const CLD = 0xd8;
+const SED = 0xf8;
+const NOP = 0xea;
+const NOP3 = 0x04;
+const BRK = 0x00;
+const PHA = 0x48;
+const PLA = 0x68;
+const PHP = 0x08;
+const PLP = 0x28;
+
+const BPL = 0x10;
+const BMI = 0x30;
+const BVC = 0x50;
+const BVS = 0x70;
+const BCC = 0x90;
+const BCS = 0xB0;
+const BNE = 0xD0;
+const BEQ = 0xF0;
+
+const ASL_ACC = 0x0a;
+const ASL_ZP = 0x06;
+const ASL_ZPX = 0x16;
+const ASL_ABS = 0x0e;
+const ASL_ABSX = 0x1e;
+
+const LSR_ACC = 0x4a;
+const LSR_ZP = 0x46;
+const LSR_ZPX = 0x56;
+const LSR_ABS = 0x4e;
+const LSR_ABSX = 0x5e;
+
+const ROL_ACC = 0x2a;
+const ROL_ZP = 0x26;
+const ROL_ZPX = 0x36;
+const ROL_ABS = 0x2e;
+const ROL_ABSX = 0x3e;
+
+const ROR_ACC = 0x6a;
+const ROR_ZP = 0x66;
+const ROR_ZPX = 0x76;
+const ROR_ABS = 0x6e;
+const ROR_ABSX = 0x7e;
+/*
+AND: {
+IMM: 0x29,
+ZP: 0x25,
+ZPX: 0x35,
+ABS: 0x2d,
+ABSX: 0x3d,
+ABSY: 0x39,
+INDX: 0x21,
+INDY: 0x31
+},
+ORA: {
+IMM: 0x09,
+ZP: 0x05,
+ZPX: 0x15,
+ABS: 0x0d,
+ABSX: 0x1d,
+ABSY: 0x19,
+INDX: 0x01,
+INDY: 0x11
+},
+EOR: {
+IMM: 0x49,
+ZP: 0x45,
+ZPX: 0x55,
+ABS: 0x4d,
+ABSX: 0x5d,
+ABSY: 0x59,
+INDX: 0x41,
+INDY: 0x51
+},
+CMP: {
+IMM: 0xc9,
+ZP: 0xc5,
+ZPX: 0xd5,
+ABS: 0xcd,
+ABSX: 0xdd,
+ABSY: 0xd9,
+INDX: 0xc1,
+INDY: 0xd1
+},
+BIT: { ZP: 0x24, ABS: 0x2c }
+};
+*/

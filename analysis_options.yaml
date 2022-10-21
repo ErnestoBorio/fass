@@ -13,23 +13,23 @@
 
 include: package:lints/recommended.yaml
 
-# Uncomment the following section to specify additional rules.
-
 linter:
   rules:
-    - camel_case_types: true
-    - filenames: false
-    - 
-
+    file_names: false
+    annotate_overrides: false
+    constant_identifier_names: false
+    non_constant_identifier_names: false
 
 analyzer:
+  errors:
+    todo: ignore
   exclude:
     - antlr_files
-    - src/fassBaseVisitor.dart
-    - src/fassAbstractVisitor.dart
     - src/fassLexer.dart
     - src/fassParser.dart
     - src/fassVisitor.dart
+    - src/fassBaseVisitor.dart
+    - src/fassAbstractVisitor.dart
 
 # For more information about the core and recommended set of lints, see
 # https://dart.dev/go/core-lints

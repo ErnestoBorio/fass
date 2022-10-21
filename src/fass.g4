@@ -1,9 +1,7 @@
 grammar fass;
 
-program:
-	(statement? EOL)* // optional statements ending in newlines
-	statement? // optional last line with no newline
-	EOF;
+program: line* statement? EOF;
+line: statement? EOL;
 
 label: IDENTIFIER ':';
 
@@ -18,9 +16,8 @@ statement:
 	| stack_stmt
 	| goto_stmt
 	| bit_shift_stmt
+	| if_stmt
 	| label statement?;
-
-// single_stmt: data_stmt | flag_set_stmt | stack_stmt;
 
 address: decimal | hexadecimal;
 
@@ -33,10 +30,6 @@ filler_stmt: FILLER_KWD value | FILLER_KWD DEFAULT_KWD;
 const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 
 data_stmt: DATA_KWD ( datas += value ','?)+;
-
-// if_then_stmt: IF_KWD condition THEN_KWD single_stmt (ELSE_KWD single_stmt)?;
-
-// condition: ZERO | NOT ZERO | POSITIVE | NEGATIVE | CARRY | NOT CARRY | OVERFLOW | NOT OVERFLOW;
 
 flag_set_stmt:
 	(CARRY | OVERFLOW) '=' one_zero = decimal
@@ -55,8 +48,17 @@ bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
 		| reference
 	);
 
-// --> References
+if_stmt: if_part then_part else_part? END_KWD;
+if_part: IF_KWD condition EOL;
+then_part: line+;
+else_part: ELSE_KWD EOL line+;
 
+condition:
+	NOT? (CARRY | OVERFLOW | EQUAL | ZERO)
+	| POSITIVE
+	| NEGATIVE;
+
+// --> References
 reference: direct | indirect | indexed;
 //| indirect_y | x_indirect
 
@@ -102,6 +104,7 @@ CONST_KWD: [cC][oO][nN][sS][tT];
 IF_KWD: [iI][fF];
 THEN_KWD: [tT][hH][eE][nN];
 ELSE_KWD: [eE][lL][sS][eE];
+END_KWD: [eE][nN][dD];
 GOTO_KWD: [gG][oO][tT][oO];
 GOSUB_KWD: [gG][oO][sS][uU][bB];
 RETURN_KWD: [rR][eE][tT][uU][rR][nN];

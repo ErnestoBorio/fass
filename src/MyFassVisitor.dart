@@ -24,6 +24,8 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
   int address = 0;
   final content = <int>[];
   final labels = <String, int>{};
+  static const defaultFiller = NOP;
+  int filler = defaultFiller;
 
   int output(List<int> data) {
     content.addAll(data);
@@ -31,8 +33,16 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
     return data.length;
   }
 
-  setOutput(int address, int output) {
+  void setOutput(int address, int output) {
     content[address] = output;
+  }
+
+  void setLabel(String name, int address, ParserRuleContext ctx) {
+    name = name.toLowerCase();
+    if (labels.containsKey(name)) {
+      throw FassError("Label `$name` has already been defined", ctx);
+    }
+    labels.addAll({name: address});
   }
 
   void visitAddress_stmt(Address_stmtContext ctx) {
@@ -174,12 +184,12 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
     setLabel(ctx.IDENTIFIER()!.text!, address, ctx);
   }
 
-  setLabel(String name, int address, ParserRuleContext ctx) {
-    name = name.toLowerCase();
-    if (labels.containsKey(name)) {
-      throw FassError("Label `$name` has already been defined", ctx);
+  void visitFiller_stmt(Filler_stmtContext ctx) {
+    if (ctx.DEFAULT_KWD() != null) {
+      filler = defaultFiller;
+    } else {
+      filler = visitValue(ctx.value()!)[0];
     }
-    labels.addAll({name: address});
   }
 }
 

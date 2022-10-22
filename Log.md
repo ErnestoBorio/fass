@@ -2,7 +2,7 @@
 
 ~~address_stmt~~
 ~~label~~
-remote_label_stmt  
+~~remote_label_stmt~~  
 filler_stmt  
 const_stmt  
 ~~data_stmt~~  

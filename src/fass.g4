@@ -25,7 +25,7 @@ address_stmt: ADDRESS_KWD address;
 
 remote_label_stmt: IDENTIFIER 'at' address;
 
-filler_stmt: FILLER_KWD value | FILLER_KWD DEFAULT_KWD;
+filler_stmt: FILLER_KWD (value | DEFAULT_KWD);
 
 const_stmt: CONST_KWD const_name = IDENTIFIER '=' value;
 

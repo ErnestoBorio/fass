@@ -16,4 +16,8 @@ void main() {
   test("Remote label", () {
     expect(compile("soTo at \$FAFE").labels["soto"], 0xFAFE);
   });
+
+  test("Filler", () {
+    expect(compile("filler default \n filler \$BA").filler, 0xBA);
+  });
 }

@@ -172,6 +172,15 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
       setOutput(jumpAddress + 1, lowHigh[1]);
     }
   }
+
+  void visitLabel(LabelContext ctx) {
+    final name = ctx.IDENTIFIER()!.text!.toLowerCase();
+    if (labels.containsKey(name)) {
+      throw FassError(
+          "Label `${ctx.IDENTIFIER()!.text!}` has already been defined", ctx);
+    }
+    labels.addAll({name: address});
+  }
 }
 
 List<int> littleEndianize(int value) => [

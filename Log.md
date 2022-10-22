@@ -1,7 +1,7 @@
 # Implemented
 
 ~~address_stmt~~
-label
+~~label~~
 remote_label_stmt  
 filler_stmt  
 const_stmt  
@@ -21,6 +21,7 @@ arithmetic_stmt
 # To do
 
 - Add testing on commit.
+- Add tests for `if else`, `data`
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
 
 ---

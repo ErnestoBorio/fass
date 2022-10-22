@@ -36,25 +36,17 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
   }
 
   void visitAddress_stmt(Address_stmtContext ctx) {
-    var address = visitAddress(ctx.address()!);
-    if (address is String) {
-      throw FassError("Invalid address: $address", ctx.address()!);
-    } else if (address is int) {
-      this.address = address;
-    } else {
-      throw UnexpectedError("Address_stmt");
-    }
+    address = visitAddress(ctx.address()!);
   }
 
-  Object visitAddress(AddressContext ctx) {
+  int visitAddress(AddressContext ctx) {
     String address = ctx.text;
     if (ctx.decimal() != null) {
       return int.parse(address);
     } else if (ctx.hexadecimal() != null) {
       return int.parse(address.substring(1), radix: 16);
     }
-    // Else return the text of the address that couldn't be parsed
-    return address;
+    throw FassError("Invalid address: $address", ctx);
   }
 
   void visitData_stmt(Data_stmtContext ctx) {
@@ -174,10 +166,18 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
   }
 
   void visitLabel(LabelContext ctx) {
-    final name = ctx.IDENTIFIER()!.text!.toLowerCase();
+    setLabel(ctx.IDENTIFIER()!.text!, address, ctx);
+  }
+
+  void visitRemote_label_stmt(Remote_label_stmtContext ctx) {
+    final address = visitAddress(ctx.address()!);
+    setLabel(ctx.IDENTIFIER()!.text!, address, ctx);
+  }
+
+  setLabel(String name, int address, ParserRuleContext ctx) {
+    name = name.toLowerCase();
     if (labels.containsKey(name)) {
-      throw FassError(
-          "Label `${ctx.IDENTIFIER()!.text!}` has already been defined", ctx);
+      throw FassError("Label `$name` has already been defined", ctx);
     }
     labels.addAll({name: address});
   }

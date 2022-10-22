@@ -12,4 +12,8 @@ void main() {
     expect(compile("address 99 \n aLabel:").labels["alabel"], 99);
     expect(compile("soto: address 55").labels["soto"], 0);
   });
+
+  test("Remote label", () {
+    expect(compile("soTo at \$FAFE").labels["soto"], 0xFAFE);
+  });
 }

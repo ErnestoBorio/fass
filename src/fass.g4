@@ -32,7 +32,7 @@ const_stmt: CONST_KWD IDENTIFIER '=' value;
 data_stmt: DATA_KWD ( datas += value ','?)+;
 
 flag_set_stmt:
-	(CARRY | OVERFLOW) '=' one_zero = decimal
+	(CARRY | OVERFLOW) '=' decimal
 	| (INTERRUPT | DECIMAL_MODE) (ON | OFF);
 
 stack_stmt:

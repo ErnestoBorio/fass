@@ -214,6 +214,28 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
       throw FassError(err.toString(), ctx);
     }
   }
+
+  void visitFlag_set_stmt(Flag_set_stmtContext ctx) {
+    if (ctx.CARRY() != null) {
+      if (ctx.decimal()!.text == "0") {
+        output([CLC]);
+      } else if (ctx.decimal()!.text == "1") {
+        output([SEC]);
+      } else {
+        throw FassError("carry can only be set to 0 or 1", ctx);
+      }
+    } else if (ctx.OVERFLOW() != null) {
+      if (ctx.decimal()!.text == "0") {
+        output([CLV]);
+      } else {
+        throw FassError("overflow can only be set to 0", ctx);
+      }
+    } else if (ctx.INTERRUPT() != null) {
+      output([ctx.ON() != null ? CLI : SEI]);
+    } else if (ctx.DECIMAL_MODE() != null) {
+      output([ctx.ON() != null ? SED : CLD]);
+    }
+  }
 }
 
 List<int> littleEndianize(int value) => [

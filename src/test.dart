@@ -1,5 +1,6 @@
 import "package:test/test.dart";
 import "fass.dart";
+import 'opcodes.dart';
 
 void main() {
   test("Address", () {
@@ -23,5 +24,11 @@ void main() {
 
   test("Const", () {
     expect(compile("const tango = 215").constants["tango"], 215);
+  });
+
+  test("Flags set & reset", () {
+    const code = "carry = 0 \n carry = 1 \n overflow = 0 \n"
+        "interrupt on \n interrupt off \n decimal on \n decimal off";
+    expect(compile(code).content, [CLC, SEC, CLV, CLI, SEI, SED, CLD]);
   });
 }

@@ -6,7 +6,7 @@
 ~~filler_stmt~~  
 ~~data_stmt~~  
 ~~const_stmt~~  
-flag_set_stmt  
+~~flag_set_stmt~~  
 stack_stmt  
 goto_stmt  
 bit_shift_stmt  
@@ -53,8 +53,6 @@ In assembly you would check for these bits using `BVC`, `BVS`, `BPL` & `BMI`, mo
 To explicitly state that you aren't really checking for sign or overflow as the mnemonics suggest, you would use `if bit7 = 1`, etc.
 That way you explicitly state that you are checking for arbitrary bits.
 Of course the rest of the bits (0..5) don't have a corresponding CPU flag, so they must be tested with a more classical approach.
-
-- Edit: Hold on, haven't yet decided on how to implement BIT & CMP.
 
 ## 2022-4-6
 

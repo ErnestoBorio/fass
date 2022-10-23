@@ -24,6 +24,7 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
   int address = 0;
   final content = <int>[];
   final labels = <String, int>{};
+  final constants = <String, int>{};
   static const defaultFiller = NOP;
   int filler = defaultFiller;
 
@@ -37,12 +38,18 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
     content[address] = output;
   }
 
-  void setLabel(String name, int address, ParserRuleContext ctx) {
-    name = name.toLowerCase();
-    if (labels.containsKey(name)) {
-      throw FassError("Label `$name` has already been defined", ctx);
+  void setLabel(String name, int address) {
+    if (labels.containsKey(name.toLowerCase())) {
+      throw Exception("Label `$name` has already been defined");
     }
-    labels.addAll({name: address});
+    labels.addAll({name.toLowerCase(): address});
+  }
+
+  void setConst(String name, int value) {
+    if (constants.containsKey(name.toLowerCase())) {
+      throw Exception("Constant `$name` has already been defined");
+    }
+    constants.addAll({name.toLowerCase(): value});
   }
 
   void visitAddress_stmt(Address_stmtContext ctx) {
@@ -176,12 +183,20 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
   }
 
   void visitLabel(LabelContext ctx) {
-    setLabel(ctx.IDENTIFIER()!.text!, address, ctx);
+    try {
+      setLabel(ctx.IDENTIFIER()!.text!, address);
+    } on Exception catch (err) {
+      throw FassError(err.toString(), ctx);
+    }
   }
 
   void visitRemote_label_stmt(Remote_label_stmtContext ctx) {
     final address = visitAddress(ctx.address()!);
-    setLabel(ctx.IDENTIFIER()!.text!, address, ctx);
+    try {
+      setLabel(ctx.IDENTIFIER()!.text!, address);
+    } on Exception catch (err) {
+      throw FassError(err.toString(), ctx);
+    }
   }
 
   void visitFiller_stmt(Filler_stmtContext ctx) {
@@ -189,6 +204,14 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
       filler = defaultFiller;
     } else {
       filler = visitValue(ctx.value()!)[0];
+    }
+  }
+
+  void visitConst_stmt(Const_stmtContext ctx) {
+    try {
+      setConst(ctx.IDENTIFIER()!.text!, visitValue(ctx.value()!)[0]);
+    } on Exception catch (err) {
+      throw FassError(err.toString(), ctx);
     }
   }
 }

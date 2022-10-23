@@ -3,9 +3,9 @@
 ~~address_stmt~~
 ~~label~~
 ~~remote_label_stmt~~  
-filler_stmt  
-const_stmt  
+~~filler_stmt~~  
 ~~data_stmt~~  
+~~const_stmt~~  
 flag_set_stmt  
 stack_stmt  
 goto_stmt  
@@ -20,11 +20,16 @@ arithmetic_stmt
 
 # To do
 
-- Add testing on commit.
 - Add tests for `if else`, `data`
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
+- Integrate with Cpu6502 and make automated VM tests?
+- Add testing on commit.
 
 ---
+
+## 2022-10-22
+
+I implemented an `if else` fully functional, even nestable. Great achievement!
 
 ## 2022-10-1
 

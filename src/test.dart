@@ -20,4 +20,8 @@ void main() {
   test("Filler", () {
     expect(compile("filler default \n filler \$BA").filler, 0xBA);
   });
+
+  test("Const", () {
+    expect(compile("const tango = 215").constants["tango"], 215);
+  });
 }

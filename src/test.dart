@@ -31,4 +31,9 @@ void main() {
         "interrupt on \n interrupt off \n decimal on \n decimal off";
     expect(compile(code).content, [CLC, SEC, CLV, CLI, SEI, SED, CLD]);
   });
+
+  test("Stack", () {
+    expect(compile("pull A \n push A \n pull flags \n push flags").content,
+        [PLA, PHA, PLP, PHP]);
+  });
 }

@@ -35,11 +35,7 @@ flag_set_stmt:
 	(CARRY | OVERFLOW) '=' decimal
 	| (INTERRUPT | DECIMAL_MODE) (ON | OFF);
 
-stack_stmt:
-	A '=' PULL_KWD
-	| PUSH_KWD A
-	| FLAGS_KWD '=' PULL_KWD
-	| PUSH_KWD FLAGS_KWD;
+stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
 goto_stmt: GOTO_KWD reference;
 

@@ -1,7 +1,7 @@
+import "opcodes.dart";
 import "fassParser.dart";
 import "fassBaseVisitor.dart";
 import "package:antlr4/antlr4.dart";
-import "opcodes.dart";
 
 class FassError implements Exception {
   late String message;
@@ -234,6 +234,22 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
       output([ctx.ON() != null ? CLI : SEI]);
     } else if (ctx.DECIMAL_MODE() != null) {
       output([ctx.ON() != null ? SED : CLD]);
+    }
+  }
+
+  void visitStack_stmt(Stack_stmtContext ctx) {
+    if (ctx.A() != null) {
+      if (ctx.PULL_KWD() != null) {
+        output([PLA]);
+      } else if (ctx.PUSH_KWD() != null) {
+        output([PHA]);
+      }
+    } else if (ctx.FLAGS_KWD() != null) {
+      if (ctx.PULL_KWD() != null) {
+        output([PLP]);
+      } else if (ctx.PUSH_KWD() != null) {
+        output([PHP]);
+      }
     }
   }
 }

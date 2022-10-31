@@ -23,6 +23,9 @@ linter:
 analyzer:
   errors:
     todo: ignore
+    unused_local_variable: warning
+    body_might_complete_normally: warning
+    body_might_complete_normally_nullable: warning
   exclude:
     - antlr_files
     - src/fassLexer.dart

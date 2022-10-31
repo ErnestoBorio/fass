@@ -36,4 +36,9 @@ void main() {
     expect(compile("pull A \n push A \n pull flags \n push flags").content,
         [PLA, PHA, PLP, PHP]);
   });
+
+  test("Goto", () {
+    expect(compile("address \$ABCD \n label: \n goto label").content,
+        [JMP_ABS, 0xCD, 0xAB]);
+  });
 }

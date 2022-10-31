@@ -15,8 +15,12 @@ class FassError implements Exception {
 }
 
 class UnexpectedError implements Exception {
-  factory UnexpectedError(String msg) {
-    return Exception("Unexpected Error: $msg") as UnexpectedError;
+  factory UnexpectedError([String msg = ""]) {
+    if (msg != "") {
+      msg = ": $msg";
+    }
+    msg = "Unexpected Error$msg";
+    return Exception(msg) as UnexpectedError;
   }
 }
 
@@ -43,6 +47,14 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
       throw Exception("Label `$name` has already been defined");
     }
     labels.addAll({name.toLowerCase(): address});
+  }
+
+  /// Gets label value or thows if label doesn't exist
+  int getLabel(String name) {
+    if (!labels.containsKey(name.toLowerCase())) {
+      throw Exception("Label `$name` hasn't been defined");
+    }
+    return labels[name.toLowerCase()]!;
   }
 
   void setConst(String name, int value) {
@@ -251,6 +263,21 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
         output([PHP]);
       }
     }
+  }
+
+  void visitGoto_stmt(Goto_stmtContext ctx) {
+    final identifier = (ctx.reference()!.children![0] as ParserRuleContext)
+        .getToken(fassParser.TOKEN_IDENTIFIER, 0)!
+        .text!;
+    final address = getLabel(identifier);
+
+    int opcode;
+    if (ctx.reference()!.direct() != null) {
+      opcode = JMP_ABS;
+    } else {
+      opcode = JMP_IND;
+    }
+    output([opcode, ...littleEndianize(address)]);
   }
 }
 

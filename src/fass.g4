@@ -55,15 +55,20 @@ condition:
 	| NEGATIVE;
 
 // --> References
-reference: direct | indirect | indexed;
-//| indirect_y | x_indirect
+reference:
+	direct
+	| indirect
+	| indexed
+	| indirect_y
+	| x_indirect;
 
 direct: IDENTIFIER;
 indirect: '(' IDENTIFIER ')';
 indexed: IDENTIFIER '[' (X | Y) ']';
+indirect_y: '(' IDENTIFIER ')' '[' Y ']';
+x_indirect: '(' IDENTIFIER '[' X ']' ')';
 
 // --> Values
-
 value:
 	hexadecimal
 	| decimal

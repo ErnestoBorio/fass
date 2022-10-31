@@ -8,13 +8,13 @@
 ~~const_stmt~~  
 ~~flag_set_stmt~~  
 ~~stack_stmt~~  
-goto_stmt  
+~~goto_stmt~~  
+gosub_stmt  
+return_stmt  
 bit_shift_stmt  
 logic_stmt  
 compare_stmt  
 bittest_stmt  
-gosub_stmt  
-return_stmt  
 assign_stmt  
 arithmetic_stmt
 
@@ -26,6 +26,10 @@ arithmetic_stmt
 - Add testing on commit.
 
 ---
+
+## 2022-10-31
+Implemented goto (JMP)
+For a good test for goto, correct byte filling has to be implemented.
 
 ## 2022-10-22
 

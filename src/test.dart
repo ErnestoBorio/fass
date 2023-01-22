@@ -29,16 +29,16 @@ void main() {
   test("Flags set & reset", () {
     const code = "carry = 0 \n carry = 1 \n overflow = 0 \n"
         "interrupt on \n interrupt off \n decimal on \n decimal off";
-    expect(compile(code).content, [CLC, SEC, CLV, CLI, SEI, SED, CLD]);
+    expect(compile(code).output, [CLC, SEC, CLV, CLI, SEI, SED, CLD]);
   });
 
   test("Stack", () {
-    expect(compile("pull A \n push A \n pull flags \n push flags").content,
+    expect(compile("pull A \n push A \n pull flags \n push flags").output,
         [PLA, PHA, PLP, PHP]);
   });
 
   test("Goto", () {
-    expect(compile("address \$ABCD \n label: \n goto label").content,
+    expect(compile("address \$ABCD \n label: \n goto label").output,
         [JMP_ABS, 0xCD, 0xAB]);
   });
 }

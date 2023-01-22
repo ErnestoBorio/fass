@@ -20,6 +20,7 @@ arithmetic_stmt
 
 # To do
 
+- **Implement byte filling** (el output sigue siendo de acceso secuencial, lo sigo así? o uso byte buffer con index = address?)
 - Add tests for `if else`, `data`
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
 - Integrate with Cpu6502 and make automated VM tests?

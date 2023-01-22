@@ -6,9 +6,13 @@ import "package:antlr4/antlr4.dart";
 class FassError implements Exception {
   late String message;
 
-  FassError(String message, ParserRuleContext ctx) {
-    this.message =
-        "Line ${ctx.start?.line}:${ctx.start?.charPositionInLine} $message";
+  FassError(String message, [ParserRuleContext? ctx]) {
+    if (ctx != null) {
+      this.message =
+          "Line ${ctx.start?.line}:${ctx.start?.charPositionInLine} $message";
+    } else {
+      this.message = message;
+    }
   }
 
   String toString() => message;
@@ -24,22 +28,24 @@ class UnexpectedError implements Exception {
   }
 }
 
-class MyFassVisitor extends fassBaseVisitor<Object> {
+class MyFassVisitor extends fassBaseVisitor {
   int address = 0;
-  final content = <int>[];
+  final output = <int>[];
   final labels = <String, int>{};
   final constants = <String, int>{};
   static const defaultFiller = NOP;
   int filler = defaultFiller;
 
-  int output(List<int> data) {
-    content.addAll(data);
+  void addOutput(List<int> data) {
+    output.addAll(data);
     address += data.length;
-    return data.length;
   }
 
-  void setOutput(int address, int output) {
-    content[address] = output;
+  void setOutput(int address, int data) {
+    if (address > output.length) {
+      throw UnexpectedError("Trying to modify a byte out of bounds");
+    }
+    output[address] = data;
   }
 
   void setLabel(String name, int address) {
@@ -64,8 +70,41 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
     constants.addAll({name.toLowerCase(): value});
   }
 
+  void setAddress(int newAddress) {
+    if (newAddress < address) {
+      throw Exception(
+          "Can't set new address $newAddress lower than current address $address, that could overlap output");
+    }
+    if (newAddress - address > 0) {
+      fill(address, newAddress - 1);
+    }
+    address = newAddress;
+  }
+
+  void fill(int startAddress, int endAddress, {int? filler}) {
+    filler ??= this.filler;
+    assert(filler >= 0 && filler <= 0xFF);
+
+    if (startAddress != address) {
+      throw FassError(
+          "Can't start filling other than on current address $address");
+    }
+    if (output.length != startAddress) {
+      throw UnexpectedError(
+          "Binary content length and current address don't match");
+    }
+    for (var i = startAddress; i <= endAddress; i++) {
+      output.add(filler);
+    }
+  }
+
   void visitAddress_stmt(Address_stmtContext ctx) {
-    address = visitAddress(ctx.address()!);
+    final newAddress = visitAddress(ctx.address()!);
+    try {
+      setAddress(newAddress);
+    } catch (exp) {
+      throw FassError(exp.toString(), ctx);
+    }
   }
 
   int visitAddress(AddressContext ctx) {
@@ -80,7 +119,7 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
 
   void visitData_stmt(Data_stmtContext ctx) {
     for (var data in ctx.datas) {
-      output(visitValue(data));
+      addOutput(visitValue(data));
     }
   }
 
@@ -154,7 +193,7 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
     } else {
       throw UnexpectedError("visitIf_stmt/condition");
     }
-    output([opcode, 0]); // 0 is the branch displacement placeholder
+    addOutput([opcode, 0]); // 0 is the branch displacement placeholder
     final branchAddress = address - 1;
 
     // How long can the branch jump to the else or end, minus the 3 bytes for the JMP instruction
@@ -181,7 +220,7 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
 
     if (elsePart) {
       // Placeholder jmp address
-      output([JMP_ABS, 0, 0]);
+      addOutput([JMP_ABS, 0, 0]);
       final jumpAddress = address - 2;
       final elseLines = ctx.else_part()!.lines();
       for (LineContext line in elseLines) {
@@ -230,37 +269,37 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
   void visitFlag_set_stmt(Flag_set_stmtContext ctx) {
     if (ctx.CARRY() != null) {
       if (ctx.decimal()!.text == "0") {
-        output([CLC]);
+        addOutput([CLC]);
       } else if (ctx.decimal()!.text == "1") {
-        output([SEC]);
+        addOutput([SEC]);
       } else {
         throw FassError("carry can only be set to 0 or 1", ctx);
       }
     } else if (ctx.OVERFLOW() != null) {
       if (ctx.decimal()!.text == "0") {
-        output([CLV]);
+        addOutput([CLV]);
       } else {
         throw FassError("overflow can only be set to 0", ctx);
       }
     } else if (ctx.INTERRUPT() != null) {
-      output([ctx.ON() != null ? CLI : SEI]);
+      addOutput([ctx.ON() != null ? CLI : SEI]);
     } else if (ctx.DECIMAL_MODE() != null) {
-      output([ctx.ON() != null ? SED : CLD]);
+      addOutput([ctx.ON() != null ? SED : CLD]);
     }
   }
 
   void visitStack_stmt(Stack_stmtContext ctx) {
     if (ctx.A() != null) {
       if (ctx.PULL_KWD() != null) {
-        output([PLA]);
+        addOutput([PLA]);
       } else if (ctx.PUSH_KWD() != null) {
-        output([PHA]);
+        addOutput([PHA]);
       }
     } else if (ctx.FLAGS_KWD() != null) {
       if (ctx.PULL_KWD() != null) {
-        output([PLP]);
+        addOutput([PLP]);
       } else if (ctx.PUSH_KWD() != null) {
-        output([PHP]);
+        addOutput([PHP]);
       }
     }
   }
@@ -277,7 +316,7 @@ class MyFassVisitor extends fassBaseVisitor<Object> {
     } else {
       opcode = JMP_IND;
     }
-    output([opcode, ...littleEndianize(address)]);
+    addOutput([opcode, ...littleEndianize(address)]);
   }
 }
 

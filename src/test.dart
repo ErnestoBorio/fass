@@ -38,7 +38,7 @@ void main() {
   });
 
   test("Goto", () {
-    expect(compile("address \$ABCD \n label: \n goto label").output,
-        [JMP_ABS, 0xCD, 0xAB]);
+    expect(compile("address 5 \n label: \n goto label").output,
+        [0xEA, 0xEA, 0xEA, 0xEA, 0xEA, JMP_ABS, 5, 0]);
   });
 }

@@ -14,8 +14,9 @@ statement:
 	| data_stmt
 	| flag_set_stmt
 	| stack_stmt
-	| gotosub_stmt
 	| bit_shift_stmt
+	| gotosub_stmt
+	| return_stmt
 	| if_stmt
 	| label statement?;
 
@@ -41,6 +42,8 @@ gotosub_stmt: (keyword = (GOTO_KWD | GOSUB_KWD)) (
 		direct
 		| indirect
 	);
+
+return_stmt: RETURN_KWD | RETINT_KWD;
 
 bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
 		A

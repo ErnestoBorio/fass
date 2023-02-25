@@ -324,6 +324,9 @@ class MyFassVisitor extends fassBaseVisitor {
     final address = getLabel(identifier);
     addOutput([opcode, ...littleEndianize(address)]);
   }
+
+  visitReturn_stmt(Return_stmtContext ctx) =>
+      addOutput([ctx.RETURN_KWD() != null ? RTS : RTI]);
 }
 
 List<int> littleEndianize(int value) => [

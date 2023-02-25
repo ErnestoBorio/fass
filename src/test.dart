@@ -47,4 +47,8 @@ void main() {
     expect(compile("address 4 \n label: \n gosub label").output,
         [0xEA, 0xEA, 0xEA, 0xEA, JSR_ABS, 4, 0]);
   });
+
+  test("Return, Retint", () {
+    expect(compile("return \n retint").output, [RTS, RTI]);
+  });
 }

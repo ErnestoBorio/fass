@@ -22,8 +22,7 @@ arithmetic_stmt
 
 - Add tests for `if else`, `data`
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
-- Integrate with Cpu6502 and make automated VM tests?
-- Add testing on commit.
+- Integrate with Cpu6502 and make automated VM tests
 
 ---
 

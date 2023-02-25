@@ -36,19 +36,19 @@ class MyFassVisitor extends fassBaseVisitor {
   static const defaultFiller = NOP;
   int filler = defaultFiller;
 
-  void addOutput(List<int> data) {
+  addOutput(List<int> data) {
     output.addAll(data);
     address += data.length;
   }
 
-  void setOutput(int address, int data) {
+  setOutput(int address, int data) {
     if (address > output.length) {
       throw UnexpectedError("Trying to modify a byte out of bounds");
     }
     output[address] = data;
   }
 
-  void setLabel(String name, int address) {
+  setLabel(String name, int address) {
     if (labels.containsKey(name.toLowerCase())) {
       throw Exception("Label `$name` has already been defined");
     }
@@ -63,14 +63,14 @@ class MyFassVisitor extends fassBaseVisitor {
     return labels[name.toLowerCase()]!;
   }
 
-  void setConst(String name, int value) {
+  setConst(String name, int value) {
     if (constants.containsKey(name.toLowerCase())) {
       throw Exception("Constant `$name` has already been defined");
     }
     constants.addAll({name.toLowerCase(): value});
   }
 
-  void setAddress(int newAddress) {
+  setAddress(int newAddress) {
     if (newAddress < address) {
       throw Exception(
           "Can't set new address $newAddress lower than current address $address, that could overlap output");
@@ -81,7 +81,7 @@ class MyFassVisitor extends fassBaseVisitor {
     address = newAddress;
   }
 
-  void fill(int startAddress, int endAddress, {int? filler}) {
+  fill(int startAddress, int endAddress, {int? filler}) {
     filler ??= this.filler;
     assert(filler >= 0 && filler <= 0xFF);
 
@@ -98,7 +98,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitAddress_stmt(Address_stmtContext ctx) {
+  visitAddress_stmt(Address_stmtContext ctx) {
     final newAddress = visitAddress(ctx.address()!);
     try {
       setAddress(newAddress);
@@ -117,7 +117,7 @@ class MyFassVisitor extends fassBaseVisitor {
     throw FassError("Invalid address: $address", ctx);
   }
 
-  void visitData_stmt(Data_stmtContext ctx) {
+  visitData_stmt(Data_stmtContext ctx) {
     for (var data in ctx.datas) {
       addOutput(visitValue(data));
     }
@@ -175,7 +175,7 @@ class MyFassVisitor extends fassBaseVisitor {
     throw UnexpectedError("Opcode_literal");
   }
 
-  void visitIf_stmt(If_stmtContext ctx) {
+  visitIf_stmt(If_stmtContext ctx) {
     final condition = ctx.if_part()!.condition()!;
     int opcode;
     final NOT = (condition.NOT() != null);
@@ -233,7 +233,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitLabel(LabelContext ctx) {
+  visitLabel(LabelContext ctx) {
     try {
       setLabel(ctx.IDENTIFIER()!.text!, address);
     } on Exception catch (err) {
@@ -241,7 +241,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitRemote_label_stmt(Remote_label_stmtContext ctx) {
+  visitRemote_label_stmt(Remote_label_stmtContext ctx) {
     final address = visitAddress(ctx.address()!);
     try {
       setLabel(ctx.IDENTIFIER()!.text!, address);
@@ -250,7 +250,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitFiller_stmt(Filler_stmtContext ctx) {
+  visitFiller_stmt(Filler_stmtContext ctx) {
     if (ctx.DEFAULT_KWD() != null) {
       filler = defaultFiller;
     } else {
@@ -258,7 +258,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitConst_stmt(Const_stmtContext ctx) {
+  visitConst_stmt(Const_stmtContext ctx) {
     try {
       setConst(ctx.IDENTIFIER()!.text!, visitValue(ctx.value()!)[0]);
     } on Exception catch (err) {
@@ -266,7 +266,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitFlag_set_stmt(Flag_set_stmtContext ctx) {
+  visitFlag_set_stmt(Flag_set_stmtContext ctx) {
     if (ctx.CARRY() != null) {
       if (ctx.decimal()!.text == "0") {
         addOutput([CLC]);
@@ -288,7 +288,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitStack_stmt(Stack_stmtContext ctx) {
+  visitStack_stmt(Stack_stmtContext ctx) {
     if (ctx.A() != null) {
       if (ctx.PULL_KWD() != null) {
         addOutput([PLA]);
@@ -304,7 +304,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitGotosub_stmt(Gotosub_stmtContext ctx) {
+  visitGotosub_stmt(Gotosub_stmtContext ctx) {
     final int opcode;
     final String identifier;
     final keyword = ctx.keyword!.text!.toLowerCase();
@@ -325,8 +325,9 @@ class MyFassVisitor extends fassBaseVisitor {
     addOutput([opcode, ...littleEndianize(address)]);
   }
 
-  visitReturn_stmt(Return_stmtContext ctx) =>
-      addOutput([ctx.RETURN_KWD() != null ? RTS : RTI]);
+  visitReturn_stmt(Return_stmtContext ctx) {
+    addOutput([ctx.RETURN_KWD() != null ? RTS : RTI]);
+  }
 }
 
 List<int> littleEndianize(int value) => [

@@ -14,7 +14,7 @@ statement:
 	| data_stmt
 	| flag_set_stmt
 	| stack_stmt
-	| goto_stmt
+	| gotosub_stmt
 	| bit_shift_stmt
 	| if_stmt
 	| label statement?;
@@ -37,7 +37,10 @@ flag_set_stmt:
 
 stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
-goto_stmt: GOTO_KWD reference;
+gotosub_stmt: (keyword = (GOTO_KWD | GOSUB_KWD)) (
+		direct
+		| indirect
+	);
 
 bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
 		A

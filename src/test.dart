@@ -41,4 +41,10 @@ void main() {
     expect(compile("address 5 \n label: \n goto label").output,
         [0xEA, 0xEA, 0xEA, 0xEA, 0xEA, JMP_ABS, 5, 0]);
   });
+
+  test("Gosub", () {
+    expect(() => compile("label: gosub (label)"), throwsException);
+    expect(compile("address 4 \n label: \n gosub label").output,
+        [0xEA, 0xEA, 0xEA, 0xEA, JSR_ABS, 4, 0]);
+  });
 }

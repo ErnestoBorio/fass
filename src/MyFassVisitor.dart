@@ -304,18 +304,24 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
-  void visitGoto_stmt(Goto_stmtContext ctx) {
-    final identifier = (ctx.reference()!.children![0] as ParserRuleContext)
-        .getToken(fassParser.TOKEN_IDENTIFIER, 0)!
-        .text!;
-    final address = getLabel(identifier);
+  void visitGotosub_stmt(Gotosub_stmtContext ctx) {
+    final int opcode;
+    final String identifier;
+    final keyword = ctx.keyword!.text!.toLowerCase();
 
-    int opcode;
-    if (ctx.reference()!.direct() != null) {
-      opcode = JMP_ABS;
+    if (ctx.direct() != null) {
+      opcode = (keyword == "goto" ? JMP_ABS : JSR_ABS);
+      identifier = ctx.direct()!.IDENTIFIER()!.text!.toLowerCase();
     } else {
+      if (keyword == "gosub") {
+        throw FassError(
+            "${ctx.keyword!.text} only accepts direct addressing", ctx);
+      }
       opcode = JMP_IND;
+      identifier = ctx.indirect()!.IDENTIFIER()!.text!.toLowerCase();
     }
+
+    final address = getLabel(identifier);
     addOutput([opcode, ...littleEndianize(address)]);
   }
 }

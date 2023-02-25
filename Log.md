@@ -9,7 +9,7 @@
 ~~flag_set_stmt~~  
 ~~stack_stmt~~  
 ~~goto_stmt~~  
-gosub_stmt  
+~~gosub_stmt~~  
 return_stmt  
 bit_shift_stmt  
 logic_stmt  

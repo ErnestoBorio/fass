@@ -11,7 +11,7 @@
 ~~goto_stmt~~  
 ~~gosub_stmt~~  
 ~~return_stmt~~  
-bit_shift_stmt  
+-> bit_shift_stmt  
 logic_stmt  
 compare_stmt  
 bittest_stmt  

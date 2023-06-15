@@ -67,6 +67,30 @@ const JMP_ABS = 0x4c;
 const JMP_IND = 0x6c;
 const JSR_ABS = 0x20;
 
+const ASL_ACC = 0x0a;
+const ASL_ZP = 0x06;
+const ASL_ZPX = 0x16;
+const ASL_ABS = 0x0e;
+const ASL_ABSX = 0x1e;
+
+const LSR_ACC = 0x4a;
+const LSR_ZP = 0x46;
+const LSR_ZPX = 0x56;
+const LSR_ABS = 0x4e;
+const LSR_ABSX = 0x5e;
+
+const ROL_ACC = 0x2a;
+const ROL_ZP = 0x26;
+const ROL_ZPX = 0x36;
+const ROL_ABS = 0x2e;
+const ROL_ABSX = 0x3e;
+
+const ROR_ACC = 0x6a;
+const ROR_ZP = 0x66;
+const ROR_ZPX = 0x76;
+const ROR_ABS = 0x6e;
+const ROR_ABSX = 0x7e;
+
 const RTS = 0x60;
 const RTI = 0x40;
 const TAX = 0xaa;
@@ -93,7 +117,6 @@ const PHA = 0x48;
 const PLA = 0x68;
 const PHP = 0x08;
 const PLP = 0x28;
-
 const BPL = 0x10;
 const BMI = 0x30;
 const BVC = 0x50;
@@ -103,29 +126,58 @@ const BCS = 0xB0;
 const BNE = 0xD0;
 const BEQ = 0xF0;
 
-const ASL_ACC = 0x0a;
-const ASL_ZP = 0x06;
-const ASL_ZPX = 0x16;
-const ASL_ABS = 0x0e;
-const ASL_ABSX = 0x1e;
+const opcodes = {
+  "LDA": {
+    "IMM": 0xa9,
+    "ZP": 0xa5,
+    "ZPX": 0xb5,
+    "ABS": 0xad,
+    "ABSX": 0xbd,
+    "ABSY": 0xb9,
+    "INDX": 0xa1,
+    "INDY": 0xb1
+  },
+  "LDX": {"IMM": 0xa2, "ZP": 0xa6, "ZPY": 0xb6, "ABS": 0xae, "ABSY": 0xbe},
+  "LDY": {"IMM": 0xa0, "ZP": 0xa4, "ZPX": 0xb4, "ABS": 0xac, "ABSX": 0xbc},
+  "STA": {
+    "ZP": 0x85,
+    "ZPX": 0x95,
+    "ABS": 0x8d,
+    "ABSX": 0x9d,
+    "ABSY": 0x99,
+    "INDX": 0x81,
+    "INDY": 0x91
+  },
+  "STX": {"ZP": 0x86, "ZPY": 0x96, "ABS": 0x8e},
+  "STY": {"ZP": 0x84, "ZPX": 0x94, "ABS": 0x8c},
+  "ADC": {
+    "IMM": 0x69,
+    "ZP": 0x65,
+    "ZPX": 0x75,
+    "ABS": 0x6d,
+    "ABSX": 0x7d,
+    "ABSY": 0x79,
+    "INDX": 0x61,
+    "INDY": 0x71
+  },
+  "SBC": {
+    "IMM": 0xe9,
+    "ZP": 0xe5,
+    "ZPX": 0xf5,
+    "ABS": 0xed,
+    "ABSX": 0xfd,
+    "ABSY": 0xf9,
+    "INDX": 0xe1,
+    "INDY": 0xf1
+  },
+  "ASL": {"ACC": 0x0a, "ZP": 0x06, "ZPX": 0x16, "ABS": 0x0e, "ABSX": 0x1e},
+  "LSR": {"ACC": 0x4a, "ZP": 0x46, "ZPX": 0x56, "ABS": 0x4e, "ABSX": 0x5e},
+  "ROL": {"ACC": 0x2a, "ZP": 0x26, "ZPX": 0x36, "ABS": 0x2e, "ABSX": 0x3e},
+  "ROR": {"ACC": 0x6a, "ZP": 0x66, "ZPX": 0x76, "ABS": 0x6e, "ABSX": 0x7e},
+  "INC": {"ZP": 0xe6, "ZPX": 0xf6, "ABS": 0xee, "ABSX": 0xfe},
+  "DEC": {"ZP": 0xc6, "ZPX": 0xd6, "ABS": 0xce, "ABSX": 0xde},
+};
 
-const LSR_ACC = 0x4a;
-const LSR_ZP = 0x46;
-const LSR_ZPX = 0x56;
-const LSR_ABS = 0x4e;
-const LSR_ABSX = 0x5e;
-
-const ROL_ACC = 0x2a;
-const ROL_ZP = 0x26;
-const ROL_ZPX = 0x36;
-const ROL_ABS = 0x2e;
-const ROL_ABSX = 0x3e;
-
-const ROR_ACC = 0x6a;
-const ROR_ZP = 0x66;
-const ROR_ZPX = 0x76;
-const ROR_ABS = 0x6e;
-const ROR_ABSX = 0x7e;
 /*
 AND: {
 IMM: 0x29,

@@ -9,7 +9,7 @@ class FassError implements Exception {
   FassError(String message, [ParserRuleContext? ctx]) {
     if (ctx != null) {
       this.message =
-          "Line ${ctx.start?.line}:${ctx.start?.charPositionInLine} $message";
+          "Line ${ctx.start!.line!}:${ctx.start!.charPositionInLine} $message";
     } else {
       this.message = message;
     }
@@ -98,6 +98,29 @@ class MyFassVisitor extends fassBaseVisitor {
     }
   }
 
+  String getAddressing(ReferenceContext ctx) {
+    if (ctx.direct() != null) {
+      final label = ctx.direct()!.IDENTIFIER()!.text!.toLowerCase();
+      return getLabel(label) <= 255 ? "ZP" : "ABS";
+    } else if (ctx.indexed() != null) {
+      final label = ctx.direct()!.IDENTIFIER()!.text!.toLowerCase();
+      final addressing = getLabel(label) <= 255 ? "ZP" : "ABS";
+      return addressing + (ctx.indexed()!.X() != null ? "X" : "Y");
+    }
+    return ctx.x_indirect() != null ? "INDX" : "INDY";
+  }
+
+  int getLabelFromRef(ReferenceContext ctx) {
+    if (ctx.direct() != null) {
+      return getLabel(ctx.direct()!.IDENTIFIER()!.text!.toLowerCase());
+    } else if (ctx.indexed() != null) {
+      return getLabel(ctx.indexed()!.IDENTIFIER()!.text!.toLowerCase());
+    } else if (ctx.indirect_y() != null) {
+      return getLabel(ctx.indirect_y()!.IDENTIFIER()!.text!.toLowerCase());
+    }
+    return getLabel(ctx.x_indirect()!.IDENTIFIER()!.text!.toLowerCase());
+  }
+
   visitAddress_stmt(Address_stmtContext ctx) {
     final newAddress = visitAddress(ctx.address()!);
     try {
@@ -121,11 +144,6 @@ class MyFassVisitor extends fassBaseVisitor {
     for (var data in ctx.datas) {
       addOutput(visitValue(data));
     }
-  }
-
-  List<int> visitValue(ValueContext ctx) {
-    final chil = visitChildren(ctx);
-    return chil as List<int>;
   }
 
   List<int> visitHexadecimal(HexadecimalContext ctx) {
@@ -328,9 +346,33 @@ class MyFassVisitor extends fassBaseVisitor {
   visitReturn_stmt(Return_stmtContext ctx) {
     addOutput([ctx.RETURN_KWD() != null ? RTS : RTI]);
   }
+
+  visitBit_shift_stmt(Bit_shift_stmtContext ctx) {
+    final mnemonic = ctx.ASL_KWD() != null
+        ? "ASL"
+        : ctx.LSR_KWD() != null
+            ? "LSR"
+            : ctx.ROL_KWD() != null
+                ? "ROL"
+                : "ROR";
+    if (ctx.A() != null) {
+      addOutput([opcodes[mnemonic]!["ACC"]!]);
+      return;
+    }
+    final addressing = getAddressing(ctx.reference()!);
+    addOutput([
+      opcodes[mnemonic]![addressing]!,
+      ...littleEndianize(getLabelFromRef(ctx.reference()!))
+    ]);
+  }
 }
 
-List<int> littleEndianize(int value) => [
-      value & 0xFF,
-      (value & 0xFF00) >> 8,
-    ];
+List<int> littleEndianize(int value) {
+  if (value <= 255) {
+    return [value];
+  }
+  return [
+    value & 0xFF,
+    (value & 0xFF00) >> 8,
+  ];
+}

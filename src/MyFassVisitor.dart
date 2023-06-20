@@ -142,53 +142,53 @@ class MyFassVisitor extends fassBaseVisitor {
 
   visitData_stmt(Data_stmtContext ctx) {
     for (var data in ctx.datas) {
-      addOutput(visitValue(data));
+      addOutput([visitValue(data)]);
     }
   }
 
-  List<int> visitHexadecimal(HexadecimalContext ctx) {
+  int visitHexadecimal(HexadecimalContext ctx) {
     final number = int.parse(ctx.text.substring(1), radix: 16);
     if (number > 0xFFFF) {
       throw FassError(
           "Value ${ctx.text} should be 8 bits, I.E. up to \$FF", ctx);
     }
-    return [number];
+    return number;
   }
 
-  List<int> visitDecimal(DecimalContext ctx) {
+  int visitDecimal(DecimalContext ctx) {
     final number = int.parse(ctx.text);
     if (number > 0xFFFF) {
       throw FassError(
           "Value ${ctx.text} should be 8 bits, I.E. up to 255", ctx);
     }
-    return [number];
+    return number;
   }
 
-  List<int> visitBinary(BinaryContext ctx) {
+  int visitBinary(BinaryContext ctx) {
     final value = int.parse(ctx.text.substring(1), radix: 2);
     if (value > 0xFF) {
       throw FassError(
           "Binary number ${ctx.text} should not be greater than 255", ctx);
     }
-    return [value];
+    return value;
   }
 
-  List<int> visitNegative_number(Negative_numberContext ctx) {
+  int visitNegative_number(Negative_numberContext ctx) {
     final number = int.parse(ctx.text);
     if (number < -128) {
       throw FassError(
           "Negative number $number should be in the range [-128..-1]", ctx);
     }
-    return [number + 256];
+    return number + 256;
   }
 
-  List<int> visitOpcode_literal(Opcode_literalContext ctx) {
+  int visitOpcode_literal(Opcode_literalContext ctx) {
     if (ctx.NOP() != null) {
-      return [NOP];
+      return NOP;
     } else if (ctx.NOP3() != null) {
-      return [NOP3];
+      return NOP3;
     } else if (ctx.BRK() != null) {
-      return [BRK];
+      return BRK;
     }
     throw UnexpectedError("Opcode_literal");
   }
@@ -272,13 +272,13 @@ class MyFassVisitor extends fassBaseVisitor {
     if (ctx.DEFAULT_KWD() != null) {
       filler = defaultFiller;
     } else {
-      filler = visitValue(ctx.value()!)[0];
+      filler = visitValue(ctx.value()!);
     }
   }
 
   visitConst_stmt(Const_stmtContext ctx) {
     try {
-      setConst(ctx.IDENTIFIER()!.text!, visitValue(ctx.value()!)[0]);
+      setConst(ctx.IDENTIFIER()!.text!, visitValue(ctx.value()!));
     } on Exception catch (err) {
       throw FassError(err.toString(), ctx);
     }
@@ -365,10 +365,62 @@ class MyFassVisitor extends fassBaseVisitor {
       ...littleEndianize(getLabelFromRef(ctx.reference()!), true)
     ]);
   }
+
+  visitLogic_stmt(Logic_stmtContext ctx) {
+    final operation = ctx.AND_KWD() != null
+        ? "AND"
+        : ctx.OR_KWD() != null
+            ? "ORA"
+            : ctx.XOR_KWD() != null
+                ? "EOR"
+                : ctx.COMPARE_KWD() != null
+                    ? "CMP"
+                    : "BIT";
+
+    String addressing;
+    List<int> operands;
+
+    if (ctx.literal() != null) {
+      addressing = "IMM";
+      operands = [visitLiteral(ctx.literal()!)];
+    } else {
+      (operands, addressing) = visitReference(ctx.reference()!);
+    }
+    addOutput([opcodes[operation]![addressing]!, ...operands]);
+  }
+
+  (List<int>, String) visitReference(ReferenceContext ctx) {
+    final (address, addressing) = visitChildren(ctx);
+    return (littleEndianize(address), addressing);
+  }
+
+  (int, String) visitDirect(DirectContext ctx) {
+    final address = getLabel(ctx.IDENTIFIER()!.text!.toLowerCase());
+    return (address, address <= 0xFF ? "ZP" : "ABS");
+  }
+
+  (int, String) visitIndexed(IndexedContext ctx) {
+    final address = getLabel(ctx.IDENTIFIER()!.text!.toLowerCase());
+    final addressing = address <= 0xFF ? "ZP" : "ABS";
+    if (ctx.X() != null) {
+      return (address, "${addressing}X");
+    }
+    return (address, "${addressing}Y");
+  }
+
+  (int, String) visitIndirect_y(Indirect_yContext ctx) {
+    final address = getLabel(ctx.IDENTIFIER()!.text!.toLowerCase());
+    return (address, "INDY");
+  }
+
+  (int, String) visitX_indirect(X_indirectContext ctx) {
+    final address = getLabel(ctx.IDENTIFIER()!.text!.toLowerCase());
+    return (address, "INDX");
+  }
 }
 
-List<int> littleEndianize(int value, [forceWord = false]) {
-  if (value <= 255 && forceWord == false) {
+List<int> littleEndianize(int value, [bool forceWord = false]) {
+  if (value <= 255 && !forceWord) {
     return [value];
   }
   return [

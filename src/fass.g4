@@ -15,6 +15,7 @@ statement:
 	| flag_set_stmt
 	| stack_stmt
 	| bit_shift_stmt
+	| logic_stmt
 	| gotosub_stmt
 	| return_stmt
 	| if_stmt
@@ -47,6 +48,12 @@ return_stmt: RETURN_KWD | RETINT_KWD;
 
 bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
 		A
+		| reference
+	);
+
+logic_stmt:
+	A op = (AND_KWD | OR_KWD | XOR_KWD | COMPARE_KWD | BIT_KWD) (
+		literal
 		| reference
 	);
 
@@ -84,14 +91,21 @@ value:
 	| constant;
 
 constant: IDENTIFIER;
-opcode_literal: BRK | NOP | NOP3;
+literal:
+	hexadecimal
+	| decimal
+	| binary
+	| negative_number
+	| opcode_literal;
+
 hexadecimal: HEXADECIMAL;
 decimal: DECIMAL;
 binary: BINARY;
+negative_number: NEGATIVE_NUMBER;
+opcode_literal: BRK | NOP | NOP3;
 brk_literal: BRK;
 nop_literal: NOP;
 nop3_literal: NOP3;
-negative_number: NEGATIVE_NUMBER;
 
 // --> Literals
 HEXADECIMAL: '$' [0-9a-fA-F]+;
@@ -122,7 +136,7 @@ FLAGS_KWD: [fF][lL][aA][gG][sS];
 AND_KWD: [aA][nN][dD]'=';
 OR_KWD: [oO][rR]'=';
 XOR_KWD: [xX][oO][rR]'=';
-BITTEST_KWD: [bB][iI][tT][tT][eE][sS][tT];
+BIT_KWD: [bB][iI][tT];
 COMPARE_KWD: [cC][oO][mM][pP][aA][rR][eE];
 ROTATE_KWD: [rR][oO][tT][aA][tT][eE];
 SHIFT_KWD: [sS][hH][iI][fF][tT];

@@ -11,12 +11,10 @@
 ~~goto_stmt~~  
 ~~gosub_stmt~~  
 ~~return_stmt~~  
--> bit_shift_stmt  
-logic_stmt  
-compare_stmt  
-bittest_stmt  
+~~bit_shift_stmt~~
+~~logic_stmt~~  
 assign_stmt  
-arithmetic_stmt
+arithmetic_stmt  
 
 # To do
 

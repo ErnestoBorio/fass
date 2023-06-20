@@ -68,4 +68,40 @@ void main() {
     expect(output.sublist(0xCAFE, 0xCAFE + 5),
         [opcodes["ROL"]!["ABS"], 0xFE, 0xCA, opcodes["LSR"]!["ZPX"], 0xEB]);
   });
+
+  test("Logic operations", () {
+    final binary = compile("""
+      address 9
+      zpLabel:
+        data 5
+      
+      address \$10EB
+      absLabel:
+        data 7
+      
+      address \$20AD
+      A and= 4
+      A or= zpLabel
+      A xor= absLabel[X]
+      A compare (zpLabel)[Y]
+      A bit absLabel
+    """).output;
+
+    final got = binary.sublist(0x20AD);
+    final expected = [
+      opcodes["AND"]!["IMM"],
+      4,
+      opcodes["ORA"]!["ZP"],
+      9,
+      opcodes["EOR"]!["ABSX"],
+      0xEB,
+      0x10,
+      opcodes["CMP"]!["INDY"],
+      9,
+      opcodes["BIT"]!["ABS"],
+      0xEB,
+      0x10
+    ];
+    expect(got, expected);
+  });
 }

@@ -103,7 +103,7 @@ class MyFassVisitor extends fassBaseVisitor {
       final label = ctx.direct()!.IDENTIFIER()!.text!.toLowerCase();
       return getLabel(label) <= 255 ? "ZP" : "ABS";
     } else if (ctx.indexed() != null) {
-      final label = ctx.direct()!.IDENTIFIER()!.text!.toLowerCase();
+      final label = ctx.indexed()!.IDENTIFIER()!.text!.toLowerCase();
       final addressing = getLabel(label) <= 255 ? "ZP" : "ABS";
       return addressing + (ctx.indexed()!.X() != null ? "X" : "Y");
     }
@@ -340,7 +340,7 @@ class MyFassVisitor extends fassBaseVisitor {
     }
 
     final address = getLabel(identifier);
-    addOutput([opcode, ...littleEndianize(address)]);
+    addOutput([opcode, ...littleEndianize(address, true)]);
   }
 
   visitReturn_stmt(Return_stmtContext ctx) {
@@ -362,13 +362,13 @@ class MyFassVisitor extends fassBaseVisitor {
     final addressing = getAddressing(ctx.reference()!);
     addOutput([
       opcodes[mnemonic]![addressing]!,
-      ...littleEndianize(getLabelFromRef(ctx.reference()!))
+      ...littleEndianize(getLabelFromRef(ctx.reference()!), true)
     ]);
   }
 }
 
-List<int> littleEndianize(int value) {
-  if (value <= 255) {
+List<int> littleEndianize(int value, [forceWord = false]) {
+  if (value <= 255 && forceWord == false) {
     return [value];
   }
   return [

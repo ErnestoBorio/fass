@@ -8,6 +8,12 @@
 			"program": "src/main.dart",
 		},
 		{
+			"name": "Test",
+			"type": "dart",
+			"request": "launch",
+			"program": "src/test.dart",
+		},
+		{
 			"type": "antlr-debug",
 			"request": "launch",
 			"name": "Debug Current Grammar",

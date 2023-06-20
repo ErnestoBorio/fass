@@ -51,4 +51,21 @@ void main() {
   test("Return, Retint", () {
     expect(compile("return \n retint").output, [RTS, RTI]);
   });
+
+  test("Bit shifting", () {
+    final output = compile("""
+      address \$EB
+      zero_page:
+        rotate> A
+        shift< zero_page
+      address \$CAFE
+      absolute:
+        rotate< absolute
+        shift> zero_page[X]
+    """).output;
+    expect(output.sublist(0xEB, 0xEB + 3),
+        [opcodes["ROR"]!["ACC"], opcodes["ASL"]!["ZP"], 0xEB]);
+    expect(output.sublist(0xCAFE, 0xCAFE + 5),
+        [opcodes["ROL"]!["ABS"], 0xFE, 0xCA, opcodes["LSR"]!["ZPX"], 0xEB]);
+  });
 }

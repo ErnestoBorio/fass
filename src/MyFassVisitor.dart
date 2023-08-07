@@ -49,13 +49,10 @@ class MyFassVisitor extends fassBaseVisitor {
   }
 
   setLabel(String name, int address) {
-    if (labels.containsKey(name.toLowerCase())) {
-      throw Exception("Label `$name` has already been defined");
-    }
-    labels.addAll({name.toLowerCase(): address});
+    checkUniqueName(name);
+    labels[name.toLowerCase()] = address;
   }
 
-  /// Gets label value or thows if label doesn't exist
   int getLabel(String name) {
     if (!labels.containsKey(name.toLowerCase())) {
       throw Exception("Label `$name` hasn't been defined");
@@ -64,10 +61,18 @@ class MyFassVisitor extends fassBaseVisitor {
   }
 
   setConst(String name, int value) {
-    if (constants.containsKey(name.toLowerCase())) {
-      throw Exception("Constant `$name` has already been defined");
+    checkUniqueName(name);
+    constants[name.toLowerCase()] = value;
+  }
+
+  checkUniqueName(String name) {
+    if (labels.containsKey(name.toLowerCase())) {
+      throw Exception("A label with the name `$name` has already been defined");
     }
-    constants.addAll({name.toLowerCase(): value});
+    if (constants.containsKey(name.toLowerCase())) {
+      throw Exception(
+          "A Constant with the name `$name` has already been defined");
+    }
   }
 
   setAddress(int newAddress) {

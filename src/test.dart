@@ -12,6 +12,7 @@ void main() {
   test("Label", () {
     expect(compile("address 99 \n aLabel:").labels["alabel"], 99);
     expect(compile("soto: address 55").labels["soto"], 0);
+    expect(() => compile("const Petete = 0 \n Petete:"), throwsException);
   });
 
   test("Remote label", () {
@@ -24,6 +25,7 @@ void main() {
 
   test("Const", () {
     expect(compile("const tango = 215").constants["tango"], 215);
+    expect(() => compile("petruza: \n const petruza = 0"), throwsException);
   });
 
   test("Flags set & reset", () {

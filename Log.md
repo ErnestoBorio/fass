@@ -20,6 +20,7 @@ arithmetic_stmt
 
 - Add tests for `if else`, `data`
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
+- Add `>` and `<` operators for getting the high and low bytes of a label reference, respectively, as an immediate value
 - Integrate with Cpu6502 and make automated VM tests
 
 ---

@@ -16,33 +16,33 @@ statement:
 	| stack_stmt
 	| bit_shift_stmt
 	| logic_stmt
-	| gotosub_stmt
+	| goto_stmt
+	| gosub_stmt
 	| return_stmt
 	| if_stmt
+	| reg_assign_stmt
 	| label statement?;
-
-address: decimal | hexadecimal;
 
 address_stmt: ADDRESS_KWD address;
 
 remote_label_stmt: IDENTIFIER 'at' address;
 
-filler_stmt: FILLER_KWD (value | DEFAULT_KWD);
+address: decimal | hexadecimal;
 
-const_stmt: CONST_KWD IDENTIFIER '=' value;
+filler_stmt: FILLER_KWD (staticValue | DEFAULT_KWD);
 
-data_stmt: DATA_KWD ( datas += value ','?)+;
+const_stmt: CONST_KWD IDENTIFIER '=' staticValue;
+
+data_stmt: DATA_KWD ( datas += staticValue ','?)+;
 
 flag_set_stmt:
-	(CARRY | OVERFLOW) '=' decimal
+	(CARRY | OVERFLOW) '=' ZERONE
 	| (INTERRUPT | DECIMAL_MODE) (ON | OFF);
 
 stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
-gotosub_stmt: (keyword = (GOTO_KWD | GOSUB_KWD)) (
-		direct
-		| indirect
-	);
+goto_stmt: GOTO_KWD (direct | indirect);
+gosub_stmt: GOTO_KWD (direct | indirect);
 
 return_stmt: RETURN_KWD | RETINT_KWD;
 
@@ -57,6 +57,8 @@ logic_stmt:
 		| reference
 	);
 
+reg_assign_stmt: reg = (A | X | Y) '=' value;
+
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;
 then_part: line+;
@@ -67,7 +69,11 @@ condition:
 	| POSITIVE
 	| NEGATIVE;
 
-// --> References
+value: literal | name | reference;
+staticValue: literal | name;
+
+name: IDENTIFIER; // A constant or a label
+
 reference:
 	direct
 	| indirect
@@ -75,22 +81,12 @@ reference:
 	| indirect_y
 	| x_indirect;
 
-direct: IDENTIFIER;
+direct: name; // Only labels are valid names here
 indirect: '(' IDENTIFIER ')';
 indexed: IDENTIFIER '[' (X | Y) ']';
 indirect_y: '(' IDENTIFIER ')' '[' Y ']';
 x_indirect: '(' IDENTIFIER '[' X ']' ')';
 
-// --> Values
-value:
-	hexadecimal
-	| decimal
-	| binary
-	| negative_number
-	| opcode_literal
-	| constant;
-
-constant: IDENTIFIER;
 literal:
 	hexadecimal
 	| decimal
@@ -103,9 +99,6 @@ decimal: DECIMAL;
 binary: BINARY;
 negative_number: NEGATIVE_NUMBER;
 opcode_literal: BRK | NOP | NOP3;
-brk_literal: BRK;
-nop_literal: NOP;
-nop3_literal: NOP3;
 
 // --> Literals
 HEXADECIMAL: '$' [0-9a-fA-F]+;
@@ -115,6 +108,7 @@ NEGATIVE_NUMBER: '-' [0-9]+;
 BRK: [bB][rR][kK];
 NOP: [nN][oO][pP];
 NOP3: [nN][oO][pP]'3';
+ZERONE: [01];
 
 // --> Keywords
 ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS];
@@ -167,7 +161,7 @@ X: [xX];
 Y: [yY];
 STACK: [sS][tT][aA][cC][kK];
 
-IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
 // The dot allows a dot-notation-like syntactic sugar 
+IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
 WHITESPACE: [ \t]+ -> skip;
 EOL: '\r'? '\n';

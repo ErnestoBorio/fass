@@ -60,18 +60,13 @@ class MyFassVisitor extends fassBaseVisitor {
     return labels[name.toLowerCase()]!;
   }
 
-  void setConst(String name, int value) {
-    checkUniqueName(name);
-    constants[name.toLowerCase()] = value;
-  }
-
   void checkUniqueName(String name) {
     if (labels.containsKey(name.toLowerCase())) {
       throw Exception("A label with the name `$name` has already been defined");
     }
     if (constants.containsKey(name.toLowerCase())) {
       throw Exception(
-          "A Constant with the name `$name` has already been defined");
+          "A constant with the name `$name` has already been defined");
     }
   }
 
@@ -105,7 +100,7 @@ class MyFassVisitor extends fassBaseVisitor {
 
   String getAddressing(ReferenceContext ctx) {
     if (ctx.direct() != null) {
-      final label = ctx.direct()!.IDENTIFIER()!.text!.toLowerCase();
+      final label = ctx.direct()!.name()!.IDENTIFIER()!.text!.toLowerCase();
       return getLabel(label) <= 255 ? "ZP" : "ABS";
     } else if (ctx.indexed() != null) {
       final label = ctx.indexed()!.IDENTIFIER()!.text!.toLowerCase();
@@ -117,13 +112,13 @@ class MyFassVisitor extends fassBaseVisitor {
 
   int getLabelFromRef(ReferenceContext ctx) {
     if (ctx.direct() != null) {
-      return getLabel(ctx.direct()!.IDENTIFIER()!.text!.toLowerCase());
+      return getLabel(ctx.direct()!.name()!.IDENTIFIER()!.text!);
     } else if (ctx.indexed() != null) {
-      return getLabel(ctx.indexed()!.IDENTIFIER()!.text!.toLowerCase());
+      return getLabel(ctx.indexed()!.IDENTIFIER()!.text!);
     } else if (ctx.indirect_y() != null) {
-      return getLabel(ctx.indirect_y()!.IDENTIFIER()!.text!.toLowerCase());
+      return getLabel(ctx.indirect_y()!.IDENTIFIER()!.text!);
     }
-    return getLabel(ctx.x_indirect()!.IDENTIFIER()!.text!.toLowerCase());
+    return getLabel(ctx.x_indirect()!.IDENTIFIER()!.text!);
   }
 
   void visitAddress_stmt(Address_stmtContext ctx) {
@@ -283,7 +278,14 @@ class MyFassVisitor extends fassBaseVisitor {
 
   void visitConst_stmt(Const_stmtContext ctx) {
     try {
-      setConst(ctx.IDENTIFIER()!.text!, visitValue(ctx.value()!));
+      final value = visitValue(ctx.value()!);
+      if (value < -128 || value > 0xFFFF) {
+        throw FassError(
+            "A constant value has to fit in 16 bits, from -128 to 65535 (\$FFFF)");
+      }
+      checkUniqueName(ctx.IDENTIFIER()!.text!);
+      final name = ctx.IDENTIFIER()!.text!.toLowerCase();
+      constants[name] = value;
     } on Exception catch (err) {
       throw FassError(err.toString(), ctx);
     }
@@ -334,14 +336,14 @@ class MyFassVisitor extends fassBaseVisitor {
 
     if (ctx.direct() != null) {
       opcode = (keyword == "goto" ? JMP_ABS : JSR_ABS);
-      identifier = ctx.direct()!.IDENTIFIER()!.text!.toLowerCase();
+      identifier = ctx.direct()!.name()!.IDENTIFIER()!.text!;
     } else {
       if (keyword == "gosub") {
         throw FassError(
             "${ctx.keyword!.text} only accepts direct addressing", ctx);
       }
       opcode = JMP_IND;
-      identifier = ctx.indirect()!.IDENTIFIER()!.text!.toLowerCase();
+      identifier = ctx.indirect()!.IDENTIFIER()!.text!;
     }
 
     final address = getLabel(identifier);
@@ -400,7 +402,7 @@ class MyFassVisitor extends fassBaseVisitor {
   }
 
   (int, String) visitDirect(DirectContext ctx) {
-    final address = getLabel(ctx.IDENTIFIER()!.text!.toLowerCase());
+    final address = getLabel(ctx.name()!.IDENTIFIER()!.text!.toLowerCase());
     return (address, address <= 0xFF ? "ZP" : "ABS");
   }
 

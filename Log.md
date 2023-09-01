@@ -25,6 +25,14 @@ arithmetic_stmt
 
 ---
 
+## 20232-08-31
+We have a problem. Assembler distinguishes immediate values from addresses with the # sign.
+We don't want that verbosity in FASS, that's why names are treated equally, when possible, whether they are a constant or a label.
+So, instead of having both constants and direct label addressing defined as IDENFTIFIER, they'll be both integrated into a single rule called `name`, to prevent ambiguity for Antlr.
+Then we determine if the name refers to a constant or a label.
+
+We also need to implement a way to use the individual bytes of a label's address as literals, like assembler does with < and >.
+
 ## 2022-10-31
 Implemented goto (JMP)
 

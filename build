@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 FASS_PATH="/Users/petruza/Source/Drean64/fass"
-ANTLR_FILES="$FASS_PATH/.antlr_files"
-antlr -visitor -no-listener -Dlanguage=Dart -o $ANTLR_FILES $FASS_PATH/src/fass.g4
+ANTLR_FILES="$FASS_PATH/src/parser"
+antlr -visitor -no-listener -Dlanguage=TypeScript -o $ANTLR_FILES $FASS_PATH/src/fass.g4
 
-cp $ANTLR_FILES/fassLexer.dart $FASS_PATH/src/
-cp $ANTLR_FILES/fassParser.dart $FASS_PATH/src/
-cp $ANTLR_FILES/fassBaseVisitor.dart $FASS_PATH/src/fassBaseVisitor.dart
-cp $ANTLR_FILES/fassVisitor.dart $FASS_PATH/src/fassVisitor.dart
+rm $ANTLR_FILES/*.interp
+rm $ANTLR_FILES/*.tokens

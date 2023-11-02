@@ -1,25 +1,36 @@
 {
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Fass",
-			"type": "dart",
+			"name": "Debug File",
+			"type": "bun",
+			"internalConsoleOptions": "neverOpen",
 			"request": "launch",
-			"program": "src/main.dart",
+			"program": "${file}",
+			"cwd": "${workspaceFolder}",
+			"stopOnEntry": false,
+			"watchMode": false
 		},
 		{
-			"name": "Test",
-			"type": "dart",
+			"name": "Run File",
+			"type": "bun",
+			"internalConsoleOptions": "neverOpen",
 			"request": "launch",
-			"program": "src/test.dart",
+			"program": "${file}",
+			"cwd": "${workspaceFolder}",
+			"noDebug": true,
+			"watchMode": false
 		},
 		{
-			"type": "antlr-debug",
-			"request": "launch",
-			"name": "Debug Current Grammar",
-			"grammar": "src/fass.g4",
-			"input": "program.fass",
-			"visualParseTree": true
-		},
+			"name": "Attach Bun",
+			"type": "bun",
+			"internalConsoleOptions": "neverOpen",
+			"request": "attach",
+			"url": "ws://localhost:6499/",
+			"stopOnEntry": false
+		}
 	]
 }

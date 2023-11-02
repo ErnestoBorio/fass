@@ -1,9 +1,5 @@
 {
-	"files.exclude": {
-		"**/.DS_Store": true,
-	},
-	"[antlr]": {
-		"editor.defaultFormatter": "mike-lischke.vscode-antlr4"
-	},
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.formatOnSave": true,
+	"editor.formatOnType": true
 }

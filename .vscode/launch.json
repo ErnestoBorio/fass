@@ -5,32 +5,10 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Debug File",
-			"type": "bun",
-			"internalConsoleOptions": "neverOpen",
+			"command": "pnpm start",
+			"name": "pnpm start",
 			"request": "launch",
-			"program": "${file}",
-			"cwd": "${workspaceFolder}",
-			"stopOnEntry": false,
-			"watchMode": false
-		},
-		{
-			"name": "Run File",
-			"type": "bun",
-			"internalConsoleOptions": "neverOpen",
-			"request": "launch",
-			"program": "${file}",
-			"cwd": "${workspaceFolder}",
-			"noDebug": true,
-			"watchMode": false
-		},
-		{
-			"name": "Attach Bun",
-			"type": "bun",
-			"internalConsoleOptions": "neverOpen",
-			"request": "attach",
-			"url": "ws://localhost:6499/",
-			"stopOnEntry": false
+			"type": "node-terminal"
 		}
 	]
 }

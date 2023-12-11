@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"start": "bun ./src/main.ts"
+		"start": "tsx ./src/main.ts program.fass"
 	},
 	"devDependencies": {
 		"@types/antlr4": "^4.11.5",
@@ -13,7 +13,8 @@
 		"eslint": "^8.52.0",
 		"eslint-config-prettier": "^9.0.0",
 		"eslint-plugin-prettier": "^5.0.1",
-		"prettier": "^3.0.3"
+		"prettier": "^3.0.3",
+		"tsx": "^4.4.0"
 	},
 	"dependencies": {
 		"antlr4": "^4.13.1"

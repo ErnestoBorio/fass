@@ -104,7 +104,7 @@ opcode_literal: BRK | NOP | NOP3;
 HEXADECIMAL: '$' [0-9a-fA-F]+;
 BINARY: '%' [01]+;
 DECIMAL: [0-9]+;
-NEGATIVE_NUMBER: '-' [0-9]+;
+NEGATIVE_NUMBER: '-' [1-9] [0-9]*;
 BRK: [bB][rR][kK];
 NOP: [nN][oO][pP];
 NOP3: [nN][oO][pP]'3';

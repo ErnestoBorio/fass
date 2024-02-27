@@ -1,5 +1,3 @@
-import fassVisitor from "./parser/fassVisitor.js";
-import { ParserRuleContext } from "antlr4";
 import {
 	BinaryContext,
 	Const_stmtContext,
@@ -8,43 +6,43 @@ import {
 	LiteralContext,
 	Negative_numberContext,
 	Opcode_literalContext,
+	Remote_label_stmtContext,
 	StaticValueContext,
-} from "./parser/fassParser.js";
+} from "./parser/fassParser";
 import { opcodes } from "./opcodes";
+import { FassError } from "./error";
+import fassVisitor from "./parser/fassVisitor";
+import { ParserRuleContext } from "antlr4";
 
-class FassError implements Error {
-	name: string;
-	message: string;
+type Value = number;
 
-	constructor(message: string, ctx?: ParserRuleContext) {
-		if (ctx) {
-			const col = ctx.start!.column;
-			const line = ctx.start!.line;
-			this.message = `Line ${line}:${col} ${message}`;
-		} else {
-			this.message = message;
-		}
-	}
-
-	toString() {
-		return this.message;
-	}
-}
-
-type Value = string;
+type Hash = {
+	[key: string]: Value;
+};
 
 export default class SymbolPass extends fassVisitor<any> {
-	constants = new Map<string, Value>();
-	labels = new Map<string, Value>();
+	constants: Hash = {};
+	labels: Hash = {};
+	output = new Uint8Array(0x10000);
+
+	/**
+	 * Check if the given name is unique and throw an error if it is not.
+	 *
+	 * @param {string} name - the name to check for uniqueness
+	 * @param {ParserRuleContext} [ctx] - the parser context
+	 */
+	checkNameIsUnique(name: string, ctx?: ParserRuleContext) {
+		if (this.labels[name] || this.constants[name]) {
+			throw new FassError(`Name ${name} is already defined`, ctx);
+		}
+	}
 
 	visitConst_stmt = (ctx: Const_stmtContext): any => {
 		const name = ctx.IDENTIFIER().getText().toLowerCase();
-		if (this.constants.has(name)) {
-			throw new FassError(`Constant ${name} already exists`, ctx);
-		}
+		this.checkNameIsUnique(name);
 
 		const value = this.visitStaticValue(ctx.staticValue());
-		this.constants.set(name, value);
+		this.constants[name] = value;
 	};
 
 	visitStaticValue = (ctx: StaticValueContext): any => {
@@ -53,8 +51,8 @@ export default class SymbolPass extends fassVisitor<any> {
 		}
 		if (ctx.name()) {
 			const name = ctx.name().getText().toLowerCase();
-			if (this.constants.has(name)) {
-				return this.constants.get(name);
+			if (this.constants[name]) {
+				return this.constants[name];
 			}
 			throw new FassError(`Constant ${name} is not defined`, ctx);
 		}
@@ -128,5 +126,23 @@ export default class SymbolPass extends fassVisitor<any> {
 	visitOpcode_literal = (ctx: Opcode_literalContext): any => {
 		const opcode = ctx.getText().toUpperCase();
 		return opcodes[opcode];
+	};
+
+	visitRemote_label_stmt = (ctx: Remote_label_stmtContext): any => {
+		const name = ctx.IDENTIFIER().getText().toLowerCase();
+		this.checkNameIsUnique(name);
+
+		let address: number;
+		if (ctx.address().hexadecimal()) {
+			address = this.visitHexadecimal(ctx.address().hexadecimal());
+		} else if (ctx.address().decimal()) {
+			address = this.visitDecimal(ctx.address().decimal());
+		} else {
+			throw new FassError(
+				`This code should be unreachable, address must be a hexadecimal or decimal number`,
+				ctx.address(),
+			);
+		}
+		this.labels[name] = address;
 	};
 }

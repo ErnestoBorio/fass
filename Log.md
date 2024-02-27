@@ -25,7 +25,11 @@ arithmetic_stmt
 
 ---
 
-## 20232-08-31
+## 2024-01-30
+Al pedo el SymbolPass porque también se pueden definir contantes y labels con forward references, además para saber la dirección de un label: hay que parsear todo el código :'(
+Mejor volver a la idea original, hacer una sola pasada, dejar el espacio y luego cuando se define la forward reference ir y completarlo.
+
+## 2023-08-31
 We have a problem. Assembler distinguishes immediate values from addresses with the # sign.
 We don't want that verbosity in FASS, that's why names are treated equally, when possible, whether they are a constant or a label.
 So, instead of having both constants and direct label addressing defined as IDENFTIFIER, they'll be both integrated into a single rule called `name`, to prevent ambiguity for Antlr.

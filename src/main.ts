@@ -5,6 +5,7 @@ import SymbolPass from "./SymbolPass";
 import { readFileSync } from "fs";
 
 const source = readFileSync(process.argv[2]).toString();
+
 const symbolPass = new SymbolPass();
 const chars = new InputStream(source);
 const stream = new CharStream(chars.toString());
@@ -13,3 +14,5 @@ const tokens = new CommonTokenStream(lexer);
 const parser = new fassParser(tokens);
 const tree = parser.program();
 symbolPass.visit(tree);
+
+console.log({ constants: symbolPass.constants, labels: symbolPass.labels });

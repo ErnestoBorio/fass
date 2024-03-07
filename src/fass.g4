@@ -3,8 +3,6 @@ grammar fass;
 program: line* statement? EOF;
 line: statement? EOL;
 
-label: IDENTIFIER ':';
-
 // --> Statements
 statement:
 	address_stmt
@@ -23,6 +21,8 @@ statement:
 	| reg_assign_stmt
 	| label statement?;
 
+label: IDENTIFIER ':';
+
 address_stmt: ADDRESS_KWD address;
 
 remote_label_stmt: IDENTIFIER 'at' address;
@@ -36,13 +36,12 @@ const_stmt: CONST_KWD IDENTIFIER '=' staticValue;
 data_stmt: DATA_KWD ( datas += staticValue ','?)+;
 
 flag_set_stmt:
-	(CARRY | OVERFLOW) '=' ZERONE
-	| (INTERRUPT | DECIMAL_MODE) (ON | OFF);
+	(CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE) '=' BIT;
 
 stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
 goto_stmt: GOTO_KWD (direct | indirect);
-gosub_stmt: GOTO_KWD (direct | indirect);
+gosub_stmt: GOSUB_KWD (direct | indirect);
 
 return_stmt: RETURN_KWD | RETINT_KWD;
 
@@ -108,7 +107,7 @@ NEGATIVE_NUMBER: '-' [1-9] [0-9]*;
 BRK: [bB][rR][kK];
 NOP: [nN][oO][pP];
 NOP3: [nN][oO][pP]'3';
-ZERONE: [01];
+BIT: [01];
 
 // --> Keywords
 ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS];
@@ -151,9 +150,6 @@ ZERO: [zZ][eE][rR][oO];
 POSITIVE: [pP][oO][sS][iI][tT][iI][vV][eE];
 NEGATIVE: [nN][eE][gG][aA][tT][iI][vV][eE];
 EQUAL: [eE][qQ][uU][aA][lL];
-
-ON: [oO][nN];
-OFF: [oO][fF][fF];
 
 // ETC -->
 A: [aA];

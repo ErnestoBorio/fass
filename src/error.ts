@@ -18,3 +18,9 @@ export class FassError implements Error {
 		return this.message;
 	}
 }
+
+export class UnreachableCode extends FassError {
+	constructor(ctx?: ParserRuleContext) {
+		super(`Unreachable code`, ctx);
+	}
+}

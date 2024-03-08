@@ -7,7 +7,7 @@ export const opcodes = {
 		ABSX: 0xbd,
 		ABSY: 0xb9,
 		INDX: 0xa1,
-		INDY: 0xb1,
+		INDY: 0xb1
 	},
 	LDX: { IMM: 0xa2, ZP: 0xa6, ZPY: 0xb6, ABS: 0xae, ABSY: 0xbe },
 	LDY: { IMM: 0xa0, ZP: 0xa4, ZPX: 0xb4, ABS: 0xac, ABSX: 0xbc },
@@ -18,7 +18,7 @@ export const opcodes = {
 		ABSX: 0x9d,
 		ABSY: 0x99,
 		INDX: 0x81,
-		INDY: 0x91,
+		INDY: 0x91
 	},
 	STX: { ZP: 0x86, ZPY: 0x96, ABS: 0x8e },
 	STY: { ZP: 0x84, ZPX: 0x94, ABS: 0x8c },
@@ -30,7 +30,7 @@ export const opcodes = {
 		ABSX: 0x7d,
 		ABSY: 0x79,
 		INDX: 0x61,
-		INDY: 0x71,
+		INDY: 0x71
 	},
 	SBC: {
 		IMM: 0xe9,
@@ -40,7 +40,7 @@ export const opcodes = {
 		ABSX: 0xfd,
 		ABSY: 0xf9,
 		INDX: 0xe1,
-		INDY: 0xf1,
+		INDY: 0xf1
 	},
 	ASL: { ACC: 0x0a, ZP: 0x06, ZPX: 0x16, ABS: 0x0e, ABSX: 0x1e },
 	LSR: { ACC: 0x4a, ZP: 0x46, ZPX: 0x56, ABS: 0x4e, ABSX: 0x5e },
@@ -56,7 +56,7 @@ export const opcodes = {
 		ABSX: 0x3d,
 		ABSY: 0x39,
 		INDX: 0x21,
-		INDY: 0x31,
+		INDY: 0x31
 	},
 	ORA: {
 		IMM: 0x09,
@@ -66,7 +66,7 @@ export const opcodes = {
 		ABSX: 0x1d,
 		ABSY: 0x19,
 		INDX: 0x01,
-		INDY: 0x11,
+		INDY: 0x11
 	},
 	EOR: {
 		IMM: 0x49,
@@ -76,7 +76,7 @@ export const opcodes = {
 		ABSX: 0x5d,
 		ABSY: 0x59,
 		INDX: 0x41,
-		INDY: 0x51,
+		INDY: 0x51
 	},
 	CMP: {
 		IMM: 0xc9,
@@ -86,7 +86,7 @@ export const opcodes = {
 		ABSX: 0xdd,
 		ABSY: 0xd9,
 		INDX: 0xc1,
-		INDY: 0xd1,
+		INDY: 0xd1
 	},
 	JMP: { ABS: 0x4c, IND: 0x6c },
 	BIT: { ZP: 0x24, ABS: 0x2c },
@@ -124,5 +124,5 @@ export const opcodes = {
 	BEQ: 0xf0,
 	NOP: 0xea,
 	NOP3: 0x04,
-	BRK: 0x00,
+	BRK: 0x00
 };

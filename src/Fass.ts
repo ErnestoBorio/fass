@@ -1,7 +1,7 @@
 import { opcodes } from "./opcodes";
-import { FassError, UnreachableCode } from "./error";
-import fassVisitor from "./parser/fassVisitor";
 import { ParserRuleContext } from "antlr4";
+import fassVisitor from "./parser/fassVisitor";
+import { FassError, UnreachableCode } from "./error";
 import {
 	LabelContext,
 	BinaryContext,
@@ -17,12 +17,17 @@ import {
 	Flag_set_stmtContext,
 	Opcode_literalContext,
 	Negative_numberContext,
-	Remote_label_stmtContext
+	Remote_label_stmtContext,
+	Stack_stmtContext,
+	Goto_stmtContext,
+	DirectContext,
+	NameContext,
+	IndirectContext
 } from "./parser/fassParser";
 
 class Value {
 	data: number;
-	length: number;
+	length: number = 1;
 	endian: "big" | "little" = "big";
 }
 
@@ -30,12 +35,24 @@ type Hash<Type> = {
 	[key: string]: Type;
 };
 
+type Optional<Type> = Type | undefined;
+
+class Reference {
+	address: number;
+	length: number;
+}
+
+class Label {
+	address: Optional<number>;
+	offset: Optional<number>;
+}
+
 /** Default filler byte, $EA = NOP */
 const defaultFiller = 0xea;
 
 export default class Fass extends fassVisitor<any> {
 	constants = {} as Hash<Value>;
-	labels = {} as Hash<number>;
+	labels = {} as Hash<Label>;
 	filler = defaultFiller;
 
 	/** Binary output of the program */
@@ -64,12 +81,28 @@ export default class Fass extends fassVisitor<any> {
 
 	/** Write a value to the output buffer */
 	outputValue(value: Value) {
-		this.output.writeUintBE(
-			value.data,
-			this.address - this.startAddress,
-			value.length
-		);
+		this.output.writeUintBE(value.data, this.getOutputLength(), value.length);
 		this.address += value.length;
+	}
+
+	getLabel(name: NameContext) {
+		const label = name.getText().toLowerCase();
+		if (this.labels[label]) {
+			return this.labels[label];
+		}
+		this.labels[label] = {
+			address: undefined,
+			offset: this.getOutputLength()
+		} as Label;
+		return this.labels[label];
+	}
+
+	/**
+	 * @returns length in bytes of the output so far, equivalent to the byte
+	 * offset in the output where the next byte will be written
+	 */
+	getOutputLength() {
+		return this.address - this.startAddress;
 	}
 
 	//--------------------------------------------------------------------------> Const & values
@@ -171,16 +204,14 @@ export default class Fass extends fassVisitor<any> {
 			);
 		}
 		return {
-			data: neg,
-			length: 1
+			data: neg
 		} as Value;
 	};
 
 	visitOpcode_literal = (ctx: Opcode_literalContext): Value => {
 		const opcode = ctx.getText().toUpperCase();
 		return {
-			data: opcodes[opcode],
-			length: 1
+			data: opcodes[opcode]
 		} as Value;
 	};
 
@@ -192,6 +223,24 @@ export default class Fass extends fassVisitor<any> {
 			return this.visitDecimal(ctx.decimal());
 		}
 		throw new UnreachableCode(ctx);
+	};
+
+	//--------------------------------------------------------------------------> References
+
+	visitDirect = (ctx: DirectContext): Reference => {
+		const label = this.getLabel(ctx.name());
+		return {
+			address: label.address,
+			length: 2
+		} as Reference;
+	};
+
+	visitIndirect = (ctx: IndirectContext): Reference => {
+		const label = this.getLabel(ctx.name());
+		return {
+			address: label.address,
+			length: 2
+		} as Reference;
 	};
 
 	//--------------------------------------------------------------------------> Declarations
@@ -260,44 +309,37 @@ export default class Fass extends fassVisitor<any> {
 		if (ctx.CARRY()) {
 			if (ctx.BIT().getText() === "0") {
 				this.outputValue({
-					data: opcodes["CLC"],
-					length: 1
+					data: opcodes.CLC
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
 				this.outputValue({
-					data: opcodes["SEC"],
-					length: 1
+					data: opcodes.SEC
 				} as Value);
 			}
 		} else if (ctx.INTERRUPT()) {
 			if (ctx.BIT().getText() === "0") {
 				this.outputValue({
-					data: opcodes["CLI"],
-					length: 1
+					data: opcodes.CLI
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
 				this.outputValue({
-					data: opcodes["SEI"],
-					length: 1
+					data: opcodes.SEI
 				} as Value);
 			}
 		} else if (ctx.DECIMAL_MODE()) {
 			if (ctx.BIT().getText() === "0") {
 				this.outputValue({
-					data: opcodes["CLD"],
-					length: 1
+					data: opcodes.CLD
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
 				this.outputValue({
-					data: opcodes["SED"],
-					length: 1
+					data: opcodes.SED
 				} as Value);
 			}
 		} else if (ctx.OVERFLOW()) {
 			if (ctx.BIT().getText() === "0") {
 				this.outputValue({
-					data: opcodes["CLV"],
-					length: 1
+					data: opcodes.CLV
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
 				throw new FassError(
@@ -306,5 +348,49 @@ export default class Fass extends fassVisitor<any> {
 				);
 			}
 		}
+	};
+
+	visitStack_stmt = (ctx: Stack_stmtContext) => {
+		if (ctx.PUSH_KWD()) {
+			if (ctx.A()) {
+				this.outputValue({
+					data: opcodes.PHA
+				} as Value);
+			} else if (ctx.FLAGS_KWD()) {
+				this.outputValue({
+					data: opcodes.PHP
+				} as Value);
+			}
+		} else if (ctx.PULL_KWD()) {
+			if (ctx.A()) {
+				this.outputValue({
+					data: opcodes.PLA
+				} as Value);
+			} else if (ctx.FLAGS_KWD()) {
+				this.outputValue({
+					data: opcodes.PLP
+				} as Value);
+			}
+		}
+	};
+
+	visitGoto_stmt = (ctx: Goto_stmtContext) => {
+		let ref: Reference;
+		if (ctx.direct()) {
+			ref = this.visitDirect(ctx.direct());
+			this.outputValue({
+				data: opcodes.JMP.ABS
+			} as Value);
+		} else if (ctx.indirect()) {
+			ref = this.visitIndirect(ctx.indirect());
+			this.outputValue({
+				data: opcodes.JMP.IND
+			} as Value);
+		}
+		this.outputValue({
+			data: ref!.address,
+			endian: "little",
+			length: 2
+		} as Value);
 	};
 }

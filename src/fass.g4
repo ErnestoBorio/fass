@@ -41,6 +41,7 @@ flag_set_stmt:
 stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
 goto_stmt: GOTO_KWD (direct | indirect);
+
 gosub_stmt: GOSUB_KWD (direct | indirect);
 
 return_stmt: RETURN_KWD | RETINT_KWD;
@@ -81,10 +82,10 @@ reference:
 	| x_indirect;
 
 direct: name; // Only labels are valid names here
-indirect: '(' IDENTIFIER ')';
-indexed: IDENTIFIER '[' (X | Y) ']';
-indirect_y: '(' IDENTIFIER ')' '[' Y ']';
-x_indirect: '(' IDENTIFIER '[' X ']' ')';
+indirect: '(' name ')';
+indexed: name '[' (X | Y) ']';
+indirect_y: '(' name ')' '[' Y ']';
+x_indirect: '(' name '[' X ']' ')';
 
 literal:
 	hexadecimal

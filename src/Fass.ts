@@ -1,15 +1,21 @@
 import { opcodes } from "./opcodes";
 import { ParserRuleContext } from "antlr4";
 import fassVisitor from "./parser/fassVisitor";
+import { Value, Hash, Label, Slice, Reference } from "./util";
 import { FassError, UnreachableCode } from "./error";
 import {
+	NameContext,
 	LabelContext,
+	DirectContext,
 	BinaryContext,
 	DecimalContext,
 	AddressContext,
 	LiteralContext,
+	IndirectContext,
+	Goto_stmtContext,
 	Data_stmtContext,
 	Const_stmtContext,
+	Stack_stmtContext,
 	StaticValueContext,
 	HexadecimalContext,
 	Filler_stmtContext,
@@ -17,35 +23,8 @@ import {
 	Flag_set_stmtContext,
 	Opcode_literalContext,
 	Negative_numberContext,
-	Remote_label_stmtContext,
-	Stack_stmtContext,
-	Goto_stmtContext,
-	DirectContext,
-	NameContext,
-	IndirectContext
+	Remote_label_stmtContext
 } from "./parser/fassParser";
-
-class Value {
-	data: number;
-	length: number = 1;
-	endian: "big" | "little" = "big";
-}
-
-type Hash<Type> = {
-	[key: string]: Type;
-};
-
-type Optional<Type> = Type | undefined;
-
-class Reference {
-	address: number;
-	length: number;
-}
-
-class Label {
-	address: Optional<number>;
-	offset: Optional<number>;
-}
 
 /** Default filler byte, $EA = NOP */
 const defaultFiller = 0xea;
@@ -56,13 +35,18 @@ export default class Fass extends fassVisitor<any> {
 	filler = defaultFiller;
 
 	/** Binary output of the program */
-	output = Buffer.alloc(0x10000);
+	output: Slice;
 
 	/** The address where next output will be written */
 	address = 0;
 
 	/** The address of the first byte of the output */
 	startAddress = 0;
+
+	constructor() {
+		super();
+		this.output = new Slice(Buffer.alloc(0x10000));
+	}
 
 	//--------------------------------------------------------------------------> Utility functions
 
@@ -75,14 +59,32 @@ export default class Fass extends fassVisitor<any> {
 
 	/** Fill the output buffer with {length} times this.filler */
 	fill(length: number) {
-		// WIP adjust this with the starting address
-		this.output = this.output.fill(this.filler, this.address, length);
+		const filling = Buffer.alloc(length);
+		filling.fill(this.filler);
+		this.output.append(filling);
+		this.address += length;
 	}
 
 	/** Write a value to the output buffer */
-	outputValue(value: Value) {
-		this.output.writeUintBE(value.data, this.getOutputLength(), value.length);
-		this.address += value.length;
+	write(data: Value): void;
+	write(data: Buffer): void;
+	write(data: Value | Buffer): void {
+		if (data instanceof Value) {
+			if (data.length === 1) {
+				this.output.append(Buffer.from([data.data]));
+			} else if (data.length === 2) {
+				const buffer = Buffer.alloc(2);
+				if (data.endian === "big") {
+					buffer.writeUInt16BE(data.data);
+				} else if (data.endian === "little") {
+					buffer.writeUInt16LE(data.data);
+				} else throw new Error("Invalid endianness. (unreachable code?)");
+				this.output.append(buffer);
+			}
+		} else if (data instanceof Buffer) {
+			this.output.append(data);
+		} else throw new Error("Invalid data type. (unreachable code?)");
+		this.address += data.length;
 	}
 
 	getLabel(name: NameContext) {
@@ -270,13 +272,13 @@ export default class Fass extends fassVisitor<any> {
 	visitLabel = (ctx: LabelContext) => {
 		const name = ctx.IDENTIFIER().getText().toLowerCase();
 		this.checkNameIsUnique(name);
-		this.labels[name] = this.address;
+		this.labels[name].address = this.address;
 	};
 
 	visitRemote_label_stmt = (ctx: Remote_label_stmtContext) => {
 		const name = ctx.IDENTIFIER().getText().toLowerCase();
 		this.checkNameIsUnique(name);
-		this.labels[name] = this.visitAddress(ctx.address()).data;
+		this.labels[name].address = this.visitAddress(ctx.address()).data;
 	};
 
 	visitFiller_stmt = (ctx: Filler_stmtContext) => {

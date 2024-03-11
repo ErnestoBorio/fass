@@ -27,28 +27,32 @@ export class Label {
 export class Slice {
 	private buffer: Buffer;
 	private slice: Buffer;
-	private offset: number;
 
 	constructor(source: Buffer, offset?: number, end?: number) {
 		this.buffer = source;
-		this.offset = offset || 0;
 		this.slice = this.buffer.subarray(offset, end);
 	}
 
 	private grow(length: number) {
-		if (this.offset + length > this.buffer.length) {
+		if (this.slice.byteOffset + length > this.buffer.length) {
 			throw new Error("Buffer overflow");
 		}
 		// Reslice the buffer to get a larger slice
-		this.slice = this.buffer.subarray(this.offset, this.offset + length);
+		this.slice = this.buffer.subarray(
+			this.slice.byteOffset,
+			this.slice.byteOffset + length
+		);
 	}
 
 	append(data: Buffer) {
-		if (this.offset + data.length > this.buffer.length) {
+		if (this.slice.byteOffset + data.length > this.buffer.length) {
 			throw new Error("Buffer overflow");
 		}
 		// Reslice the buffer to get a larger slice
-		this.slice = this.buffer.subarray(this.offset, this.offset + data.length);
+		this.slice = this.buffer.subarray(
+			this.slice.byteOffset,
+			this.slice.byteOffset + data.length
+		);
 		data.copy(this.slice, this.slice.length - data.length, 0, data.length);
 	}
 }

@@ -35,18 +35,13 @@ export default class Fass extends fassVisitor<any> {
 	filler = defaultFiller;
 
 	/** Binary output of the program */
-	output: Slice;
+	output?: Slice;
 
 	/** The address where next output will be written */
 	address = 0;
 
 	/** The address of the first byte of the output */
 	startAddress = 0;
-
-	constructor() {
-		super();
-		this.output = new Slice(Buffer.alloc(0x10000));
-	}
 
 	//--------------------------------------------------------------------------> Utility functions
 
@@ -61,14 +56,19 @@ export default class Fass extends fassVisitor<any> {
 	fill(length: number) {
 		const filling = Buffer.alloc(length);
 		filling.fill(this.filler);
-		this.output.append(filling);
+		this.output!.append(filling);
 		this.address += length;
 	}
 
-	/** Write a value to the output buffer */
+	/** Write data to the output buffer */
 	write(data: Value): void;
 	write(data: Buffer): void;
 	write(data: Value | Buffer): void {
+		if (!this.output) {
+			// Initialize the output buffer with just enough space
+			this.output = new Slice(Buffer.alloc(0x10000 - this.startAddress));
+		}
+
 		if (data instanceof Value) {
 			if (data.length === 1) {
 				this.output.append(Buffer.from([data.data]));
@@ -94,17 +94,9 @@ export default class Fass extends fassVisitor<any> {
 		}
 		this.labels[label] = {
 			address: undefined,
-			offset: this.getOutputLength()
+			offset: this.address - this.startAddress
 		} as Label;
 		return this.labels[label];
-	}
-
-	/**
-	 * @returns length in bytes of the output so far, equivalent to the byte
-	 * offset in the output where the next byte will be written
-	 */
-	getOutputLength() {
-		return this.address - this.startAddress;
 	}
 
 	//--------------------------------------------------------------------------> Const & values
@@ -251,12 +243,6 @@ export default class Fass extends fassVisitor<any> {
 	visitAddress_stmt = (ctx: Address_stmtContext) => {
 		const newAddress = this.visitAddress(ctx.address()).data;
 
-		if (this.address === 0) {
-			// First time setting the address
-			this.startAddress = newAddress;
-			this.address = newAddress;
-		}
-
 		if (newAddress < this.address) {
 			throw new FassError(
 				`Can't set new address ${newAddress} lower than current address ${this.address}`,
@@ -303,44 +289,44 @@ export default class Fass extends fassVisitor<any> {
 		ctx._datas; // WIP should we use this instead?
 		ctx.staticValue_list().forEach(data => {
 			const value = this.visitStaticValue(data);
-			this.outputValue(value);
+			this.write(value);
 		});
 	};
 
 	visitFlag_set_stmt = (ctx: Flag_set_stmtContext) => {
 		if (ctx.CARRY()) {
 			if (ctx.BIT().getText() === "0") {
-				this.outputValue({
+				this.write({
 					data: opcodes.CLC
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
-				this.outputValue({
+				this.write({
 					data: opcodes.SEC
 				} as Value);
 			}
 		} else if (ctx.INTERRUPT()) {
 			if (ctx.BIT().getText() === "0") {
-				this.outputValue({
+				this.write({
 					data: opcodes.CLI
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
-				this.outputValue({
+				this.write({
 					data: opcodes.SEI
 				} as Value);
 			}
 		} else if (ctx.DECIMAL_MODE()) {
 			if (ctx.BIT().getText() === "0") {
-				this.outputValue({
+				this.write({
 					data: opcodes.CLD
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
-				this.outputValue({
+				this.write({
 					data: opcodes.SED
 				} as Value);
 			}
 		} else if (ctx.OVERFLOW()) {
 			if (ctx.BIT().getText() === "0") {
-				this.outputValue({
+				this.write({
 					data: opcodes.CLV
 				} as Value);
 			} else if (ctx.BIT().getText() === "1") {
@@ -355,21 +341,21 @@ export default class Fass extends fassVisitor<any> {
 	visitStack_stmt = (ctx: Stack_stmtContext) => {
 		if (ctx.PUSH_KWD()) {
 			if (ctx.A()) {
-				this.outputValue({
+				this.write({
 					data: opcodes.PHA
 				} as Value);
 			} else if (ctx.FLAGS_KWD()) {
-				this.outputValue({
+				this.write({
 					data: opcodes.PHP
 				} as Value);
 			}
 		} else if (ctx.PULL_KWD()) {
 			if (ctx.A()) {
-				this.outputValue({
+				this.write({
 					data: opcodes.PLA
 				} as Value);
 			} else if (ctx.FLAGS_KWD()) {
-				this.outputValue({
+				this.write({
 					data: opcodes.PLP
 				} as Value);
 			}
@@ -380,16 +366,16 @@ export default class Fass extends fassVisitor<any> {
 		let ref: Reference;
 		if (ctx.direct()) {
 			ref = this.visitDirect(ctx.direct());
-			this.outputValue({
+			this.write({
 				data: opcodes.JMP.ABS
 			} as Value);
 		} else if (ctx.indirect()) {
 			ref = this.visitIndirect(ctx.indirect());
-			this.outputValue({
+			this.write({
 				data: opcodes.JMP.IND
 			} as Value);
 		}
-		this.outputValue({
+		this.write({
 			data: ref!.address,
 			endian: "little",
 			length: 2

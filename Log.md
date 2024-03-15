@@ -18,15 +18,17 @@ arithmetic_stmt
 
 # To do
 
-- Add tests for `if else`, `data`
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
 - Add `>` and `<` operators for getting the high and low bytes of a label reference, respectively, as an immediate value
 - Integrate with Cpu6502 and make automated VM tests
 
 ---
 
+## 2024-03-14
+Added forward reference info in the labels Hash, but there can be many forward references to the same label, so we have to record them separately.
+
 ## 2024-01-30
-Al pedo el SymbolPass porque también se pueden definir contantes y labels con forward references, además para saber la dirección de un label: hay que parsear todo el código :'(
+Al pedo el SymbolPass porque también se pueden definir labels con forward references, además para saber la dirección de un label: hay que parsear todo el código :'(
 Mejor volver a la idea original, hacer una sola pasada, dejar el espacio y luego cuando se define la forward reference ir y completarlo.
 
 ## 2023-08-31

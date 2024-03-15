@@ -42,13 +42,12 @@ stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
 goto_stmt: GOTO_KWD (direct | indirect);
 
-gosub_stmt: GOSUB_KWD (direct | indirect);
+gosub_stmt: GOSUB_KWD direct;
 
 return_stmt: RETURN_KWD | RETINT_KWD;
 
 bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
-		A
-		| reference
+		A | direct | indexed
 	);
 
 logic_stmt:
@@ -70,7 +69,7 @@ condition:
 	| NEGATIVE;
 
 value: literal | name | reference;
-staticValue: literal | name;
+staticValue: literal | name | STRING;
 
 name: IDENTIFIER; // A constant or a label
 
@@ -99,6 +98,9 @@ decimal: DECIMAL;
 binary: BINARY;
 negative_number: NEGATIVE_NUMBER;
 opcode_literal: BRK | NOP | NOP3;
+
+STRING: '"' (ESC | ~["])* '"';
+ESC: '\\"';
 
 // --> Literals
 HEXADECIMAL: '$' [0-9a-fA-F]+;

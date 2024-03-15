@@ -1,103 +1,35 @@
+import { Core } from "./Core";
 import { opcodes } from "./opcodes";
-import { ParserRuleContext } from "antlr4";
 import fassVisitor from "./parser/fassVisitor";
-import { Value, Hash, Label, Slice, Reference } from "./util";
-import { FassError, UnreachableCode } from "./error";
+import { Value, FassError, UnreachableCode } from "./types";
 import {
-	NameContext,
 	LabelContext,
 	DirectContext,
 	BinaryContext,
 	DecimalContext,
 	AddressContext,
 	LiteralContext,
+	IndexedContext,
 	IndirectContext,
 	Goto_stmtContext,
 	Data_stmtContext,
 	Const_stmtContext,
 	Stack_stmtContext,
+	Gosub_stmtContext,
 	StaticValueContext,
 	HexadecimalContext,
 	Filler_stmtContext,
+	Return_stmtContext,
 	Address_stmtContext,
 	Flag_set_stmtContext,
 	Opcode_literalContext,
+	Bit_shift_stmtContext,
 	Negative_numberContext,
 	Remote_label_stmtContext
 } from "./parser/fassParser";
 
-/** Default filler byte, $EA = NOP */
-const defaultFiller = 0xea;
-
 export default class Fass extends fassVisitor<any> {
-	constants = {} as Hash<Value>;
-	labels = {} as Hash<Label>;
-	filler = defaultFiller;
-
-	/** Binary output of the program */
-	output?: Slice;
-
-	/** The address where next output will be written */
-	address = 0;
-
-	/** The address of the first byte of the output */
-	startAddress = 0;
-
-	//--------------------------------------------------------------------------> Utility functions
-
-	/** Checks if the given name is unique and throws otherwise */
-	checkNameIsUnique(name: string, ctx?: ParserRuleContext) {
-		if (this.labels[name] || this.constants[name]) {
-			throw new FassError(`Name ${name} is already defined`, ctx);
-		}
-	}
-
-	/** Fill the output buffer with {length} times this.filler */
-	fill(length: number) {
-		const filling = Buffer.alloc(length);
-		filling.fill(this.filler);
-		this.output!.append(filling);
-		this.address += length;
-	}
-
-	/** Write data to the output buffer */
-	write(data: Value): void;
-	write(data: Buffer): void;
-	write(data: Value | Buffer): void {
-		if (!this.output) {
-			// Initialize the output buffer with just enough space
-			this.output = new Slice(Buffer.alloc(0x10000 - this.startAddress));
-		}
-
-		if (data instanceof Value) {
-			if (data.length === 1) {
-				this.output.append(Buffer.from([data.data]));
-			} else if (data.length === 2) {
-				const buffer = Buffer.alloc(2);
-				if (data.endian === "big") {
-					buffer.writeUInt16BE(data.data);
-				} else if (data.endian === "little") {
-					buffer.writeUInt16LE(data.data);
-				} else throw new Error("Invalid endianness. (unreachable code?)");
-				this.output.append(buffer);
-			}
-		} else if (data instanceof Buffer) {
-			this.output.append(data);
-		} else throw new Error("Invalid data type. (unreachable code?)");
-		this.address += data.length;
-	}
-
-	getLabel(name: NameContext) {
-		const label = name.getText().toLowerCase();
-		if (this.labels[label]) {
-			return this.labels[label];
-		}
-		this.labels[label] = {
-			address: undefined,
-			offset: this.address - this.startAddress
-		} as Label;
-		return this.labels[label];
-	}
+	core = new Core();
 
 	//--------------------------------------------------------------------------> Const & values
 
@@ -221,19 +153,27 @@ export default class Fass extends fassVisitor<any> {
 
 	//--------------------------------------------------------------------------> References
 
-	visitDirect = (ctx: DirectContext): Reference => {
+	visitDirect = (ctx: DirectContext) => {
 		const label = this.getLabel(ctx.name());
 		return {
-			address: label.address,
+			address: label?.address,
+			length: label!.address! >= 0x100 ? 2 : 1
+		} as Reference;
+	};
+
+	visitIndirect = (ctx: IndirectContext) => {
+		const label = this.getLabel(ctx.name());
+		return {
+			address: label?.address,
 			length: 2
 		} as Reference;
 	};
 
-	visitIndirect = (ctx: IndirectContext): Reference => {
+	visitIndexed = (ctx: IndexedContext) => {
 		const label = this.getLabel(ctx.name());
 		return {
-			address: label.address,
-			length: 2
+			address: label?.address,
+			length: label!.address! >= 0x100 ? 2 : 1
 		} as Reference;
 	};
 
@@ -242,17 +182,11 @@ export default class Fass extends fassVisitor<any> {
 
 	visitAddress_stmt = (ctx: Address_stmtContext) => {
 		const newAddress = this.visitAddress(ctx.address()).data;
-
-		if (newAddress < this.address) {
-			throw new FassError(
-				`Can't set new address ${newAddress} lower than current address ${this.address}`,
-				ctx
-			);
+		try {
+			this.core.setAddress(newAddress);
+		} catch (error) {
+			throw new FassError(error.message, ctx);
 		}
-		if (newAddress - this.address > 0) {
-			this.fill(newAddress - this.address);
-		}
-		this.address = newAddress;
 	};
 
 	visitLabel = (ctx: LabelContext) => {
@@ -289,46 +223,32 @@ export default class Fass extends fassVisitor<any> {
 		ctx._datas; // WIP should we use this instead?
 		ctx.staticValue_list().forEach(data => {
 			const value = this.visitStaticValue(data);
-			this.write(value);
+			this.append(value);
 		});
 	};
 
 	visitFlag_set_stmt = (ctx: Flag_set_stmtContext) => {
 		if (ctx.CARRY()) {
 			if (ctx.BIT().getText() === "0") {
-				this.write({
-					data: opcodes.CLC
-				} as Value);
+				this.append(opcodes.CLC);
 			} else if (ctx.BIT().getText() === "1") {
-				this.write({
-					data: opcodes.SEC
-				} as Value);
+				this.append(opcodes.SEC);
 			}
 		} else if (ctx.INTERRUPT()) {
 			if (ctx.BIT().getText() === "0") {
-				this.write({
-					data: opcodes.CLI
-				} as Value);
+				this.append(opcodes.CLI);
 			} else if (ctx.BIT().getText() === "1") {
-				this.write({
-					data: opcodes.SEI
-				} as Value);
+				this.append(opcodes.SEI);
 			}
 		} else if (ctx.DECIMAL_MODE()) {
 			if (ctx.BIT().getText() === "0") {
-				this.write({
-					data: opcodes.CLD
-				} as Value);
+				this.append(opcodes.CLD);
 			} else if (ctx.BIT().getText() === "1") {
-				this.write({
-					data: opcodes.SED
-				} as Value);
+				this.append(opcodes.SED);
 			}
 		} else if (ctx.OVERFLOW()) {
 			if (ctx.BIT().getText() === "0") {
-				this.write({
-					data: opcodes.CLV
-				} as Value);
+				this.append(opcodes.CLV);
 			} else if (ctx.BIT().getText() === "1") {
 				throw new FassError(
 					`The overflow flag can't be set programmatically`,
@@ -341,23 +261,15 @@ export default class Fass extends fassVisitor<any> {
 	visitStack_stmt = (ctx: Stack_stmtContext) => {
 		if (ctx.PUSH_KWD()) {
 			if (ctx.A()) {
-				this.write({
-					data: opcodes.PHA
-				} as Value);
+				this.append(opcodes.PHA);
 			} else if (ctx.FLAGS_KWD()) {
-				this.write({
-					data: opcodes.PHP
-				} as Value);
+				this.append(opcodes.PHP);
 			}
 		} else if (ctx.PULL_KWD()) {
 			if (ctx.A()) {
-				this.write({
-					data: opcodes.PLA
-				} as Value);
+				this.append(opcodes.PLA);
 			} else if (ctx.FLAGS_KWD()) {
-				this.write({
-					data: opcodes.PLP
-				} as Value);
+				this.append(opcodes.PLP);
 			}
 		}
 	};
@@ -366,19 +278,49 @@ export default class Fass extends fassVisitor<any> {
 		let ref: Reference;
 		if (ctx.direct()) {
 			ref = this.visitDirect(ctx.direct());
-			this.write({
-				data: opcodes.JMP.ABS
-			} as Value);
+			this.append(opcodes.JMP.ABS);
 		} else if (ctx.indirect()) {
 			ref = this.visitIndirect(ctx.indirect());
-			this.write({
-				data: opcodes.JMP.IND
-			} as Value);
+			this.append(opcodes.JMP.IND);
 		}
-		this.write({
+		this.append({
 			data: ref!.address,
 			endian: "little",
 			length: 2
 		} as Value);
+	};
+
+	visitGosub_stmt = (ctx: Gosub_stmtContext) => {
+		const ref = this.visitDirect(ctx.direct());
+		this.append(opcodes.JSR);
+		this.append({
+			data: ref!.address,
+			endian: "little",
+			length: 2
+		} as Value);
+	};
+
+	visitReturn_stmt = (ctx: Return_stmtContext) => {
+		if (ctx.RETURN_KWD()) {
+			this.append(opcodes.RTS);
+		} else if (ctx.RETINT_KWD()) {
+			this.append(opcodes.RTI);
+		}
+	};
+
+	visitBit_shift_stmt = (ctx: Bit_shift_stmtContext) => {
+		// let addressing = "";
+		// let ref: Reference | undefined;
+		// if (ctx.A()) {
+		// 	addressing = "ACC";
+		// } else if (ctx.direct()) {
+		// 	ref = this.visitDirect(ctx.direct());
+		// } else if (ctx.indexed()) {
+		// 	ref = this.visitIndexed(ctx.indexed());
+		// }
+		// else if (ctx.direct() || ctx.indexed()) {
+		// 	ref = this.getLabel(ctx.direct()?.name() ?? ctx.indexed()?.name());
+		// 	// ref.¿length? = 2;
+		// } else throw new UnreachableCode(ctx);
 	};
 }

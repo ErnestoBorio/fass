@@ -1,3 +1,5 @@
+import { ParserRuleContext } from "antlr4";
+
 export type Optional<Type> = Type | undefined;
 
 type Endianness = "big" | "little";
@@ -10,18 +12,8 @@ export type Hash<Type> = {
 
 export class Value {
 	data: number;
-	length: number = 1;
+	length: Length = 1;
 	endian: Endianness = "big";
-}
-
-export class Reference {
-	address: number;
-	length: number;
-}
-
-export class Label {
-	address: Optional<number>;
-	offset: Optional<number>;
 }
 
 export class Slice {
@@ -44,6 +36,8 @@ export class Slice {
 		);
 	}
 
+	getLength = () => this.slice.length;
+
 	append(data: Buffer) {
 		if (this.slice.byteOffset + data.length > this.buffer.length) {
 			throw new Error("Buffer overflow");
@@ -55,4 +49,39 @@ export class Slice {
 		);
 		data.copy(this.slice, this.slice.length - data.length, 0, data.length);
 	}
+
+	write(data: Buffer, offset: number) {
+		if (offset + data.length > this.slice.length) {
+			throw new Error("Buffer overflow");
+		}
+		data.copy(this.slice, offset, 0, data.length);
+	}
 }
+
+export class FassError implements Error {
+	name: string;
+	message: string;
+
+	constructor(message: string, ctx?: ParserRuleContext) {
+		if (ctx) {
+			const col = ctx.start!.column;
+			const line = ctx.start!.line;
+			this.message = `Line ${line}:${col} ${message}`;
+		} else {
+			this.message = message;
+		}
+	}
+
+	toString() {
+		return this.message;
+	}
+}
+
+export class UnreachableCode extends FassError {
+	constructor(ctx?: ParserRuleContext) {
+		super(`Unreachable code`, ctx);
+	}
+}
+
+/** Default filler byte, $EA = NOP */
+export const defaultFiller = 0xea;

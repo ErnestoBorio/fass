@@ -4,17 +4,17 @@ export type Optional<Type> = Type | undefined;
 
 type Endianness = "big" | "little";
 
-type Length = 1 | 2;
-
 export type Hash<Type> = {
 	[key: string]: Type;
 };
 
 export class Value {
 	data: number;
-	length: Length = 1;
+	length: 1 | 2 = 1;
 	endian: Endianness = "big";
 }
+
+export type StaticValue = number | Buffer;
 
 export class Slice {
 	private buffer: Buffer;

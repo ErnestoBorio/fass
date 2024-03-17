@@ -10,12 +10,12 @@ import {
 } from "./types";
 
 export class Core {
-	private constants = {} as Hash<Value>;
+	private constants = {} as Hash<number>;
 	private labels = {} as Hash<number>;
 	/** List of references to yet undefined labels, and their output offset */
 	private forwardRefs = {} as Hash<number[]>;
 
-	private filler = defaultFiller;
+	filler = defaultFiller;
 
 	/** Binary output of the program */
 	private output: Slice;
@@ -83,6 +83,8 @@ export class Core {
 		this.output.write(data, offset);
 	}
 
+	getAddress = () => this.address;
+
 	setAddress(newAddress: number) {
 		if (newAddress < this.address) {
 			throw new FassError(
@@ -107,8 +109,8 @@ export class Core {
 		return 0xdead;
 	}
 
-	setLabel(name: NameContext, address: number) {
-		const label = name.getText().toLowerCase();
+	setLabel(name: string, address: number) {
+		const label = name.toLowerCase();
 		this.checkNameIsUnique(label);
 		this.labels[label] = address;
 
@@ -120,5 +122,12 @@ export class Core {
 			});
 			delete this.forwardRefs[label];
 		}
+	}
+
+	getConstant = (name: string) => this.constants[name.toLocaleLowerCase()];
+
+	setConstant(name: string, value: number) {
+		this.checkNameIsUnique(name.toLocaleLowerCase());
+		this.constants[name.toLocaleLowerCase()] = value;
 	}
 }

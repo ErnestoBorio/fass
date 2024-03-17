@@ -6,13 +6,13 @@
 ~~filler_stmt~~  
 ~~data_stmt~~  
 ~~const_stmt~~  
-~~flag_set_stmt~~  
 ~~stack_stmt~~  
 ~~goto_stmt~~  
 ~~gosub_stmt~~  
 ~~return_stmt~~  
-~~bit_shift_stmt~~
-~~logic_stmt~~  
+flag_set_stmt
+bit_shift_stmt
+logic_stmt
 assign_stmt  
 arithmetic_stmt  
 

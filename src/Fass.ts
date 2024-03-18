@@ -300,5 +300,18 @@ export default class Fass extends fassVisitor<any> {
 		}
 	};
 
-	visitBit_shift_stmt = (ctx: Bit_shift_stmtContext) => {};
+	visitBit_shift_stmt = (ctx: Bit_shift_stmtContext) => {
+		const mnemonic = ctx.ASL_KWD()
+			? "ASL"
+			: ctx.LSR_KWD()
+			  ? "LSR"
+			  : ctx.ROL_KWD()
+			    ? "ROL"
+			    : "ROR";
+		if (ctx.A()) {
+			return this.core.append(opcodes[mnemonic].ACC);
+		}
+		const addressing = this.core.getAddressing(ctx.direct() ?? ctx.indexed());
+		return this.core.append(opcodes[mnemonic][addressing]);
+	};
 }

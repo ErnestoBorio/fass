@@ -1,5 +1,13 @@
 import { ParserRuleContext } from "antlr4";
-import { NameContext } from "./parser/fassParser";
+import {
+	DirectContext,
+	IndexedContext,
+	IndirectContext,
+	Indirect_yContext,
+	NameContext,
+	ReferenceContext,
+	X_indirectContext
+} from "./parser/fassParser";
 import {
 	Hash,
 	Value,
@@ -129,5 +137,24 @@ export class Core {
 	setConstant(name: string, value: number) {
 		this.checkNameIsUnique(name.toLocaleLowerCase());
 		this.constants[name.toLocaleLowerCase()] = value;
+	}
+
+	getAddressing(
+		ref:
+			| DirectContext
+			| IndexedContext
+			| X_indirectContext
+			| Indirect_yContext
+	) {
+		const address = this.getLabel(ref.name());
+		let addressing = address <= 0xff ? "ZP" : "ABS";
+		if (ref instanceof IndexedContext) {
+			addressing += ref.X() ? "X" : "Y";
+		} else if (ref instanceof X_indirectContext) {
+			addressing = "INDX";
+		} else if (ref instanceof Indirect_yContext) {
+			addressing = "INDY";
+		}
+		return addressing;
 	}
 }

@@ -121,6 +121,7 @@ CONST_KWD: [cC][oO][nN][sS][tT];
 IF_KWD: [iI][fF];
 THEN_KWD: [tT][hH][eE][nN];
 ELSE_KWD: [eE][lL][sS][eE];
+WHILE_KWD: [wW][hH][iI][lL][eE];
 END_KWD: [eE][nN][dD];
 GOTO_KWD: [gG][oO][tT][oO];
 GOSUB_KWD: [gG][oO][sS][uU][bB];

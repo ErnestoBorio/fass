@@ -1,4 +1,3 @@
-import { Core } from "./Core";
 import { opcodes } from "./opcodes";
 import fassVisitor from "./parser/fassVisitor";
 import {
@@ -6,8 +5,10 @@ import {
 	FassError,
 	defaultFiller,
 	UnreachableCode,
-	Reference,
-	pipe
+	pipe,
+	Hash,
+	Slice,
+	Reference
 } from "./types";
 import {
 	LabelContext,
@@ -36,18 +37,173 @@ import {
 	Bit_shift_stmtContext,
 	Negative_numberContext,
 	Remote_label_stmtContext,
-	ReferenceContext
+	ReferenceContext,
+	NameContext
 } from "./parser/fassParser";
+import { reservedWords } from "./keywords";
+import { ParserRuleContext } from "antlr4";
 
 export default class Fass extends fassVisitor<any> {
-	core = new Core();
+	private constants = {} as Hash<number>;
+	private labels = {} as Hash<number>;
+	/** List of references to yet undefined labels, and their output offset */
+	private forwardRefs = {} as Hash<number[]>;
+
+	filler = defaultFiller;
+
+	/** Binary output of the program */
+	private output: Slice;
+
+	/** The address where next output will be written */
+	private address = 0;
+
+	/** The address of the first byte of the output */
+	private startAddress = 0;
+
+	constructor() {
+		super();
+		// Allocates 64KB and stores an empty slice from it
+		this.output = new Slice(Buffer.alloc(0x10000), 0, 0);
+	}
+
+	/** Checks if the given name is unique and throws otherwise */
+	private checkNameIsValid(name: string, ctx?: ParserRuleContext) {
+		if (this.labels[name] || this.constants[name]) {
+			throw new FassError(`Name ${name} is already defined`, ctx);
+		}
+		if (name in reservedWords) {
+			throw new FassError(`Name ${name} is a reserved word`, ctx);
+		}
+	}
+
+	/** Fill the output buffer with {length} times this.filler */
+	private fill(length: number) {
+		const filling = Buffer.alloc(length);
+		filling.fill(this.filler);
+		this.append(filling);
+		this.address += length;
+	}
+
+	/** Returns offset where next output will be appended */
+	private getOffset() {
+		return this.output.getLength();
+	}
+
+	/** Write data to the output buffer */
+	append(data: Value | Buffer | number): void {
+		if (data instanceof Value) {
+			if (data.length === 1) {
+				this.output.append(Buffer.from([data.data]));
+				this.address += data.length;
+			} else if (data.length === 2) {
+				const buffer = Buffer.alloc(2);
+				if (data.endian === "big") {
+					buffer.writeUInt16BE(data.data);
+				} else if (data.endian === "little") {
+					buffer.writeUInt16LE(data.data);
+				} else throw new Error("Invalid endianness. (unreachable code?)");
+				this.output.append(buffer);
+				this.address += data.length;
+			}
+		} else if (data instanceof Buffer) {
+			this.output.append(data);
+			this.address += data.length;
+		} else if (typeof data === "number") {
+			this.output.append(Buffer.from([data]));
+			this.address += 1;
+		} else throw new UnreachableCode();
+	}
+
+	appendReference(ref: Reference) {
+		if (!ref.address) {
+			ref.address = 0xdead;
+			if (!this.forwardRefs[ref.label]) {
+				this.forwardRefs[ref.label] = [];
+			}
+			this.forwardRefs[ref.label].push(this.getOffset());
+		}
+		const buffer = Buffer.alloc(2);
+		buffer.writeUInt16LE(ref.address);
+		this.append(buffer);
+	}
+
+	write(data: Buffer, offset: number) {
+		this.output.write(data, offset);
+	}
+
+	getAddress = () => this.address;
+
+	setAddress(newAddress: number) {
+		if (newAddress < this.address) {
+			throw new FassError(
+				`Can't set new address ${newAddress} lower than current address ${this.address}`
+			);
+		}
+		if (newAddress - this.address > 0) {
+			this.fill(newAddress - this.address);
+		}
+		this.address = newAddress;
+	}
+
+	getLabel(name: NameContext) {
+		const label = name.getText().toLowerCase();
+		return {
+			label,
+			address: this.labels[label]
+		} as Reference;
+	}
+
+	setLabel(name: string, address: number) {
+		name = name.toLowerCase();
+		this.checkNameIsValid(name);
+		this.labels[name] = address;
+
+		if (this.forwardRefs[name]) {
+			const buffer = Buffer.alloc(2);
+			buffer.writeUint16LE(address);
+			this.forwardRefs[name].forEach(offset => {
+				this.write(buffer, offset);
+			});
+			delete this.forwardRefs[name];
+		}
+	}
+
+	getConstant = (name: string) => this.constants[name.toLowerCase()];
+
+	setConstant(name: string, value: number) {
+		this.checkNameIsValid(name.toLowerCase());
+		this.constants[name.toLowerCase()] = value;
+	}
+
+	getAddressing(
+		ref:
+			| DirectContext
+			| IndexedContext
+			| X_indirectContext
+			| Indirect_yContext
+	) {
+		const label = this.getLabel(ref.name());
+
+		let addressing: string;
+		if (ref instanceof X_indirectContext) {
+			addressing = "INDX";
+		} else if (ref instanceof Indirect_yContext) {
+			addressing = "INDY";
+		} else {
+			addressing = label.address && label.address <= 0xff ? "ZP" : "ABS";
+			if (ref instanceof IndexedContext) {
+				addressing += ref.X() ? "X" : "Y";
+			}
+		}
+		return addressing;
+	}
 
 	//--------------------------------------------------------------------------> Const & values
 
 	visitConst_stmt = (ctx: Const_stmtContext) => {
 		const name = ctx.IDENTIFIER().getText();
 		const value = this.visitStaticValue(ctx.staticValue());
-		this.core.setConstant(name, value.data);
+		this.setConstant(name, value.data);
 	};
 
 	visitStaticValue = (ctx: StaticValueContext): Value => {
@@ -56,9 +212,9 @@ export default class Fass extends fassVisitor<any> {
 		}
 		if (ctx.name()) {
 			const name = ctx.name().getText().toLowerCase();
-			if (this.core.getConstant(name)) {
+			if (this.getConstant(name)) {
 				return {
-					data: this.core.getConstant(name)
+					data: this.getConstant(name)
 				} as Value;
 			}
 			throw new FassError(`Constant ${name} is not defined`, ctx);
@@ -163,14 +319,14 @@ export default class Fass extends fassVisitor<any> {
 
 	//--------------------------------------------------------------------------> References
 
-	visitDirect = (ctx: DirectContext) => this.core.getLabel(ctx.name());
-	visitIndexed = (ctx: IndexedContext) => this.core.getLabel(ctx.name());
-	visitIndirect = (ctx: IndirectContext) => this.core.getLabel(ctx.name());
-	visitIndirect_y = (ctx: Indirect_yContext) => this.core.getLabel(ctx.name());
-	visitX_indirect = (ctx: X_indirectContext) => this.core.getLabel(ctx.name());
+	visitDirect = (ctx: DirectContext) => this.getLabel(ctx.name());
+	visitIndexed = (ctx: IndexedContext) => this.getLabel(ctx.name());
+	visitIndirect = (ctx: IndirectContext) => this.getLabel(ctx.name());
+	visitIndirect_y = (ctx: Indirect_yContext) => this.getLabel(ctx.name());
+	visitX_indirect = (ctx: X_indirectContext) => this.getLabel(ctx.name());
 
 	getAddressing = (ref: ReferenceContext) => {
-		return this.core.getAddressing(
+		return this.getAddressing(
 			ref.direct() ??
 				ref.indexed() ??
 				ref.indexed() ??
@@ -201,18 +357,18 @@ export default class Fass extends fassVisitor<any> {
 	visitAddress_stmt = (ctx: Address_stmtContext) => {
 		const newAddress = this.visitAddress(ctx.address()).data;
 		try {
-			this.core.setAddress(newAddress);
+			this.setAddress(newAddress);
 		} catch (error) {
 			throw new FassError(error.message, ctx);
 		}
 	};
 
 	visitLabel = (ctx: LabelContext) => {
-		this.core.setLabel(ctx.IDENTIFIER().getText(), this.core.getAddress());
+		this.setLabel(ctx.IDENTIFIER().getText(), this.getAddress());
 	};
 
 	visitRemote_label_stmt = (ctx: Remote_label_stmtContext) => {
-		this.core.setLabel(
+		this.setLabel(
 			ctx.IDENTIFIER().getText(),
 			this.visitAddress(ctx.address()).data
 		);
@@ -220,12 +376,12 @@ export default class Fass extends fassVisitor<any> {
 
 	visitFiller_stmt = (ctx: Filler_stmtContext) => {
 		if (ctx.DEFAULT_KWD()) {
-			this.core.filler = defaultFiller;
+			this.filler = defaultFiller;
 		} else {
-			this.core.filler = this.visitStaticValue(ctx.staticValue()).data;
-			if (this.core.filler > 0xff) {
+			this.filler = this.visitStaticValue(ctx.staticValue()).data;
+			if (this.filler > 0xff) {
 				// WIP implement fillers of any length
-				const filler = this.core.filler;
+				const filler = this.filler;
 				throw new FassError(
 					`Filler value $${filler} is larger than $FF`,
 					ctx
@@ -241,32 +397,32 @@ export default class Fass extends fassVisitor<any> {
 		ctx._datas; // WIP should we use this instead?
 		ctx.staticValue_list().forEach(data => {
 			const value = this.visitStaticValue(data);
-			this.core.append(value);
+			this.append(value);
 		});
 	};
 
 	visitFlag_set_stmt = (ctx: Flag_set_stmtContext) => {
 		if (ctx.CARRY()) {
 			if (ctx.BIT().getText() === "0") {
-				this.core.append(opcodes.CLC);
+				this.append(opcodes.CLC);
 			} else if (ctx.BIT().getText() === "1") {
-				this.core.append(opcodes.SEC);
+				this.append(opcodes.SEC);
 			}
 		} else if (ctx.INTERRUPT()) {
 			if (ctx.BIT().getText() === "0") {
-				this.core.append(opcodes.CLI);
+				this.append(opcodes.CLI);
 			} else if (ctx.BIT().getText() === "1") {
-				this.core.append(opcodes.SEI);
+				this.append(opcodes.SEI);
 			}
 		} else if (ctx.DECIMAL_MODE()) {
 			if (ctx.BIT().getText() === "0") {
-				this.core.append(opcodes.CLD);
+				this.append(opcodes.CLD);
 			} else if (ctx.BIT().getText() === "1") {
-				this.core.append(opcodes.SED);
+				this.append(opcodes.SED);
 			}
 		} else if (ctx.OVERFLOW()) {
 			if (ctx.BIT().getText() === "0") {
-				this.core.append(opcodes.CLV);
+				this.append(opcodes.CLV);
 			} else if (ctx.BIT().getText() === "1") {
 				throw new FassError(
 					`The overflow flag can't be set programmatically`,
@@ -279,40 +435,40 @@ export default class Fass extends fassVisitor<any> {
 	visitStack_stmt = (ctx: Stack_stmtContext) => {
 		if (ctx.PUSH_KWD()) {
 			if (ctx.A()) {
-				this.core.append(opcodes.PHA);
+				this.append(opcodes.PHA);
 			} else if (ctx.FLAGS_KWD()) {
-				this.core.append(opcodes.PHP);
+				this.append(opcodes.PHP);
 			}
 		} else if (ctx.PULL_KWD()) {
 			if (ctx.A()) {
-				this.core.append(opcodes.PLA);
+				this.append(opcodes.PLA);
 			} else if (ctx.FLAGS_KWD()) {
-				this.core.append(opcodes.PLP);
+				this.append(opcodes.PLP);
 			}
 		}
 	};
 
 	visitGoto_stmt = (ctx: Goto_stmtContext) => {
 		if (ctx.direct()) {
-			this.core.append(opcodes.JMP.ABS);
-			this.core.appendReference(this.visitDirect(ctx.direct()));
+			this.append(opcodes.JMP.ABS);
+			this.appendReference(this.visitDirect(ctx.direct()));
 		} else if (ctx.indirect()) {
-			this.core.append(opcodes.JMP.IND);
-			this.core.appendReference(this.visitIndirect(ctx.indirect()));
+			this.append(opcodes.JMP.IND);
+			this.appendReference(this.visitIndirect(ctx.indirect()));
 		}
 		throw new UnreachableCode(ctx);
 	};
 
 	visitGosub_stmt = (ctx: Gosub_stmtContext) => {
-		this.core.append(opcodes.JSR);
-		this.core.appendReference(this.visitDirect(ctx.direct()));
+		this.append(opcodes.JSR);
+		this.appendReference(this.visitDirect(ctx.direct()));
 	};
 
 	visitReturn_stmt = (ctx: Return_stmtContext) => {
 		if (ctx.RETURN_KWD()) {
-			this.core.append(opcodes.RTS);
+			this.append(opcodes.RTS);
 		} else if (ctx.RETINT_KWD()) {
-			this.core.append(opcodes.RTI);
+			this.append(opcodes.RTI);
 		}
 	};
 
@@ -325,10 +481,10 @@ export default class Fass extends fassVisitor<any> {
 					? "ROL"
 					: "ROR";
 		if (ctx.A()) {
-			return this.core.append(opcodes[mnemonic].ACC);
+			return this.append(opcodes[mnemonic].ACC);
 		}
-		const addressing = this.core.getAddressing(ctx.direct() ?? ctx.indexed());
-		return this.core.append(opcodes[mnemonic][addressing]);
+		const addressing = this.getAddressing(ctx.direct() ?? ctx.indexed());
+		return this.append(opcodes[mnemonic][addressing]);
 	};
 
 	visitLogic_stmt = (ctx: Logic_stmtContext) => {
@@ -340,16 +496,16 @@ export default class Fass extends fassVisitor<any> {
 					? "ORA"
 					: "BIT";
 		if (ctx.literal()) {
-			this.core.append(opcodes[mnemonic]["IMM"]);
-			pipe(ctx.literal(), this.visitLiteral, this.core.append);
+			this.append(opcodes[mnemonic]["IMM"]);
+			pipe(ctx.literal(), this.visitLiteral, this.append);
 		} else if (ctx.reference()) {
 			const addressing = this.getAddressing(ctx.reference());
-			this.core.append(opcodes[mnemonic][addressing]);
+			this.append(opcodes[mnemonic][addressing]);
 			pipe(
 				ctx.reference(),
 				this.getName,
-				this.core.getLabel,
-				this.core.appendReference
+				this.getLabel,
+				this.appendReference
 			);
 		} else throw new UnreachableCode(ctx);
 	};

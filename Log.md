@@ -1,7 +1,7 @@
 # Implemented
 
-~~address_stmt~~
-~~label~~
+~~address_stmt~~  
+~~label~~  
 ~~remote_label_stmt~~  
 ~~filler_stmt~~  
 ~~data_stmt~~  
@@ -10,10 +10,10 @@
 ~~goto_stmt~~  
 ~~gosub_stmt~~  
 ~~return_stmt~~  
-flag_set_stmt
-bit_shift_stmt
-logic_stmt
-assign_stmt  
+~~bit_shift_stmt~~  
+flag_set_stmt  
+logic_stmt  
+assign_stmt    
 arithmetic_stmt  
 
 # To do
@@ -23,6 +23,9 @@ arithmetic_stmt
 - Integrate with Cpu6502 and make automated VM tests
 
 ---
+
+## 2024-03-29
+Se me fue de mambo el proyecto en complejidad. Tengo que volver a una clase sola.
 
 ## 2024-03-14
 Added forward reference info in the labels Hash, but there can be many forward references to the same label, so we have to record them separately.

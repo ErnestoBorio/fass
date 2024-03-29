@@ -2,5 +2,10 @@
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
 	"editor.formatOnSave": true,
 	"editor.formatOnType": true,
-	"antlr4.generation": { "mode": "none" }
+	"antlr4.generation": {
+		"mode": "none"
+	},
+	"npm.enableRunFromFolder": true,
+	"npm.packageManager": "bun",
+	"npm.scriptExplorerAction": "run"
 }

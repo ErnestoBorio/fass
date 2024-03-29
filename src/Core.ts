@@ -2,10 +2,8 @@ import { ParserRuleContext } from "antlr4";
 import {
 	DirectContext,
 	IndexedContext,
-	IndirectContext,
 	Indirect_yContext,
 	NameContext,
-	ReferenceContext,
 	X_indirectContext
 } from "./parser/fassParser";
 import {
@@ -14,8 +12,10 @@ import {
 	Slice,
 	FassError,
 	defaultFiller,
-	UnreachableCode
+	UnreachableCode,
+	Reference
 } from "./types";
+import { reservedWords } from "./keywords";
 
 export class Core {
 	private constants = {} as Hash<number>;
@@ -40,9 +40,12 @@ export class Core {
 	}
 
 	/** Checks if the given name is unique and throws otherwise */
-	private checkNameIsUnique(name: string, ctx?: ParserRuleContext) {
+	private checkNameIsValid(name: string, ctx?: ParserRuleContext) {
 		if (this.labels[name] || this.constants[name]) {
 			throw new FassError(`Name ${name} is already defined`, ctx);
+		}
+		if (name in reservedWords) {
+			throw new FassError(`Name ${name} is a reserved word`, ctx);
 		}
 	}
 
@@ -60,9 +63,6 @@ export class Core {
 	}
 
 	/** Write data to the output buffer */
-	append(data: Value): void;
-	append(data: Buffer): void;
-	append(data: number): void;
 	append(data: Value | Buffer | number): void {
 		if (data instanceof Value) {
 			if (data.length === 1) {
@@ -87,6 +87,19 @@ export class Core {
 		} else throw new UnreachableCode();
 	}
 
+	appendReference(ref: Reference) {
+		if (!ref.address) {
+			ref.address = 0xdead;
+			if (!this.forwardRefs[ref.label]) {
+				this.forwardRefs[ref.label] = [];
+			}
+			this.forwardRefs[ref.label].push(this.getOffset());
+		}
+		const buffer = Buffer.alloc(2);
+		buffer.writeUInt16LE(ref.address);
+		this.append(buffer);
+	}
+
 	write(data: Buffer, offset: number) {
 		this.output.write(data, offset);
 	}
@@ -107,36 +120,32 @@ export class Core {
 
 	getLabel(name: NameContext) {
 		const label = name.getText().toLowerCase();
-		if (this.labels[label]) {
-			return this.labels[label];
-		}
-		if (!this.forwardRefs[label]) {
-			this.forwardRefs[label] = [];
-		}
-		this.forwardRefs[label].push(this.getOffset());
-		return 0xdead;
+		return {
+			label,
+			address: this.labels[label]
+		} as Reference;
 	}
 
 	setLabel(name: string, address: number) {
-		const label = name.toLowerCase();
-		this.checkNameIsUnique(label);
-		this.labels[label] = address;
+		name = name.toLowerCase();
+		this.checkNameIsValid(name);
+		this.labels[name] = address;
 
-		if (this.forwardRefs[label]) {
+		if (this.forwardRefs[name]) {
 			const buffer = Buffer.alloc(2);
 			buffer.writeUint16LE(address);
-			this.forwardRefs[label].forEach(offset => {
+			this.forwardRefs[name].forEach(offset => {
 				this.write(buffer, offset);
 			});
-			delete this.forwardRefs[label];
+			delete this.forwardRefs[name];
 		}
 	}
 
-	getConstant = (name: string) => this.constants[name.toLocaleLowerCase()];
+	getConstant = (name: string) => this.constants[name.toLowerCase()];
 
 	setConstant(name: string, value: number) {
-		this.checkNameIsUnique(name.toLocaleLowerCase());
-		this.constants[name.toLocaleLowerCase()] = value;
+		this.checkNameIsValid(name.toLowerCase());
+		this.constants[name.toLowerCase()] = value;
 	}
 
 	getAddressing(
@@ -146,14 +155,18 @@ export class Core {
 			| X_indirectContext
 			| Indirect_yContext
 	) {
-		const address = this.getLabel(ref.name());
-		let addressing = address <= 0xff ? "ZP" : "ABS";
-		if (ref instanceof IndexedContext) {
-			addressing += ref.X() ? "X" : "Y";
-		} else if (ref instanceof X_indirectContext) {
+		const label = this.getLabel(ref.name());
+
+		let addressing: string;
+		if (ref instanceof X_indirectContext) {
 			addressing = "INDX";
 		} else if (ref instanceof Indirect_yContext) {
 			addressing = "INDY";
+		} else {
+			addressing = label.address && label.address <= 0xff ? "ZP" : "ABS";
+			if (ref instanceof IndexedContext) {
+				addressing += ref.X() ? "X" : "Y";
+			}
 		}
 		return addressing;
 	}

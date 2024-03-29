@@ -1,7 +1,14 @@
 import { Core } from "./Core";
 import { opcodes } from "./opcodes";
 import fassVisitor from "./parser/fassVisitor";
-import { Value, FassError, UnreachableCode, defaultFiller } from "./types";
+import {
+	Value,
+	FassError,
+	defaultFiller,
+	UnreachableCode,
+	Reference,
+	pipe
+} from "./types";
 import {
 	LabelContext,
 	DirectContext,
@@ -18,6 +25,7 @@ import {
 	Gosub_stmtContext,
 	Indirect_yContext,
 	X_indirectContext,
+	Logic_stmtContext,
 	StaticValueContext,
 	HexadecimalContext,
 	Filler_stmtContext,
@@ -27,7 +35,8 @@ import {
 	Opcode_literalContext,
 	Bit_shift_stmtContext,
 	Negative_numberContext,
-	Remote_label_stmtContext
+	Remote_label_stmtContext,
+	ReferenceContext
 } from "./parser/fassParser";
 
 export default class Fass extends fassVisitor<any> {
@@ -153,22 +162,39 @@ export default class Fass extends fassVisitor<any> {
 	};
 
 	//--------------------------------------------------------------------------> References
-	doReference = (
-		ctx:
-			| DirectContext
-			| IndirectContext
-			| IndexedContext
-			| Indirect_yContext
-			| X_indirectContext
-	) => {
-		return this.core.getLabel(ctx.name());
-	};
-	visitDirect = this.doReference;
-	visitIndexed = this.doReference;
-	visitIndirect = this.doReference;
-	visitIndirect_y = this.doReference;
-	visitX_indirect = this.doReference;
 
+	visitDirect = (ctx: DirectContext) => this.core.getLabel(ctx.name());
+	visitIndexed = (ctx: IndexedContext) => this.core.getLabel(ctx.name());
+	visitIndirect = (ctx: IndirectContext) => this.core.getLabel(ctx.name());
+	visitIndirect_y = (ctx: Indirect_yContext) => this.core.getLabel(ctx.name());
+	visitX_indirect = (ctx: X_indirectContext) => this.core.getLabel(ctx.name());
+
+	getAddressing = (ref: ReferenceContext) => {
+		return this.core.getAddressing(
+			ref.direct() ??
+				ref.indexed() ??
+				ref.indexed() ??
+				ref.indirect_y() ??
+				ref.x_indirect() ??
+				(() => {
+					throw new UnreachableCode(ref);
+				})()
+		);
+	};
+
+	getName = (ref: ReferenceContext) => {
+		return ref.direct()
+			? ref.direct().name()
+			: ref.indexed()
+				? ref.indexed().name()
+				: ref.indirect_y()
+					? ref.indirect_y().name()
+					: ref.x_indirect()
+						? ref.x_indirect().name()
+						: (() => {
+								throw new UnreachableCode(ref);
+							})();
+	};
 	//--------------------------------------------------------------------------> Declarations
 	// Declarations define things but don't produce binary output
 
@@ -267,29 +293,19 @@ export default class Fass extends fassVisitor<any> {
 	};
 
 	visitGoto_stmt = (ctx: Goto_stmtContext) => {
-		let address: number;
 		if (ctx.direct()) {
-			address = this.visitDirect(ctx.direct());
 			this.core.append(opcodes.JMP.ABS);
+			this.core.appendReference(this.visitDirect(ctx.direct()));
 		} else if (ctx.indirect()) {
-			address = this.visitIndirect(ctx.indirect());
 			this.core.append(opcodes.JMP.IND);
-		} else throw new UnreachableCode(ctx);
-		this.core.append({
-			data: address,
-			endian: "little",
-			length: 2
-		} as Value);
+			this.core.appendReference(this.visitIndirect(ctx.indirect()));
+		}
+		throw new UnreachableCode(ctx);
 	};
 
 	visitGosub_stmt = (ctx: Gosub_stmtContext) => {
-		const address = this.visitDirect(ctx.direct());
 		this.core.append(opcodes.JSR);
-		this.core.append({
-			data: address,
-			endian: "little",
-			length: 2
-		} as Value);
+		this.core.appendReference(this.visitDirect(ctx.direct()));
 	};
 
 	visitReturn_stmt = (ctx: Return_stmtContext) => {
@@ -304,14 +320,37 @@ export default class Fass extends fassVisitor<any> {
 		const mnemonic = ctx.ASL_KWD()
 			? "ASL"
 			: ctx.LSR_KWD()
-			  ? "LSR"
-			  : ctx.ROL_KWD()
-			    ? "ROL"
-			    : "ROR";
+				? "LSR"
+				: ctx.ROL_KWD()
+					? "ROL"
+					: "ROR";
 		if (ctx.A()) {
 			return this.core.append(opcodes[mnemonic].ACC);
 		}
 		const addressing = this.core.getAddressing(ctx.direct() ?? ctx.indexed());
 		return this.core.append(opcodes[mnemonic][addressing]);
+	};
+
+	visitLogic_stmt = (ctx: Logic_stmtContext) => {
+		const mnemonic = ctx.AND_KWD()
+			? "AND"
+			: ctx.XOR_KWD()
+				? "EOR"
+				: ctx.OR_KWD()
+					? "ORA"
+					: "BIT";
+		if (ctx.literal()) {
+			this.core.append(opcodes[mnemonic]["IMM"]);
+			pipe(ctx.literal(), this.visitLiteral, this.core.append);
+		} else if (ctx.reference()) {
+			const addressing = this.getAddressing(ctx.reference());
+			this.core.append(opcodes[mnemonic][addressing]);
+			pipe(
+				ctx.reference(),
+				this.getName,
+				this.core.getLabel,
+				this.core.appendReference
+			);
+		} else throw new UnreachableCode(ctx);
 	};
 }

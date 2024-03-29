@@ -1,18 +1,18 @@
 import { CharStream, InputStream, CommonTokenStream } from "antlr4";
-import fassLexer from "./parser/fassLexer.js";
-import fassParser from "./parser/fassParser.js";
-import SymbolPass from "./SymbolPass";
+import fassLexer from "./parser/fassLexer";
+import fassParser from "./parser/fassParser";
+import Fass from "./Fass";
 import { readFileSync } from "fs";
 
 const source = readFileSync(process.argv[2]).toString();
 
-const symbolPass = new SymbolPass();
+const fass = new Fass();
 const chars = new InputStream(source);
 const stream = new CharStream(chars.toString());
 const lexer = new fassLexer(stream);
 const tokens = new CommonTokenStream(lexer);
 const parser = new fassParser(tokens);
 const tree = parser.program();
-symbolPass.visit(tree);
+fass.visit(tree);
 
-console.log({ constants: symbolPass.constants, labels: symbolPass.labels });
+console.log(fass.core);

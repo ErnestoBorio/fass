@@ -14,6 +14,11 @@ export class Value {
 	endian: Endianness = "big";
 }
 
+export class Reference {
+	label: string;
+	address?: number;
+}
+
 export type StaticValue = number | Buffer;
 
 export class Slice {
@@ -85,3 +90,9 @@ export class UnreachableCode extends FassError {
 
 /** Default filler byte, $EA = NOP */
 export const defaultFiller = 0xea;
+
+/** Calls a list of functions passing the result of the previous to the next */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function pipe(initial: any, ...funcs: Function[]) {
+	return funcs.reduce((prev, func) => func(prev), initial);
+}

@@ -5,10 +5,12 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"command": "pnpm start",
-			"name": "pnpm start",
+			"name": "bun debug",
 			"request": "launch",
-			"type": "node-terminal"
+			"type": "bun",
+			"program": "src/main.ts",
+			"args": ["program.fass"],
+			"cwd": "${workspaceFolder}"
 		}
 	]
 }

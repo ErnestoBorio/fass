@@ -29,11 +29,11 @@ remote_label_stmt: IDENTIFIER 'at' address;
 
 address: decimal | hexadecimal;
 
-filler_stmt: FILLER_KWD (staticValue | DEFAULT_KWD);
+filler_stmt: FILLER_KWD (static_value | DEFAULT_KWD);
 
-const_stmt: CONST_KWD IDENTIFIER '=' staticValue;
+const_stmt: CONST_KWD IDENTIFIER '=' static_value;
 
-data_stmt: DATA_KWD ( datas += staticValue ','?)+;
+data_stmt: DATA_KWD ( datas += static_value ','?)+;
 
 flag_set_stmt:
 	(CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE) '=' BIT;
@@ -56,7 +56,9 @@ logic_stmt:
 		| reference
 	);
 
-reg_assign_stmt: reg = (A | X | Y) '=' value;
+reg_assign_stmt: reg = (A | X | Y) '=' rhs_value;
+ref_assign_stmt: reference '=' reg = (A | X | Y);
+ref_ref_assign_stmt: reference '=' reg = (A | X | Y) '=' rhs_value;
 
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;
@@ -68,8 +70,8 @@ condition:
 	| POSITIVE
 	| NEGATIVE;
 
-value: literal | name | reference;
-staticValue: literal | name | STRING;
+rhs_value: literal | name | reference;
+static_value: literal | name | STRING;
 
 name: IDENTIFIER; // A constant or a label
 

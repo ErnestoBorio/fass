@@ -1,7 +1,5 @@
 import { ParserRuleContext } from "antlr4";
 
-export type Optional<Type> = Type | undefined;
-
 type Endianness = "big" | "little";
 
 export type Hash<Type> = {
@@ -17,9 +15,23 @@ export class Value {
 export class Reference {
 	label: string;
 	address?: number;
+	addressing?: Addressing;
 }
 
-export type StaticValue = number | Buffer;
+export enum Addressing {
+	A = "ACC",
+	immediate = "IMM",
+	zeroPage = "ZP",
+	zeroPageX = "ZPX",
+	zeroPageY = "ZPY",
+	absolute = "ABS",
+	absoluteX = "ABSX",
+	absoluteY = "ABSY",
+	indirect = "IND",
+	indirectX = "INDX",
+	indirectY = "INDY",
+	relative = "REL"
+}
 
 export class Slice {
 	private buffer: Buffer;
@@ -28,17 +40,6 @@ export class Slice {
 	constructor(source: Buffer, offset?: number, end?: number) {
 		this.buffer = source;
 		this.slice = this.buffer.subarray(offset, end);
-	}
-
-	private grow(length: number) {
-		if (this.slice.byteOffset + length > this.buffer.length) {
-			throw new Error("Buffer overflow");
-		}
-		// Reslice the buffer to get a larger slice
-		this.slice = this.buffer.subarray(
-			this.slice.byteOffset,
-			this.slice.byteOffset + length
-		);
 	}
 
 	getLength = () => this.slice.length;
@@ -90,9 +91,3 @@ export class UnreachableCode extends FassError {
 
 /** Default filler byte, $EA = NOP */
 export const defaultFiller = 0xea;
-
-/** Calls a list of functions passing the result of the previous to the next */
-// eslint-disable-next-line @typescript-eslint/ban-types
-export function pipe(initial: any, ...funcs: Function[]) {
-	return funcs.reduce((prev, func) => func(prev), initial);
-}

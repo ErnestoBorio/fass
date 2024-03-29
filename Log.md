@@ -11,18 +11,38 @@
 ~~gosub_stmt~~  
 ~~return_stmt~~  
 ~~bit_shift_stmt~~  
-flag_set_stmt  
-logic_stmt  
+~~flag_set_stmt~~  
+~~logic_stmt~~    
 assign_stmt    
 arithmetic_stmt  
 
 # To do
-
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
-- Add `>` and `<` operators for getting the high and low bytes of a label reference, respectively, as an immediate value
+- Add `>` and `<` operators for getting the high and low bytes of a label reference, 
+	respectively, as an immediate value
 - Integrate with Cpu6502 and make automated VM tests
 
----
+# Misc
+- Transforming names `.toLowerCase()` should be done ASAP, in the visit function that
+	gets the name from the parser. This way, anywhere else we know the name is
+	unique by means of ensured lowercase.
+
+- Tipos de Statements:  
+
+* Con addressing:  
+	- Aritméticos: ADC, SBC, INC, DEC, INX, DEX, INY, DEY
+	- Lógicos: AND, EOR, ORA, BIT, CMP
+	- Shifting: ASL, LSR, ROR, ROL
+	- Asignación: LDA, STA, LDX, STX
+
+* Sin addressing:
+	- Stack: TSX, TXS, PHP, PHA, PLP, PLA
+	- Branches: BMI, BPL, BEQ, BNE, BVS, BVC, BCC, BCS
+	- Misc: SEC, CLC, SED, CLD, SEI, CLI, CLV, NOP, NOP3, BRK
+
+* Saltos: JMP, JSR, RTS, RTI
+<!----------------------------------------------------------------------------->
+# Log:
 
 ## 2024-03-29
 Se me fue de mambo el proyecto en complejidad. Tengo que volver a una clase sola.

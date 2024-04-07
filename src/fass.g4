@@ -47,7 +47,9 @@ gosub_stmt: GOSUB_KWD direct;
 return_stmt: RETURN_KWD | RETINT_KWD;
 
 bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
-		A | direct | indexed
+		A
+		| direct
+		| indexed
 	);
 
 logic_stmt:
@@ -58,7 +60,8 @@ logic_stmt:
 
 reg_assign_stmt: reg = (A | X | Y) '=' rhs_value;
 ref_assign_stmt: reference '=' reg = (A | X | Y);
-ref_ref_assign_stmt: reference '=' reg = (A | X | Y) '=' rhs_value;
+ref_ref_assign_stmt:
+	reference '=' reg = (A | X | Y) '=' rhs_value;
 
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;

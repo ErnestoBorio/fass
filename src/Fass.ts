@@ -39,7 +39,8 @@ import {
 	Bit_shift_stmtContext,
 	Negative_numberContext,
 	Reg_assign_stmtContext,
-	Remote_label_stmtContext
+	Remote_label_stmtContext,
+	Ref_assign_stmtContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
 import { ParserRuleContext } from "antlr4";
@@ -292,7 +293,12 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 			if (this.constants[name]) {
 				return <Value>{ data: this.constants[name] };
 			}
-			throw new FassError(`Constant ${name} is not defined`, ctx);
+			if (this.labels[name]) {
+				return <Reference>{
+					label: name,
+					address: this.labels[name]
+				};
+			}
 		}
 		if (ctx.reference()) {
 			return this.getRef(ctx.reference());
@@ -320,8 +326,17 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				ctx.x_indirect() ||
 				ctx.indirect_y();
 		}
+
+		const name = ctx.name().getText().toLowerCase();
+		if (this.constants[name] !== undefined) {
+			throw new FassError(
+				`${name} is a constant, can't be used as a label`,
+				ctx
+			);
+		}
 		const ref = <Reference>{
-			address: this.labels[ctx.name().getText().toLowerCase()]
+			label: name,
+			address: this.labels[name]
 		};
 
 		if (ctx instanceof DirectContext) {
@@ -352,6 +367,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		return ref;
 	}
 
+	visitReference = this.getRef;
 	visitDirect = this.getRef;
 	visitIndexed = this.getRef;
 	visitIndirect = this.getRef;
@@ -490,10 +506,12 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 					? "ROL"
 					: "ROR";
 		if (ctx.A()) {
-			return this.append(opcodes[mnemonic].ACC);
+			this.append(opcodes[mnemonic].ACC);
+			return;
 		}
 		const { addressing } = this.getRef(ctx.direct() ?? ctx.indexed());
-		return this.append(opcodes[mnemonic][addressing!]);
+		this.append(opcodes[mnemonic][addressing!]);
+		return;
 	};
 
 	visitLogic_stmt = (ctx: Logic_stmtContext) => {
@@ -506,12 +524,14 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 					: "BIT";
 		if (ctx.literal()) {
 			this.append(opcodes[mnemonic]["IMM"]);
-			return this.append(this.visitLiteral(ctx.literal()));
+			this.append(this.visitLiteral(ctx.literal()));
+			return;
 		}
 		if (ctx.reference()) {
 			const ref = this.getRef(ctx.reference());
 			this.append(opcodes[mnemonic][ref.addressing!]);
-			return this.appendReference(ref);
+			this.appendReference(ref);
+			return;
 		}
 		throw new UnreachableCode(ctx);
 	};
@@ -531,12 +551,43 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		const argument = this.visitRhs_value(ctx.rhs_value());
 		if (argument instanceof Value) {
 			this.append(opcodes["LD" + reg]["IMM"]);
-			return this.append(argument);
+			this.append(argument);
+			return;
 		}
 		if (argument instanceof Reference) {
-			this.append(opcodes["LD" + reg][argument.addressing]);
-			return this.appendReference(argument);
+			if (opcodes["LD" + reg][argument.addressing]) {
+				this.append(opcodes["LD" + reg][argument.addressing]);
+				this.appendReference(argument);
+				return;
+			}
+			throw new FassError(
+				`Invalid addressing mode ${argument.addressing} for ${reg}`,
+				ctx
+			);
 		}
 		throw new UnreachableCode(ctx);
+	};
+
+	visitRef_assign_stmt = (ctx: Ref_assign_stmtContext) => {
+		const reg = ctx.A()
+			? "A"
+			: ctx.X()
+				? "X"
+				: ctx.Y()
+					? "Y"
+					: (() => {
+							throw new UnreachableCode(ctx);
+						})();
+		const ref = this.visitReference(ctx.reference());
+		const opcode = opcodes["ST" + reg][ref.addressing];
+		if (opcode) {
+			this.append(opcode);
+			this.appendReference(ref);
+			return;
+		}
+		throw new FassError(
+			`Invalid addressing mode ${ref.addressing} for ${reg}`,
+			ctx
+		);
 	};
 }

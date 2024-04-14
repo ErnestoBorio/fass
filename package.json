@@ -3,7 +3,8 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"start": "bun ./src/main.ts program.fass"
+		"start": "bun ./src/main.ts program.fass",
+		"node": "tsx ./src/main.ts program.fass"
 	},
 	"devDependencies": {
 		"@types/antlr4": "^4.11.5",

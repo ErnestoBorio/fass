@@ -1,7 +1,7 @@
 grammar fass;
 
 program: line* statement? EOF;
-line: statement? EOL;
+line: TAB* statement? EOL;
 
 // --> Statements
 statement:
@@ -168,5 +168,6 @@ STACK: [sS][tT][aA][cC][kK];
 
 // The dot allows a dot-notation-like syntactic sugar 
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
-WHITESPACE: [ \t]+ -> skip;
+TAB: '\t';
 EOL: '\r'? '\n';
+WHITESPACE: ' '+ -> skip;

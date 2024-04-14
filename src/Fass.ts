@@ -40,7 +40,8 @@ import {
 	Negative_numberContext,
 	Reg_assign_stmtContext,
 	Remote_label_stmtContext,
-	Ref_assign_stmtContext
+	Ref_assign_stmtContext,
+	Ref_ref_assign_stmtContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
 import { ParserRuleContext } from "antlr4";
@@ -139,7 +140,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 	}
 
 	appendReference(ref: Reference) {
-		if (!ref.address) {
+		if (ref.address === undefined) {
 			ref.address = 0xdead;
 			if (!this.forwardRefs[ref.label]) {
 				this.forwardRefs[ref.label] = [];
@@ -180,7 +181,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 			return this.visitLiteral(ctx.literal());
 		}
 		if (ctx.name()) {
-			const name = ctx.name().getText().toLowerCase();
+			const name = ctx.name().IDENTIFIER().getText().toLowerCase();
 			if (this.constants[name]) {
 				return { data: this.constants[name] } as Value;
 			}
@@ -477,9 +478,12 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		if (ctx.direct()) {
 			this.append(opcodes.JMP.ABS);
 			this.appendReference(this.visitDirect(ctx.direct()));
-		} else if (ctx.indirect()) {
+			return;
+		}
+		if (ctx.indirect()) {
 			this.append(opcodes.JMP.IND);
 			this.appendReference(this.visitIndirect(ctx.indirect()));
+			return;
 		}
 		throw new UnreachableCode(ctx);
 	};
@@ -501,10 +505,10 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		const mnemonic = ctx.ASL_KWD()
 			? "ASL"
 			: ctx.LSR_KWD()
-				? "LSR"
-				: ctx.ROL_KWD()
-					? "ROL"
-					: "ROR";
+			  ? "LSR"
+			  : ctx.ROL_KWD()
+			    ? "ROL"
+			    : "ROR";
 		if (ctx.A()) {
 			this.append(opcodes[mnemonic].ACC);
 			return;
@@ -518,10 +522,10 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		const mnemonic = ctx.AND_KWD()
 			? "AND"
 			: ctx.XOR_KWD()
-				? "EOR"
-				: ctx.OR_KWD()
-					? "ORA"
-					: "BIT";
+			  ? "EOR"
+			  : ctx.OR_KWD()
+			    ? "ORA"
+			    : "BIT";
 		if (ctx.literal()) {
 			this.append(opcodes[mnemonic]["IMM"]);
 			this.append(this.visitLiteral(ctx.literal()));
@@ -536,19 +540,9 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		throw new UnreachableCode(ctx);
 	};
 
-	/** LDA, LDX, LDY */
-	visitReg_assign_stmt = (ctx: Reg_assign_stmtContext) => {
-		const reg = ctx.A()
-			? "A"
-			: ctx.X()
-				? "X"
-				: ctx.Y()
-					? "Y"
-					: (() => {
-							throw new UnreachableCode(ctx);
-						})();
+	//--------------------------------------------------------------------------> Assignments
 
-		const argument = this.visitRhs_value(ctx.rhs_value());
+	registerAssignment(reg: string, argument: Value | Reference) {
 		if (argument instanceof Value) {
 			this.append(opcodes["LD" + reg]["IMM"]);
 			this.append(argument);
@@ -561,24 +555,13 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				return;
 			}
 			throw new FassError(
-				`Invalid addressing mode ${argument.addressing} for ${reg}`,
-				ctx
+				`Invalid addressing mode ${argument.addressing} for ${reg}`
 			);
 		}
-		throw new UnreachableCode(ctx);
-	};
+		throw new UnreachableCode();
+	}
 
-	visitRef_assign_stmt = (ctx: Ref_assign_stmtContext) => {
-		const reg = ctx.A()
-			? "A"
-			: ctx.X()
-				? "X"
-				: ctx.Y()
-					? "Y"
-					: (() => {
-							throw new UnreachableCode(ctx);
-						})();
-		const ref = this.visitReference(ctx.reference());
+	referenceAssignment(ref: Reference, reg: string) {
 		const opcode = opcodes["ST" + reg][ref.addressing];
 		if (opcode) {
 			this.append(opcode);
@@ -586,8 +569,27 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 			return;
 		}
 		throw new FassError(
-			`Invalid addressing mode ${ref.addressing} for ${reg}`,
-			ctx
+			`Invalid addressing mode ${ref.addressing} for ${reg}`
 		);
+	}
+
+	visitReg_assign_stmt = (ctx: Reg_assign_stmtContext) => {
+		const register = ctx.A() ? "A" : ctx.X() ? "X" : "Y";
+		const argument = this.visitRhs_value(ctx.rhs_value());
+		this.registerAssignment(register, argument);
+	};
+
+	visitRef_assign_stmt = (ctx: Ref_assign_stmtContext) => {
+		const register = ctx.A() ? "A" : ctx.X() ? "X" : "Y";
+		const reference = this.visitReference(ctx.reference());
+		this.referenceAssignment(reference, register);
+	};
+
+	visitRef_ref_assign_stmt = (ctx: Ref_ref_assign_stmtContext) => {
+		const register = ctx.A() ? "A" : ctx.X() ? "X" : "Y";
+		const lhs_ref = this.visitReference(ctx.reference());
+		const rhs_value = this.visitRhs_value(ctx.rhs_value());
+		this.registerAssignment(register, rhs_value);
+		this.referenceAssignment(lhs_ref, register);
 	};
 }

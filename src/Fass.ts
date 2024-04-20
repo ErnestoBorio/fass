@@ -44,7 +44,10 @@ import {
 	Ref_ref_assign_stmtContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
-import { ParserRuleContext } from "antlr4";
+
+// WIP Fix for strange typescript bug when updating vscode to 1.88.1 / ts 5.4
+import antlr from "antlr4";
+type ParserRuleContext = antlr.ParserRuleContext;
 
 export default class Fass extends fassVisitor<Value | Reference | void> {
 	/** If dereferencing constants returns `undefined`, the constant doesn't exist */
@@ -269,7 +272,9 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 	};
 
 	visitOpcode_literal = (ctx: Opcode_literalContext): Value => {
-		const opcode = ctx.getText().toUpperCase();
+		const opcode = (ctx.BRK() ?? ctx.NOP() ?? ctx.NOP3())
+			.getText()
+			.toUpperCase();
 		return {
 			data: opcodes[opcode]
 		} as Value;
@@ -290,7 +295,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 			return this.visitLiteral(ctx.literal());
 		}
 		if (ctx.name()) {
-			const name = ctx.name().getText().toLowerCase();
+			const name = ctx.name().IDENTIFIER().getText().toLowerCase();
 			if (this.constants[name]) {
 				return <Value>{ data: this.constants[name] };
 			}
@@ -328,7 +333,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				ctx.indirect_y();
 		}
 
-		const name = ctx.name().getText().toLowerCase();
+		const name = ctx.name().IDENTIFIER().getText().toLowerCase();
 		if (this.constants[name] !== undefined) {
 			throw new FassError(
 				`${name} is a constant, can't be used as a label`,
@@ -505,10 +510,10 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		const mnemonic = ctx.ASL_KWD()
 			? "ASL"
 			: ctx.LSR_KWD()
-			  ? "LSR"
-			  : ctx.ROL_KWD()
-			    ? "ROL"
-			    : "ROR";
+				? "LSR"
+				: ctx.ROL_KWD()
+					? "ROL"
+					: "ROR";
 		if (ctx.A()) {
 			this.append(opcodes[mnemonic].ACC);
 			return;
@@ -522,10 +527,10 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		const mnemonic = ctx.AND_KWD()
 			? "AND"
 			: ctx.XOR_KWD()
-			  ? "EOR"
-			  : ctx.OR_KWD()
-			    ? "ORA"
-			    : "BIT";
+				? "EOR"
+				: ctx.OR_KWD()
+					? "ORA"
+					: "BIT";
 		if (ctx.literal()) {
 			this.append(opcodes[mnemonic]["IMM"]);
 			this.append(this.visitLiteral(ctx.literal()));

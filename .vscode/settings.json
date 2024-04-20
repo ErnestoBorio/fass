@@ -10,6 +10,5 @@
 	"npm.scriptExplorerAction": "run",
 	"[antlr]": {
 		"editor.defaultFormatter": "mike-lischke.vscode-antlr4"
-	},
-	"typescript.tsdk": "node_modules/typescript/lib"
+	}
 }

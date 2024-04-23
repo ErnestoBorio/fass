@@ -11,6 +11,13 @@
 			"program": "src/main.ts",
 			"args": ["program.fass"],
 			"cwd": "${workspaceFolder}"
+		},
+		{
+			"name": "test",
+			"request": "launch",
+			"type": "bun",
+			"program": "src/test.ts",
+			"cwd": "${workspaceFolder}"
 		}
 	]
 }

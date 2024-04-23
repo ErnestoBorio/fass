@@ -13,10 +13,14 @@
 ~~bit_shift_stmt~~  
 ~~flag_set_stmt~~  
 ~~logic_stmt~~    
-assign_stmt    
+~~assign_stmt~~    
 arithmetic_stmt  
+if then else  
+while  
+loop until
 
 # To do
+- Create tests for what's already implemented
 - Add keywords `bit7` & `bit6`?. See [ref](##2022-8-5)
 - Add `>` and `<` operators for getting the high and low bytes of a label reference, 
 	respectively, as an immediate value

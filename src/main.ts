@@ -15,4 +15,4 @@ const parser = new fassParser(tokens);
 const tree = parser.program();
 fass.visit(tree);
 
-console.log(fass.core);
+console.log(fass);

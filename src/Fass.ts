@@ -44,18 +44,15 @@ import {
 	Ref_ref_assign_stmtContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
-
-// WIP Fix for strange typescript bug when updating vscode to 1.88.1 / ts 5.4
-import antlr from "antlr4";
-type ParserRuleContext = antlr.ParserRuleContext;
+import ParserRuleContext from "antlr4/context/ParserRuleContext";
 
 export default class Fass extends fassVisitor<Value | Reference | void> {
 	/** If dereferencing constants returns `undefined`, the constant doesn't exist */
-	private constants = <Hash<number>>{};
+	constants = <Hash<number>>{};
 
 	/** If dereferencing labels returns `undefined`, the label hasn't been defined
 	 * yet, it could be a forward reference or remain undefined */
-	private labels = <Hash<number>>{};
+	labels = <Hash<number>>{};
 
 	/** List of references to yet undefined labels, and their output offset */
 	private forwardRefs = <Hash<number[]>>{};
@@ -63,10 +60,10 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 	filler = defaultFiller;
 
 	/** Binary output of the program */
-	private output: Slice;
+	output: Slice;
 
 	/** The address where next output will be written */
-	private address = 0;
+	address = 0;
 
 	constructor() {
 		super();
@@ -186,7 +183,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		if (ctx.name()) {
 			const name = ctx.name().IDENTIFIER().getText().toLowerCase();
 			if (this.constants[name]) {
-				return { data: this.constants[name] } as Value;
+				return new Value(this.constants[name]);
 			}
 			throw new FassError(`Constant ${name} is not defined`, ctx);
 		}
@@ -221,10 +218,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				ctx
 			);
 		}
-		return {
-			data: value,
-			length: value > 0xff ? 2 : 1
-		} as Value;
+		return new Value(value, value > 0xff ? 2 : 1);
 	};
 
 	visitDecimal = (ctx: DecimalContext): Value => {
@@ -236,10 +230,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				ctx
 			);
 		}
-		return {
-			data: value,
-			length: value > 0xff ? 2 : 1
-		} as Value;
+		return new Value(value, value > 0xff ? 2 : 1);
 	};
 
 	visitBinary = (ctx: BinaryContext): Value => {
@@ -251,10 +242,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				ctx
 			);
 		}
-		return {
-			data: value,
-			length: value > 0xff ? 2 : 1
-		} as Value;
+		return new Value(value, value > 0xff ? 2 : 1);
 	};
 
 	visitNegative_number = (ctx: Negative_numberContext): Value => {
@@ -266,18 +254,14 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				ctx
 			);
 		}
-		return {
-			data: neg
-		} as Value;
+		return new Value(neg);
 	};
 
 	visitOpcode_literal = (ctx: Opcode_literalContext): Value => {
 		const opcode = (ctx.BRK() ?? ctx.NOP() ?? ctx.NOP3())
 			.getText()
 			.toUpperCase();
-		return {
-			data: opcodes[opcode]
-		} as Value;
+		return new Value(opcodes[opcode]);
 	};
 
 	visitAddress = (ctx: AddressContext): Value => {
@@ -425,7 +409,6 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 	//--------------------------------------------------------------------------> Statements
 
 	visitData_stmt = (ctx: Data_stmtContext) => {
-		ctx._datas; // WIP should we use this instead?
 		ctx.static_value_list().forEach(data => {
 			const value = this.visitStaticValue(data);
 			this.append(value);

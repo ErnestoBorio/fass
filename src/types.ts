@@ -10,6 +10,12 @@ export class Value {
 	data: number;
 	length: 1 | 2 = 1;
 	endian: Endianness = "big";
+
+	constructor(data: number, length: 1 | 2 = 1, endian: Endianness = "big") {
+		this.data = data;
+		this.length = length;
+		this.endian = endian;
+	}
 }
 
 export class Reference {

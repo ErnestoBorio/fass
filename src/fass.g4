@@ -36,7 +36,7 @@ const_stmt: CONST_KWD IDENTIFIER '=' static_value;
 data_stmt: DATA_KWD ( datas += static_value ','?)+;
 
 flag_set_stmt:
-	(CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE) '=' BIT;
+	(CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE) '=' DECIMAL;
 
 stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
@@ -115,7 +115,6 @@ NEGATIVE_NUMBER: '-' [1-9] [0-9]*;
 BRK: [bB][rR][kK];
 NOP: [nN][oO][pP];
 NOP3: [nN][oO][pP]'3';
-BIT: [01];
 
 // --> Keywords
 ADDRESS_KWD: [aA][dD][dD][rR][eE][sS][sS];

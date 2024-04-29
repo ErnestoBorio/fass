@@ -129,7 +129,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				} else throw new Error("Invalid endianness. (unreachable code?)");
 				this.output.append(buffer);
 				this.address += data.length;
-			}
+			} else throw new UnreachableCode();
 		} else if (data instanceof Buffer) {
 			this.output.append(data);
 			this.address += data.length;
@@ -162,6 +162,14 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 				`Can't set new address ${newAddress} lower than current address ${this.address}`
 			);
 		}
+
+		// If address is set before any output, it will be the starting address, I.E. the address of byte 0 of the output
+		if (this.output.getLength() === 0) {
+			this.address = newAddress;
+			return;
+		}
+
+		// When advancing the address, fill the gap with filler bytes
 		if (newAddress - this.address > 0) {
 			this.fill(newAddress - this.address);
 		}
@@ -416,34 +424,43 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 	};
 
 	visitFlag_set_stmt = (ctx: Flag_set_stmtContext) => {
+		let set: boolean;
+		if (ctx.DECIMAL().getText() === "0") {
+			set = false;
+		} else if (ctx.DECIMAL().getText() === "1") {
+			set = true;
+		} else {
+			throw new FassError("Flags can only be set to 0 or 1", ctx);
+		}
+
 		if (ctx.CARRY()) {
-			if (ctx.BIT().getText() === "0") {
-				this.append(opcodes.CLC);
-			} else if (ctx.BIT().getText() === "1") {
+			if (set) {
 				this.append(opcodes.SEC);
+			} else {
+				this.append(opcodes.CLC);
 			}
 		} else if (ctx.INTERRUPT()) {
-			if (ctx.BIT().getText() === "0") {
-				this.append(opcodes.CLI);
-			} else if (ctx.BIT().getText() === "1") {
+			if (set) {
 				this.append(opcodes.SEI);
+			} else {
+				this.append(opcodes.CLI);
 			}
 		} else if (ctx.DECIMAL_MODE()) {
-			if (ctx.BIT().getText() === "0") {
-				this.append(opcodes.CLD);
-			} else if (ctx.BIT().getText() === "1") {
+			if (set) {
 				this.append(opcodes.SED);
+			} else {
+				this.append(opcodes.CLD);
 			}
 		} else if (ctx.OVERFLOW()) {
-			if (ctx.BIT().getText() === "0") {
+			if (!set) {
 				this.append(opcodes.CLV);
-			} else if (ctx.BIT().getText() === "1") {
+			} else {
 				throw new FassError(
 					`The overflow flag can't be set programmatically`,
 					ctx
 				);
 			}
-		}
+		} else throw new UnreachableCode(ctx);
 	};
 
 	visitStack_stmt = (ctx: Stack_stmtContext) => {

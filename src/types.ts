@@ -48,6 +48,8 @@ export class Slice {
 		this.slice = this.buffer.subarray(offset, end);
 	}
 
+	get = () => this.slice;
+	getBuffer = () => this.buffer;
 	getLength = () => this.slice.length;
 
 	append(data: Buffer) {
@@ -55,11 +57,12 @@ export class Slice {
 			throw new Error("Buffer overflow");
 		}
 		// Reslice the buffer to get a larger slice
+		const oldLength = this.slice.length;
 		this.slice = this.buffer.subarray(
 			this.slice.byteOffset,
-			this.slice.byteOffset + data.length
+			this.slice.length + data.length
 		);
-		data.copy(this.slice, this.slice.length - data.length, 0, data.length);
+		data.copy(this.slice, oldLength, 0, data.length);
 	}
 
 	write(data: Buffer, offset: number) {

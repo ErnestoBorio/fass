@@ -2,78 +2,9 @@ import { InputStream, CharStream, CommonTokenStream } from "antlr4";
 import Fass from "./Fass";
 import fassLexer from "./parser/fassLexer";
 import fassParser from "./parser/fassParser";
-import { Slice } from "./types";
+import { Slice, UnreachableCode } from "./types";
 import { opcodes } from "./opcodes";
 
-function compile(source: string) {
-	const fass = new Fass();
-	const chars = new InputStream(source);
-	const stream = new CharStream(chars.toString());
-	const lexer = new fassLexer(stream);
-	const tokens = new CommonTokenStream(lexer);
-	const parser = new fassParser(tokens);
-	const tree = parser.program();
-	fass.visit(tree);
-	return fass;
-}
-
-function failed(name: string) {
-	console.error(`❌ [${name}] failed`);
-}
-
-function passed(name: string) {
-	console.log(`✅ [${name}] passed`);
-}
-
-function test1(name: string) {
-	if (!tests[name!]()) {
-		failed(name);
-		return;
-	}
-	passed(name);
-}
-
-function test_all(stop_on_fail: boolean = false) {
-	for (const name in tests) {
-		const test = tests[name];
-		const result = test();
-
-		if (result !== true) {
-			failed(name);
-
-			if (typeof result !== "boolean") {
-				console.error(result);
-			}
-
-			if (stop_on_fail) {
-				console.log(`Stopped on first test failed`);
-				return;
-			}
-			continue;
-		}
-		passed(name);
-	}
-}
-
-function expect(got: any, expected: any) {
-	let condition = false;
-	if (
-		got instanceof Buffer &&
-		expected instanceof Buffer &&
-		got.equals(expected)
-	) {
-		condition = true;
-	} else if (got === expected) {
-		condition = true;
-	}
-
-	if (!condition) {
-		return { got, expected };
-	}
-	return true;
-}
-
-//------------------------------------------------------------------------------ Tests
 const tests = {
 	slice: () => {
 		const s = new Slice(Buffer.from([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]), 0, 4);
@@ -132,6 +63,7 @@ const tests = {
 			])
 		);
 	},
+
 	stack: () => {
 		return expect(
 			compile("pull A \n push A \n pull flags \n push flags").output.get(),
@@ -142,7 +74,77 @@ const tests = {
 				opcodes["PHP"]
 			])
 		);
+	},
+
+	goto: () => {
+		return expect(
+			compile("label at $CAFE \n goto label").output.get(),
+			Buffer.from([opcodes["JMP"]["ABS"], 0xfe, 0xca])
+		);
+	},
+
+	gosub: () => {
+		return expect(
+			compile("address $BABE \n label: \n gosub label").output.get(),
+			Buffer.from([opcodes["JSR"], 0xbe, 0xba])
+		);
+	},
+
+	logic: () => {
+		const bin = compile(`
+      address $69
+      zpLabel:
+        data 5
+      
+      address $3DEB
+      absLabel:
+        data 7
+      
+      address $BAD1
+      A and= 4
+      A or= zpLabel
+      A xor= absLabel[X]
+      A compare (zpLabel)[Y]
+      A bit absLabel
+    `).output;
 	}
+	/*
+	"logic", () {
+    final binary = compile("""
+      address 9
+      zpLabel:
+        data 5
+      
+      address \$10EB
+      absLabel:
+        data 7
+      
+      address \$20AD
+      A and= 4
+      A or= zpLabel
+      A xor= absLabel[X]
+      A compare (zpLabel)[Y]
+      A bit absLabel
+    """).output;
+
+    final got = binary.sublist(0x20AD);
+    final expected = [
+      opcodes["AND"]!["IMM"],
+      4,
+      opcodes["ORA"]!["ZP"],
+      9,
+      opcodes["EOR"]!["ABSX"],
+      0xEB,
+      0x10,
+      opcodes["CMP"]!["INDY"],
+      9,
+      opcodes["BIT"]!["ABS"],
+      0xEB,
+      0x10
+    ];
+    expect(got, expected);
+  });
+  */
 };
 
 //------------------------------------------------------------------------------
@@ -157,8 +159,78 @@ const tests = {
 			console.log(`Tests: ${test_names}`);
 			return;
 		}
-		test1(process.argv[2]);
+		const name = process.argv[2];
+		test1(name, tests[name]);
 		return;
 	}
 	test_all();
 })();
+
+function compile(source: string) {
+	const fass = new Fass();
+	const chars = new InputStream(source);
+	const stream = new CharStream(chars.toString());
+	const lexer = new fassLexer(stream);
+	const tokens = new CommonTokenStream(lexer);
+	const parser = new fassParser(tokens);
+	const tree = parser.program();
+	fass.visit(tree);
+	return fass;
+}
+
+function failed(name: string) {
+	console.error(`❌ [${name}] failed`);
+}
+
+function passed(name: string) {
+	console.log(`✅ [${name}] passed`);
+}
+
+function test1(name: string, test: () => any) {
+	if (!test()) {
+		failed(name);
+		return false;
+	}
+	passed(name);
+	return true;
+}
+
+function test_all(stop_on_fail: boolean = false) {
+	for (const name in tests) {
+		const test = tests[name];
+		const result = test();
+
+		if (result !== true) {
+			failed(name);
+
+			if (typeof result !== "boolean") {
+				console.error(result);
+			}
+
+			if (stop_on_fail) {
+				console.log(`Stopped on first test failed`);
+				return;
+			}
+			continue;
+		}
+		passed(name);
+	}
+}
+
+function expect(got: any, expected: any) {
+	let condition = false;
+	if (
+		got instanceof Buffer &&
+		expected instanceof Buffer &&
+		got.equals(expected)
+	) {
+		condition = true;
+	} else if (got === expected) {
+		condition = true;
+	}
+
+	if (!condition) {
+		return { got, expected };
+	}
+	return true;
+}

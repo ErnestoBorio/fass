@@ -5,7 +5,8 @@
 	"scripts": {
 		"start": "bun ./src/main.ts program.fass",
 		"test": "bun ./src/test.ts",
-		"node": "tsx ./src/main.ts program.fass"
+		"node": "tsx ./src/main.ts program.fass",
+		"build": "./build"
 	},
 	"devDependencies": {
 		"@types/antlr4": "^4.11.5",

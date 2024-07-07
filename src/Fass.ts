@@ -41,7 +41,8 @@ import {
 	Reg_assign_stmtContext,
 	Remote_label_stmtContext,
 	Ref_assign_stmtContext,
-	Ref_ref_assign_stmtContext
+	Ref_ref_assign_stmtContext,
+	Reg_reg_assign_stmtContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
 import ParserRuleContext from "antlr4/context/ParserRuleContext";
@@ -579,19 +580,42 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 	}
 
 	visitReg_assign_stmt = (ctx: Reg_assign_stmtContext) => {
-		const register = ctx.A() ? "A" : ctx.X() ? "X" : "Y";
+		const register = ctx.register().A()
+			? "A"
+			: ctx.register().X()
+				? "X"
+				: "Y";
 		const argument = this.visitRhs_value(ctx.rhs_value());
 		this.registerAssignment(register, argument);
 	};
 
 	visitRef_assign_stmt = (ctx: Ref_assign_stmtContext) => {
-		const register = ctx.A() ? "A" : ctx.X() ? "X" : "Y";
+		const register = ctx.register().A()
+			? "A"
+			: ctx.register().X()
+				? "X"
+				: "Y";
 		const reference = this.visitReference(ctx.reference());
 		this.referenceAssignment(reference, register);
 	};
 
+	visitReg_reg_assign_stmt = (ctx: Reg_reg_assign_stmtContext) => {
+		const [left, right] = ctx.registers_list();
+		if (left.A() && right.X()) this.append(opcodes["TAX"]);
+		else if (left.X() && right.A()) this.append(opcodes["TXA"]);
+		else if (left.A() && right.Y()) this.append(opcodes["TAY"]);
+		else if (left.Y() && right.A()) this.append(opcodes["TYA"]);
+		else if (left.X() && right.STACK()) this.append(opcodes["TXS"]);
+		else if (left.STACK() && right.X()) this.append(opcodes["TSX"]);
+		else throw new UnreachableCode(ctx);
+	};
+
 	visitRef_ref_assign_stmt = (ctx: Ref_ref_assign_stmtContext) => {
-		const register = ctx.A() ? "A" : ctx.X() ? "X" : "Y";
+		const register = ctx.register().A()
+			? "A"
+			: ctx.register().X()
+				? "X"
+				: "Y";
 		const lhs_ref = this.visitReference(ctx.reference());
 		const rhs_value = this.visitRhs_value(ctx.rhs_value());
 		this.registerAssignment(register, rhs_value);

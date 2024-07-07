@@ -58,10 +58,12 @@ logic_stmt:
 		| reference
 	);
 
-reg_assign_stmt: reg = (A | X | Y) '=' rhs_value;
-ref_assign_stmt: reference '=' reg = (A | X | Y);
-ref_ref_assign_stmt:
-	reference '=' reg = (A | X | Y) '=' rhs_value;
+register: A | X | Y;
+registers: A | X | Y | STACK;
+reg_assign_stmt: register '=' rhs_value;
+ref_assign_stmt: reference '=' register;
+reg_reg_assign_stmt: registers '=' registers;
+ref_ref_assign_stmt: reference '=' register '=' rhs_value;
 
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;

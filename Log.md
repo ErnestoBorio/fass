@@ -45,8 +45,13 @@ loop until
 	- Misc: SEC, CLC, SED, CLD, SEI, CLI, CLV, NOP, NOP3, BRK
 
 * Saltos: JMP, JSR, RTS, RTI
+
+
 <!----------------------------------------------------------------------------->
 # Log:
+
+## 2024-09-15
+Removed Dart code because it was all already implemented in Typescript.
 
 ## 2024-03-29
 Se me fue de mambo el proyecto en complejidad. Tengo que volver a una clase sola.

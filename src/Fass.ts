@@ -42,7 +42,8 @@ import {
 	Remote_label_stmtContext,
 	Ref_assign_stmtContext,
 	Ref_ref_assign_stmtContext,
-	Reg_reg_assign_stmtContext
+	Reg_reg_assign_stmtContext,
+	IncdecrementContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
 import ParserRuleContext from "antlr4/context/ParserRuleContext";
@@ -620,5 +621,19 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		const rhs_value = this.visitRhs_value(ctx.rhs_value());
 		this.registerAssignment(register, rhs_value);
 		this.referenceAssignment(lhs_ref, register);
+	};
+
+	visitIncdecrement = (ctx: IncdecrementContext) => {
+		const op2char = ctx._sign().getText() == "++" ? "IN" : "DE";
+		if (ctx.incdec_lhs().X() || ctx.incdec_lhs().Y()) {
+			// INX DEX INY DEY
+			const op = op2char + (ctx.incdec_lhs().X() ? "X" : "Y");
+			this.append(opcodes[op]);
+		} else {
+			// INC ref, DEC ref
+			const ref = this.getRef(ctx.incdec_lhs().reference());
+			this.append(opcodes[op2char + "C"][ref.addressing]);
+			this.appendReference(ref);
+		}
 	};
 }

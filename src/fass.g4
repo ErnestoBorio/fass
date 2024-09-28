@@ -65,6 +65,9 @@ ref_assign_stmt: reference '=' register;
 reg_reg_assign_stmt: registers '=' registers;
 ref_ref_assign_stmt: reference '=' register '=' rhs_value;
 
+incdec_lhs: X | Y | reference;
+incdecrement: incdec_lhs sign = ('++' | '--');
+
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;
 then_part: line+;

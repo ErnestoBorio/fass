@@ -14,10 +14,10 @@
 ~~flag_set_stmt~~  
 ~~logic_stmt~~    
 ~~assign_stmt~~    
-arithmetic_stmt  
+~~arithmetic_stmt  
 if then else  
 while  
-loop until
+loop until/while
 
 # To do
 - Create tests for what's already implemented

@@ -68,6 +68,8 @@ ref_ref_assign_stmt: reference '=' register '=' rhs_value;
 incdec_lhs: X | Y | reference;
 incdecrement: incdec_lhs sign = ('++' | '--');
 
+arithmetic: A op = ('+=' | '-=') rhs_value;
+
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;
 then_part: line+;

@@ -14,10 +14,15 @@
 ~~flag_set_stmt~~  
 ~~logic_stmt~~    
 ~~assign_stmt~~    
-~~arithmetic_stmt  
+~~arithmetic_stmt~~
 if then else  
 while  
-loop until/while
+loop (infinito)?
+loop while?
+bitmap
+include bin
+include/import source
+Self-modifying code (goto, gosub)
 
 # To do
 - Create tests for what's already implemented

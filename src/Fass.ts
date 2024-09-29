@@ -43,7 +43,8 @@ import {
 	Ref_assign_stmtContext,
 	Ref_ref_assign_stmtContext,
 	Reg_reg_assign_stmtContext,
-	IncdecrementContext
+	IncdecrementContext,
+	ArithmeticContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
 import ParserRuleContext from "antlr4/context/ParserRuleContext";
@@ -635,5 +636,30 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 			this.append(opcodes[op2char + "C"][ref.addressing]);
 			this.appendReference(ref);
 		}
+	};
+
+	visitArithmetic = (ctx: ArithmeticContext) => {
+		const rhs_value = this.visitRhs_value(ctx.rhs_value());
+		const op = ctx._op().getText()[0];
+		const mnemonic = op == "+" ? "ADC" : "SBC";
+
+		if (rhs_value instanceof Value) {
+			this.append(opcodes[mnemonic]["IMM"]);
+			this.append(rhs_value);
+			return;
+		}
+
+		if (rhs_value instanceof Reference) {
+			if (opcodes[mnemonic][rhs_value.addressing!]) {
+				this.append(opcodes[mnemonic][rhs_value.addressing!]);
+				this.appendReference(rhs_value);
+				return;
+			}
+
+			throw new FassError(
+				`Invalid addressing mode ${rhs_value.addressing} for ${mnemonic} ${rhs_value.label}`
+			);
+		}
+		throw new UnreachableCode();
 	};
 }

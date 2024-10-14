@@ -44,7 +44,8 @@ import {
 	Ref_ref_assign_stmtContext,
 	Reg_reg_assign_stmtContext,
 	IncdecrementContext,
-	ArithmeticContext
+	ArithmeticContext,
+	If_stmtContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
 import ParserRuleContext from "antlr4/context/ParserRuleContext";
@@ -662,4 +663,54 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		}
 		throw new UnreachableCode();
 	};
+
+	visitIf_stmt = (ctx: If_stmtContext) => {
+		const cond = ctx.if_part().condition();
+		let branch: string;
+
+		if (cond.ZERO() || cond.EQUAL()) {
+			branch = cond.NOT() ? "BNE" : "BEQ";
+		} else if (cond.CARRY()) {
+			branch = cond.NOT() ? "BCC" : "BCS";
+		} else if (cond.OVERFLOW()) {
+			branch = cond.NOT() ? "BVC" : "BVS";
+		} else if (cond.POSITIVE()) {
+			branch = "BPL";
+		} else if (cond.NEGATIVE()) {
+			branch = "BMI";
+		} else {
+			throw new UnreachableCode();
+		}
+
+		this.append(opcodes[branch]);
+		this.append(3); // Branches past the next JMP
+		this.append(opcodes["JMP"]["ABS"]);
+		const thenJumpOffset: number = this.getOffset();
+		// Here it should add the address of the else (or end) clause
+		this.append(Buffer.from([0xfe, 0xca])); // dummy address
+
+		this.visitThen_part!(ctx.then_part());
+		const thenEndAddress = this.address;
+		const buf = Buffer.alloc(2);
+		buf.writeUInt16LE(thenEndAddress);
+		this.write(buf, thenJumpOffset);
+	};
+
+	/*
+	if zero
+		x++
+	else
+		x--
+	end
+
+˜	BEQ then (+5)
+		JMP else
+	then:
+		INC
+		JMP end
+	else:
+		DEC
+	end:
+
+	*/
 }

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-FASS_PATH="/Users/petruza/Source/Drean64/fass"
-ANTLR_FILES="$FASS_PATH/src/parser"
-antlr -visitor -no-listener -Dlanguage=TypeScript -o $ANTLR_FILES $FASS_PATH/src/fass.g4
+ANTLR_FILES="$PWD/src/parser"
+antlr -visitor -no-listener -Dlanguage=TypeScript -o $ANTLR_FILES $PWD/src/fass.g4
 
 rm $ANTLR_FILES/*.interp
 rm $ANTLR_FILES/*.tokens
+
+echo "Compiled Fass"

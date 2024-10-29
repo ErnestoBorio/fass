@@ -4,13 +4,14 @@ import {
 	Hash,
 	Slice,
 	Value,
+	fassert,
 	FassError,
 	Reference,
 	Addressing,
 	defaultFiller,
 	UnreachableCode
 } from "./types";
-import {
+import fassParser, {
 	LabelContext,
 	DirectContext,
 	BinaryContext,
@@ -44,12 +45,17 @@ import {
 	Ref_ref_assign_stmtContext,
 	Reg_reg_assign_stmtContext,
 	IncdecrementContext,
-	ArithmeticContext
+	ArithmeticContext,
+	BitmapContext,
+	Bmp_headerContext,
+	ProgramContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
 import ParserRuleContext from "antlr4/context/ParserRuleContext";
+import { CharStream, CommonTokenStream, InputStream } from "antlr4";
+import fassLexer from "./parser/fassLexer";
 
-export default class Fass extends fassVisitor<Value | Reference | void> {
+export default class Fass extends fassVisitor<any> {
 	/** If dereferencing constants returns `undefined`, the constant doesn't exist */
 	constants = <Hash<number>>{};
 
@@ -625,7 +631,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 	};
 
 	visitIncdecrement = (ctx: IncdecrementContext) => {
-		const op2char = ctx._sign().getText() == "++" ? "IN" : "DE";
+		const op2char = ctx._sign.text == "++" ? "IN" : "DE";
 		if (ctx.incdec_lhs().X() || ctx.incdec_lhs().Y()) {
 			// INX DEX INY DEY
 			const op = op2char + (ctx.incdec_lhs().X() ? "X" : "Y");
@@ -640,7 +646,7 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 
 	visitArithmetic = (ctx: ArithmeticContext) => {
 		const rhs_value = this.visitRhs_value(ctx.rhs_value());
-		const op = ctx._op().getText()[0];
+		const op = ctx._op.text[0];
 		const mnemonic = op == "+" ? "ADC" : "SBC";
 
 		if (rhs_value instanceof Value) {
@@ -662,4 +668,98 @@ export default class Fass extends fassVisitor<Value | Reference | void> {
 		}
 		throw new UnreachableCode();
 	};
+
+	visitBitmap = (ctx: BitmapContext) => {
+		const { width, height, color, tags } = this.visitBmp_header(
+			ctx.bmp_header()
+		);
+		const bpp = color === "MONOCHROME" ? 1 : 2;
+
+		const charPixLines = ctx.bmp_body().bmp_line_list();
+		fassert(
+			charPixLines.length <= height,
+			`Bitmap lines exceed the bitmap height`,
+			ctx
+		);
+
+		for (const charPixCtx of charPixLines) {
+			const charsLine = charPixCtx.PIXELS().getText();
+			let intPxLine: number[] = [];
+
+			for (const pxChar of charsLine) {
+				if (".0".includes(pxChar)) {
+					intPxLine.push(0);
+				} else if ("#1".includes(pxChar)) {
+					intPxLine.push(1);
+				} else if (bpp <= 1) {
+					throw new FassError(
+						`Value greater than 1 used in 1bpp monochrome bitmap`,
+						ctx
+					);
+				} else if (["%2"].includes(pxChar)) {
+					intPxLine.push(2);
+				} else if (["*3"].includes(pxChar)) {
+					intPxLine.push(3);
+				} else {
+					throw new UnreachableCode(ctx);
+				}
+			}
+
+			if (intPxLine.length < width) {
+				const rest: number[] = Array(width - intPxLine.length).fill(0);
+				intPxLine = intPxLine.concat(rest);
+			} else {
+				fassert(
+					intPxLine.length <= width,
+					`bitmap line exceeds maximum width of 24 pixels`,
+					ctx
+				);
+			}
+
+			if (bpp === 1) {
+				const lineBytes: number[] = Array(width / 8).fill(0);
+				intPxLine.forEach((value, idx) => {
+					const byteNo = Math.floor(idx / 8); // 0..2
+					const bitNo = 7 - (idx % 8); // 7..0
+					lineBytes[byteNo] |= value << bitNo;
+				});
+				for (const byte of lineBytes.reverse()) {
+					this.append(byte);
+				}
+				continue;
+			}
+			/**
+			 * else: encode 2bpp image #TODO
+			 */
+		}
+	};
+
+	visitBmp_header = (ctx: Bmp_headerContext) => {
+		let width = parseInt(ctx.bmp_width()?.decimal().getText());
+		if (!width) {
+			width = 24;
+		} else if (![8, 16, 24].includes(width)) {
+			throw new FassError(`Bitmaps can only be 8, 16 or 24 bits wide`, ctx);
+		}
+		const height = parseInt(ctx.bmp_height()?.decimal().getText());
+		const color = ctx.bmp_bpp()?.MONOCHROME() ? `MONOCHROME` : `4COLORS`;
+		const tags = ctx.NES() ? [`NES`] : [];
+		return {
+			width,
+			height,
+			color,
+			tags
+		};
+	};
+}
+
+export function compile(source: string): [Fass, ProgramContext] {
+	const fass = new Fass();
+	const chars = new InputStream(source);
+	const stream = new CharStream(chars.toString());
+	const lexer = new fassLexer(stream);
+	const tokens = new CommonTokenStream(lexer);
+	const parser = new fassParser(tokens);
+	const program = parser.program();
+	return [fass, program];
 }

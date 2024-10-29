@@ -1,0 +1,6 @@
+address $1000
+border at $D020
+
+loop:
+  border++
+  goto loop

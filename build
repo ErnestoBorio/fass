@@ -2,6 +2,3 @@
 FASS_PATH="/Users/petruza/Source/Drean64/fass"
 ANTLR_FILES="$FASS_PATH/src/parser"
 antlr -visitor -no-listener -Dlanguage=TypeScript -o $ANTLR_FILES $FASS_PATH/src/fass.g4
-
-rm $ANTLR_FILES/*.interp
-rm $ANTLR_FILES/*.tokens

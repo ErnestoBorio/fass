@@ -1,0 +1,23 @@
+address 4096
+
+border at $D020
+screen1 at $400
+screen2 at $500
+screen3 at $600
+screen4 at $700
+
+a = $20
+x = 0
+
+clrloop:
+	screen1[x] = a
+	screen2[x] = a
+	screen3[x] = a
+	screen4[x] = a
+	x--
+	if not zero goto clrloop
+	end
+
+loop:
+  border++
+  goto loop

@@ -5,11 +5,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "bun debug",
+			"name": "test.fass",
 			"request": "launch",
 			"type": "bun",
 			"program": "src/main.ts",
-			"args": ["program.fass"],
+			"args": ["programs/test.fass"],
 			"cwd": "${workspaceFolder}"
 		},
 		{

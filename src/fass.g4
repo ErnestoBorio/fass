@@ -19,6 +19,12 @@ statement:
 	| return_stmt
 	| if_stmt
 	| reg_assign_stmt
+	| ref_assign_stmt
+	| reg_reg_assign_stmt
+	| ref_ref_assign_stmt
+	| incdecrement
+	| arithmetic
+	| bitmap
 	| label statement?;
 
 label: IDENTIFIER ':';
@@ -69,6 +75,14 @@ incdec_lhs: X | Y | reference;
 incdecrement: incdec_lhs sign = ('++' | '--');
 
 arithmetic: A op = ('+=' | '-=') rhs_value;
+
+bitmap: bmp_header bmp_body TAB* END_KWD;
+bmp_header: BITMAP bmp_width? bmp_height? bmp_bpp? NES? EOL;
+bmp_width: WIDTH decimal;
+bmp_height: HEIGHT decimal;
+bmp_bpp: MONOCHROME | FOURCOLORS;
+bmp_body: bmp_line+;
+bmp_line: TAB* PIXELS? EOL;
 
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;
@@ -138,7 +152,6 @@ FLAGS_KWD: [fF][lL][aA][gG][sS];
 GOSUB_KWD: [gG][oO][sS][uU][bB];
 GOTO_KWD: [gG][oO][tT][oO];
 IF_KWD: [iI][fF];
-OR_KWD: [oO][rR]'=';
 PULL_KWD: [pP][uU][lL][lL];
 PUSH_KWD: [pP][uU][sS][hH];
 RETINT_KWD: [rR][eE][tT][iI][nN][tT];
@@ -147,11 +160,20 @@ ROTATE_KWD: [rR][oO][tT][aA][tT][eE];
 SHIFT_KWD: [sS][hH][iI][fF][tT];
 THEN_KWD: [tT][hH][eE][nN];
 WHILE_KWD: [wW][hH][iI][lL][eE];
+OR_KWD: [oO][rR]'=';
 XOR_KWD: [xX][oO][rR]'=';
 ROL_KWD: ROTATE_KWD '<';
 ROR_KWD: ROTATE_KWD '>';
 ASL_KWD: SHIFT_KWD '<';
 LSR_KWD: SHIFT_KWD '>';
+
+BITMAP: [bB][iI][tT][mM][aA][pP];
+WIDTH: [wW][iI][dD][tT][hH];
+HEIGHT: [hH][eE][iI][gG][hH][tT];
+MONOCHROME: [mM][oO][nN][oO][cC][hH][rR][oO][mM][eE];
+FOURCOLORS: '4' [cC][oO][lL][oO][rR][sS];
+NES: [nN][eE][sS];
+PIXELS: [.#%*0123]+;
 // Keywords <--
 
 // --> Flags

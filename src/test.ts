@@ -2,8 +2,9 @@ import { InputStream, CharStream, CommonTokenStream } from "antlr4";
 import Fass from "./Fass";
 import fassLexer from "./parser/fassLexer";
 import fassParser from "./parser/fassParser";
-import { Slice, UnreachableCode } from "./types";
+import { Reference, Slice, Value } from "./types";
 import { opcodes } from "./opcodes";
+import { ProgramContext } from "./parser/fassParser";
 
 const tests = {
 	slice: () => {
@@ -90,61 +91,39 @@ const tests = {
 		);
 	},
 
-	logic: () => {
-		const bin = compile(`
-      address $69
-      zpLabel:
-        data 5
-      
-      address $3DEB
-      absLabel:
-        data 7
-      
-      address $BAD1
-      A and= 4
-      A or= zpLabel
-      A xor= absLabel[X]
-      A compare (zpLabel)[Y]
-      A bit absLabel
-    `).output;
-	}
-	/*
-	"logic", () {
-    final binary = compile("""
-      address 9
-      zpLabel:
-        data 5
-      
-      address \$10EB
-      absLabel:
-        data 7
-      
-      address \$20AD
-      A and= 4
-      A or= zpLabel
-      A xor= absLabel[X]
-      A compare (zpLabel)[Y]
-      A bit absLabel
-    """).output;
+	// logic: () => {
+	// 	const bin = compile(`
+	//    address $69
+	//    zpLabel:
+	//      data 5
 
-    final got = binary.sublist(0x20AD);
-    final expected = [
-      opcodes["AND"]!["IMM"],
-      4,
-      opcodes["ORA"]!["ZP"],
-      9,
-      opcodes["EOR"]!["ABSX"],
-      0xEB,
-      0x10,
-      opcodes["CMP"]!["INDY"],
-      9,
-      opcodes["BIT"]!["ABS"],
-      0xEB,
-      0x10
-    ];
-    expect(got, expected);
-  });
-  */
+	//    address $3DEB
+	//    absLabel:
+	//      data 7
+
+	//    address $BAD1
+	//    A and= 4
+	//    A or= zpLabel
+	//    A xor= absLabel[X]
+	//    A compare (zpLabel)[Y]
+	//    A bit absLabel
+	//  `).output;
+	// },
+
+	bitmap: () => {
+		const bin = compile(`bitmap width 8 height 8 monochrome
+			.......#
+			......#.
+			.....#..
+			....#...
+			...#....
+			..#.....
+			.#......
+			#.......
+			end
+`).output.get();
+		return expect(bin, Buffer.from([1, 2, 4, 8, 16, 32, 64, 128]));
+	}
 };
 
 //------------------------------------------------------------------------------
@@ -167,15 +146,24 @@ const tests = {
 })();
 
 function compile(source: string) {
+	const [fass, program] = prepare(source);
+	parse(fass, program);
+	return fass;
+}
+
+function prepare(source: string): [Fass, ProgramContext] {
 	const fass = new Fass();
 	const chars = new InputStream(source);
 	const stream = new CharStream(chars.toString());
 	const lexer = new fassLexer(stream);
 	const tokens = new CommonTokenStream(lexer);
 	const parser = new fassParser(tokens);
-	const tree = parser.program();
-	fass.visit(tree);
-	return fass;
+	const program = parser.program();
+	return [fass, program];
+}
+
+function parse(fass: Fass, program: ProgramContext) {
+	fass.visit(program);
 }
 
 function failed(name: string) {
@@ -187,8 +175,10 @@ function passed(name: string) {
 }
 
 function test1(name: string, test: () => any) {
-	if (!test()) {
+	const result = test();
+	if (result !== true) {
 		failed(name);
+		console.error(`  Expected ${result.expected} but got ${result.got}`);
 		return false;
 	}
 	passed(name);

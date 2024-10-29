@@ -1,5 +1,8 @@
 import { ParserRuleContext } from "antlr4";
 
+/** Default filler byte, $EA = NOP */
+export const defaultFiller = 0xea;
+
 type Endianness = "big" | "little";
 
 export type Hash<Type> = {
@@ -98,5 +101,11 @@ export class UnreachableCode extends FassError {
 	}
 }
 
-/** Default filler byte, $EA = NOP */
-export const defaultFiller = 0xea;
+export function fassert(expression, message: string, ctx?: ParserRuleContext) {
+	if (expression instanceof Function) {
+		expression = expression();
+	}
+	if (!expression) {
+		throw new FassError(message, ctx);
+	}
+}

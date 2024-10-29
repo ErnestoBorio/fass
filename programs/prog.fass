@@ -1,0 +1,34 @@
+
+* = $0801
+lda #$00
+tax
+tay
+jsr $1000 ; initialize music
+
+mainloop:
+	lda $d012    ; load $d012
+	cmp #$80     ; is it equal to #$80?
+	bne mainloop ; if not, keep checking
+
+	inc $d020    ; inc border colour
+	jsr $1003    ; jump to music play routine
+	dec $d020    ; dec border colour
+	jmp mainloop ; keep looping
+
+---
+
+address $801
+A = 0
+X = A
+Y = A
+gosub $1000
+
+for
+	A = @D012
+	A compare= 128
+	not equal? then next
+
+	@D020++
+	gosub @1003
+	@D020--
+	next

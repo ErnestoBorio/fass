@@ -15,14 +15,22 @@
 ~~logic_stmt~~    
 ~~assign_stmt~~    
 ~~arithmetic_stmt~~
+~~bitmap
 if then else  
-while  
-loop (infinito)?
-loop while?
-bitmap
+while
+loop until
+forever / infinite loop
 include bin
 include/import source
 Self-modifying code (goto, gosub)
+
+
+# Must do:
+- @$400[x] Agregar referencias directas a memoria con @
+- Agregar comentarios //
+- Import / include
+- Armado de proyecto con varios sources ... relocatables?
+
 
 # To do
 - Create tests for what's already implemented

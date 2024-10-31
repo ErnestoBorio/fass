@@ -3,12 +3,11 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"start": "bun ./src/main.ts program.fass",
-		"compile": "bun ./src/main.ts",
-		"go": "bun ./src/main.ts $1",
-		"node": "tsx ./src/main.ts program.fass",
-		"test": "bun ./src/test.ts",
-		"build": "./build",
+		"start": "npx nearleyc ./src/fass.ne --out ./src/fass.cjs && bun src/parse test/test.example",
+		"build": "nearleyc ./src/fass.ne --out ./src/fass.cjs",
+		"test": "cat src/program.fass | nearley-test src/fass.cjs",
+		"build-test": "nearleyc ./src/fass.ne --out ./src/fass.cjs && cat src/program.fass | nearley-test src/fass.cjs",
+		"try": "nearleyc ./src/fass.ne --out ./src/fass.cjs && nearley-test src/fass.cjs --input",
 		"keygen": "bun ./src/keygen.ts"
 	},
 	"devDependencies": {
@@ -23,6 +22,7 @@
 	},
 	"dependencies": {
 		"antlr4": "^4.13.2",
-		"minimist": "^1.2.8"
+		"minimist": "^1.2.8",
+		"nearley": "^2.20.1"
 	}
 }

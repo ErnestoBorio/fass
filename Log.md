@@ -24,13 +24,17 @@ include bin
 include/import source
 Self-modifying code (goto, gosub)
 
+## Note:
+- current branch tries Nearley parsing, but it didn't seem an advantage over
+	antlr. With spaces ignored, tabs only ocurring at the start of a line, 
+	bitmaps not using spaces, there doesn't seem to be a problem.
 
 # Must do:
 - @$400[x] Agregar referencias directas a memoria con @
+- import (solo declaraciones)
+- include (archivos binarios)
 - Agregar comentarios //
-- Import / include
 - Armado de proyecto con varios sources ... relocatables?
-
 
 # To do
 - Create tests for what's already implemented

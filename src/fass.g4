@@ -97,7 +97,9 @@ condition:
 rhs_value: literal | name | reference;
 static_value: literal | name | STRING;
 
+nameOrLiteralRef: name | literal_ref;
 name: IDENTIFIER; // A constant or a label
+literal_ref: AT (hexadecimal | decimal);
 
 reference:
 	direct
@@ -106,11 +108,11 @@ reference:
 	| indirect_y
 	| x_indirect;
 
-direct: name; // Only labels are valid names here
-indirect: '(' name ')';
-indexed: name '[' (X | Y) ']';
-indirect_y: '(' name ')' '[' Y ']';
-x_indirect: '(' name '[' X ']' ')';
+direct: nameOrLiteralRef; // Only labels are valid names here
+indirect: '(' nameOrLiteralRef ')';
+indexed: nameOrLiteralRef '[' (X | Y) ']';
+indirect_y: '(' nameOrLiteralRef ')' '[' Y ']';
+x_indirect: '(' nameOrLiteralRef '[' X ']' ')';
 
 literal:
 	hexadecimal
@@ -166,6 +168,7 @@ ROL_KWD: ROTATE_KWD '<';
 ROR_KWD: ROTATE_KWD '>';
 ASL_KWD: SHIFT_KWD '<';
 LSR_KWD: SHIFT_KWD '>';
+AT: '@';
 
 BITMAP: [bB][iI][tT][mM][aA][pP];
 WIDTH: [wW][iI][dD][tT][hH];
@@ -194,7 +197,7 @@ X: [xX];
 Y: [yY];
 STACK: [sS][tT][aA][cC][kK];
 
-// The dot allows a dot-notation-like syntactic sugar 
+// The dot allows a dot-notation-like syntactic sugar
 IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
 TAB: '\t';
 EOL: '\r'? '\n';

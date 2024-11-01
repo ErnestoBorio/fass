@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"start": "bun ./src/main.ts program.fass",
+		"start": "bun ./src/main.ts ./src/program.fass",
 		"compile": "bun ./src/main.ts",
 		"go": "bun ./src/main.ts $1",
 		"node": "tsx ./src/main.ts program.fass",

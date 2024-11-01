@@ -51,9 +51,9 @@ import fassParser, {
 	ProgramContext
 } from "./parser/fassParser";
 import { reservedWords } from "./keywords";
-import ParserRuleContext from "antlr4/context/ParserRuleContext";
 import { CharStream, CommonTokenStream, InputStream } from "antlr4";
 import fassLexer from "./parser/fassLexer";
+import { ParserRuleContext } from "antlr4";
 
 export default class Fass extends fassVisitor<any> {
 	/** If dereferencing constants returns `undefined`, the constant doesn't exist */

@@ -25,6 +25,15 @@ include bin
 import source
 Self-modifying code (goto, gosub)
 
+## To do next
+- Setup jest and test all references and store
+
+## Notes
+Pueden las constantes y los labels compartir el mismo espacio?
+- Las const se usan solo para valores de 1 byte?
+- Las referencias son solo addresses de 2 bytes little endian
+- 3 o más bytes (big endian) van solo en data
+
 
 # Must do:
 - @$400[x] Agregar referencias directas a memoria con @

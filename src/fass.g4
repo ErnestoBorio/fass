@@ -31,7 +31,7 @@ label: IDENTIFIER ':';
 
 address_stmt: ADDRESS_KWD address;
 
-remote_label_stmt: IDENTIFIER 'at' address;
+remote_label_stmt: IDENTIFIER AT_KWD address;
 
 address: decimal | hexadecimal;
 
@@ -78,8 +78,8 @@ arithmetic: A op = ('+=' | '-=') rhs_value;
 
 bitmap: bmp_header bmp_body TAB* END_KWD;
 bmp_header: BITMAP bmp_width? bmp_height? bmp_bpp? NES? EOL;
-bmp_width: WIDTH decimal;
-bmp_height: HEIGHT decimal;
+bmp_width: WIDTH DECIMAL;
+bmp_height: HEIGHT DECIMAL;
 bmp_bpp: MONOCHROME | FOURCOLORS;
 bmp_body: bmp_line+;
 bmp_line: TAB* PIXELS? EOL;
@@ -95,11 +95,7 @@ condition:
 	| NEGATIVE;
 
 rhs_value: literal | name | reference;
-static_value: literal | name | STRING;
-
-nameOrLiteralRef: name | literal_ref;
-name: IDENTIFIER; // A constant or a label
-literal_ref: AT (hexadecimal | decimal);
+static_value: literal | name;
 
 reference:
 	direct
@@ -114,6 +110,10 @@ indexed: nameOrLiteralRef '[' (X | Y) ']';
 indirect_y: '(' nameOrLiteralRef ')' '[' Y ']';
 x_indirect: '(' nameOrLiteralRef '[' X ']' ')';
 
+nameOrLiteralRef: name | literal_ref;
+name: IDENTIFIER; // A constant or a label
+literal_ref: AT_SIGN address;
+
 literal:
 	hexadecimal
 	| decimal
@@ -127,8 +127,9 @@ binary: BINARY;
 negative_number: NEGATIVE_NUMBER;
 opcode_literal: BRK | NOP | NOP3;
 
-STRING: '"' (ESC | ~["])* '"';
-ESC: '\\"';
+// STRING: '`' (ESC | ~[`])* '`'; 
+
+// ESC: '\\' [0-9a-fA-F]{2};
 
 // --> Literals
 HEXADECIMAL: '$' [0-9a-fA-F]+;
@@ -162,13 +163,14 @@ ROTATE_KWD: [rR][oO][tT][aA][tT][eE];
 SHIFT_KWD: [sS][hH][iI][fF][tT];
 THEN_KWD: [tT][hH][eE][nN];
 WHILE_KWD: [wW][hH][iI][lL][eE];
+AT_KWD: [aA][tT];
+AT_SIGN: '@';
 OR_KWD: [oO][rR]'=';
 XOR_KWD: [xX][oO][rR]'=';
 ROL_KWD: ROTATE_KWD '<';
 ROR_KWD: ROTATE_KWD '>';
 ASL_KWD: SHIFT_KWD '<';
 LSR_KWD: SHIFT_KWD '>';
-AT: '@';
 
 BITMAP: [bB][iI][tT][mM][aA][pP];
 WIDTH: [wW][iI][dD][tT][hH];

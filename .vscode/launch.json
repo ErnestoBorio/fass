@@ -5,18 +5,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "test.fass",
+			"name": "try",
 			"request": "launch",
 			"type": "bun",
-			"program": "src/main.ts",
-			"args": ["programs/test.fass"],
-			"cwd": "${workspaceFolder}"
-		},
-		{
-			"name": "test",
-			"request": "launch",
-			"type": "bun",
-			"program": "src/test.ts",
+			"program": "src/main.js",
+			"args": ["src/program.fass"],
 			"cwd": "${workspaceFolder}"
 		}
 	]

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 FASS_PATH="/Users/petruza/Source/Drean64/fass"
 ANTLR_FILES="$FASS_PATH/src/parser"
-antlr -visitor -no-listener -Dlanguage=TypeScript -o $ANTLR_FILES $FASS_PATH/src/fass.g4
+antlr -visitor -no-listener -Dlanguage=JavaScript -o $ANTLR_FILES $FASS_PATH/src/fass.g4

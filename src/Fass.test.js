@@ -1,5 +1,5 @@
 import { expect, test, describe } from "bun:test";
-import Fass, { compile } from "./Fass";
+import Fass, { compile } from "./fass";
 import IndirectContext from "./parser/fassParser";
 
 const parse = tree => new Fass().visit(tree);

@@ -59,9 +59,7 @@ export default class Fass extends fassVisitor {
 
 	// <Reference>
 	visitReference(ctx) {
-		const nameOrLiteralRef = this.visitNameOrLiteralRef(
-			ctx.children[0]?.nameOrLiteralRef()
-		);
+		const baseRef = this.visitBaseRef(ctx.children[0]?.baseRef());
 		let addressing = ctx.direct()
 			? "direct"
 			: ctx.indirect()
@@ -76,21 +74,23 @@ export default class Fass extends fassVisitor {
 
 		// TODO si el label existe, leer la address para ver si no es ZP
 		let reference = {
-			...nameOrLiteralRef
+			...baseRef
 		};
 
-		let name = ctx.children[0]?.nameOrLiteralRef()?.name()?.getText();
+		let name = ctx.children[0]?.baseRef()?.name()?.getText();
 		if (name) {
 			const value = this.getLabel(name);
 			if (value !== undefined) {
 				reference.value = value;
 			}
 		}
+
 		if (addressing === "direct" || addressing === "indexed") {
-			addressing = reference.value >= 0x100 ? "absolute" : "zero page";
 			if (addressing === "indexed") {
-				addressing += ", " + ctx.children[0]?.X() ? "X" : "Y";
+				addressing = ", " + (ctx.children[0]?.X() ? "X" : "Y");
 			}
+			addressing =
+				(reference.value >= 0x100 ? "absolute" : "zero page") + addressing;
 		}
 		reference.addressing = addressing;
 		return reference;
@@ -98,16 +98,13 @@ export default class Fass extends fassVisitor {
 
 	visitIndexed(ctx) {
 		return {
-			...this.visitNameOrLiteralRef(ctx.nameOrLiteralRef()),
-			addressing: "indexed " + ctx.X() ? "X" : "Y"
+			...this.visitBaseRef(ctx.baseRef()),
+			addressing: "indexed " + (ctx.X() ? "X" : "Y")
 		};
 	}
 
-	visitNameOrLiteralRef(ctx) {
-		let addressing = ctx.name()
-			? this.visitName(ctx.name())
-			: this.visitLiteral_ref(ctx.literal_ref());
-		return { ...this.visit(ctx.children[0]), addressing };
+	visitBaseRef(ctx) {
+		return { ...this.visit(ctx.children[0]) };
 	}
 
 	visitName(ctx) {

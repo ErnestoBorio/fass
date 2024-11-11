@@ -98,19 +98,19 @@ rhs_value: literal | name | reference;
 static_value: literal | name;
 
 reference:
-	direct
+	indexed
 	| indirect
-	| indexed
 	| indirect_y
-	| x_indirect;
+	| x_indirect
+	| direct;
 
-direct: nameOrLiteralRef; // Only labels are valid names here
-indirect: '(' nameOrLiteralRef ')';
-indexed: nameOrLiteralRef '[' (X | Y) ']';
-indirect_y: '(' nameOrLiteralRef ')' '[' Y ']';
-x_indirect: '(' nameOrLiteralRef '[' X ']' ')';
+indexed: baseRef '[' (X | Y) ']';
+indirect: '(' baseRef ')';
+indirect_y: '(' baseRef ')' '[' Y ']';
+x_indirect: '(' baseRef '[' X ']' ')';
+direct: baseRef; // Only labels are valid names here
 
-nameOrLiteralRef: name | literal_ref;
+baseRef: name | literal_ref;
 name: IDENTIFIER; // A constant or a label
 literal_ref: AT_SIGN address;
 

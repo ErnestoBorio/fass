@@ -32,17 +32,30 @@ describe("Data types", () => {
 
 describe("References", () => {
 	test("Direct", () => {
-		expect(compile("@$300").direct()).toBeTruthy();
-		const res = parse(compile("@$400").reference());
-		expect(res.value).toBe(0x400);
+		expect(compile("@$100").direct()).toBeTruthy();
+		const res = parse(compile("@$200").reference());
+		expect(res.value).toBe(0x200);
 		expect(res.addressing).toBe("absolute");
 	});
 
 	test("Indirect", () => {
-		expect(compile("(@$700)").indirect()).toBeTruthy();
-		const res = parse(compile("(@$800)").reference());
-		expect(res.value).toBe(0x800);
+		expect(compile("(@$300)").indirect()).toBeTruthy();
+		const res = parse(compile("(@$400)").reference());
+		expect(res.value).toBe(0x400);
 		expect(res.addressing).toBe("indirect");
+	});
+
+	test("Indexed", () => {
+		expect(compile("@$500[X]").indexed()).toBeTruthy();
+		expect(compile("@$0[Y]").indexed()).toBeTruthy();
+
+		let res = parse(compile("@$600[X]").reference());
+		expect(res.value).toBe(0x600);
+		expect(res.addressing).toBe("absolute, X");
+
+		res = parse(compile("@$EB[Y]").reference());
+		expect(res.value).toBe(0xeb);
+		expect(res.addressing).toBe("zero page, Y");
 	});
 });
 

@@ -3,5 +3,7 @@ import grammar from "./fassGrammar";
 
 const compiled = nearley.Grammar.fromCompiled(grammar);
 const parser = new nearley.Parser(compiled, { keepHistory: true });
-parser.feed("$D010");
-console.log(parser.results);
+parser.feed("$D020");
+
+const ast = parser.results[0];
+console.log(JSON.stringify(ast, null, 2));

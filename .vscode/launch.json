@@ -16,6 +16,7 @@
 			"name": "File",
 			"request": "launch",
 			"type": "bun",
+			"runtimeArgs": ["--watch"],
 			"program": "${file}",
 			"cwd": "${workspaceFolder}"
 		}

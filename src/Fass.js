@@ -60,17 +60,20 @@ export default class Fass extends fassVisitor {
 	// <Reference>
 	visitReference(ctx) {
 		const baseRef = this.visitBaseRef(ctx.children[0]?.baseRef());
-		let addressing = ctx.direct()
-			? "direct"
-			: ctx.indirect()
-				? "indirect"
-				: ctx.indexed()
-					? "indexed"
-					: ctx.x_indirect()
-						? "indexed indirect X"
-						: ctx.indirect_y()
-							? "indirect indexed Y"
-							: this.visitIndexed(ctx.indexed);
+		let addressing;
+		if (ctx.direct()) {
+			addressing = "direct";
+		} else if (ctx.indirect()) {
+			addressing = "indirect";
+		} else if (ctx.indexed()) {
+			addressing = "indexed";
+		} else if (ctx.x_indirect()) {
+			addressing = "indexed indirect X";
+		} else if (ctx.indirect_y()) {
+			addressing = "indirect indexed Y";
+		} else {
+			throw new UnreachableCode(ctx);
+		}
 
 		// TODO si el label existe, leer la address para ver si no es ZP
 		let reference = {
@@ -88,6 +91,8 @@ export default class Fass extends fassVisitor {
 		if (addressing === "direct" || addressing === "indexed") {
 			if (addressing === "indexed") {
 				addressing = ", " + (ctx.children[0]?.X() ? "X" : "Y");
+			} else {
+				addressing = "";
 			}
 			addressing =
 				(reference.value >= 0x100 ? "absolute" : "zero page") + addressing;

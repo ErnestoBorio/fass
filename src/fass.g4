@@ -98,17 +98,17 @@ rhs_value: literal | name | reference;
 static_value: literal | name;
 
 reference:
-	indexed
+	direct
 	| indirect
+	| indexed
 	| indirect_y
-	| x_indirect
-	| direct;
+	| x_indirect;
 
-indexed: baseRef '[' (X | Y) ']';
+direct: baseRef; // Only labels are valid names here
 indirect: '(' baseRef ')';
+indexed: baseRef '[' (X | Y) ']';
 indirect_y: '(' baseRef ')' '[' Y ']';
 x_indirect: '(' baseRef '[' X ']' ')';
-direct: baseRef; // Only labels are valid names here
 
 baseRef: name | literal_ref;
 name: IDENTIFIER; // A constant or a label

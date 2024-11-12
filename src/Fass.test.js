@@ -57,6 +57,20 @@ describe("References", () => {
 		expect(res.value).toBe(0xeb);
 		expect(res.addressing).toBe("zero page, Y");
 	});
+
+	test("(Indirect)[Y]", () => {
+		expect(compile("(@$700)[Y]").indirect_y()).toBeTruthy();
+		const res = parse(compile("(@$800)[Y]").reference());
+		expect(res.value).toBe(0x800);
+		expect(res.addressing).toBe("indirect indexed Y");
+	});
+
+	test("(Indexed[X])", () => {
+		expect(compile("(@$900[X])").x_indirect()).toBeTruthy();
+		const res = parse(compile("(@$A00[X])").reference());
+		expect(res.value).toBe(0xa00);
+		expect(res.addressing).toBe("indexed indirect X");
+	});
 });
 
 /*

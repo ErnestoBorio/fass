@@ -48,7 +48,7 @@ export default class Fass extends fassVisitor {
 		const register = this.visitRegister(ctx.register());
 
 		// Should be overwritten with the actual label address when it's found
-		reference.value = reference.value ?? 0xadde; // big endian $DEAD
+		reference.value = reference.value ?? 0xdead;
 
 		const mnemonic = "ST" + register.toUpperCase();
 		const opcode = getOpcode(mnemonic, reference.addressing);
@@ -121,7 +121,7 @@ export default class Fass extends fassVisitor {
 	}
 	// </Reference>
 
-	visitRegister = ctx => (ctx.X() ? "x" : ctx.Y() ? "y" : "a");
+	visitRegister = ctx => (ctx.X() ? "x" : ctx.Y() ? "y" : ctx.A() ? "a" : "");
 
 	visitAddress(ctx) {
 		if (ctx.hexadecimal()) {
@@ -162,17 +162,17 @@ export default class Fass extends fassVisitor {
 	visitOpcode_literal(ctx) {
 		if (ctx.NOP()) {
 			return {
-				value: getOpcode("NOP"),
+				value: opcode("NOP"),
 				text: ctx.NOP().getText()
 			};
 		} else if (ctx.BRK()) {
 			return {
-				value: getOpcode("BRK"),
+				value: opcode("BRK"),
 				text: ctx.BRK().getText()
 			};
 		} else if (ctx.NOP3()) {
 			return {
-				value: getOpcode("NOP3"),
+				value: opcode("NOP3"),
 				text: ctx.NOP3().getText()
 			};
 		}
@@ -224,7 +224,6 @@ class Assembler {
 	 */
 	store(ctx, reference, register) {
 		const line = `ST${register.toUpperCase()} ${reference} ; line ${ctx.start.line}`;
-		console.debug(line);
 		return line;
 	}
 }
@@ -238,9 +237,9 @@ function unpackBytes(data) {
 
 /**
  * Turns a 16 bit number into a little endian array of its bytes
- * @param {*} data
+ * @param {Array || Iterable} data
  * @returns
  */
 function littleEndian(data) {
-	return [data && 0xff, data >> 8 && 0xff];
+	return [data & 0xff, (data >> 8) & 0xff];
 }

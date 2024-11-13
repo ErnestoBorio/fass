@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import Fass, { compile } from "./Fass";
-import IndirectContext from "./parser/fassParser";
+import opcode from "./opcodes";
 
 const parse = tree => new Fass().visit(tree);
 
@@ -70,6 +70,20 @@ describe("References", () => {
 		const res = parse(compile("(@$A00[X])").reference());
 		expect(res.value).toBe(0xa00);
 		expect(res.addressing).toBe("indexed indirect X");
+	});
+});
+
+describe("Assignments", () => {
+	test("Reference = register", () => {
+		const tree = compile("@$1000 = A").ref_assign_stmt();
+		const fass = new Fass();
+		let output;
+		fass.addOutput = data => (output = data);
+		fass.visit(tree);
+		expect(output).toBeArrayOfSize(3);
+		expect(output[0]).toBe(opcode("STA", "absolute"));
+		expect(output[1]).toBe(0);
+		expect(output[2]).toBe(0x10);
 	});
 });
 

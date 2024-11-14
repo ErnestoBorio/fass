@@ -1,4 +1,4 @@
-import getOpcode from "./opcodes";
+import { getOpcode } from "./opcodes";
 import fassLexer from "./parser/fassLexer";
 import fassParser from "./parser/fassParser";
 import fassVisitor from "./parser/fassVisitor";
@@ -36,10 +36,16 @@ export default class Fass extends fassVisitor {
 
 	addOutput(data) {
 		data = new Uint8Array(data); // Cap to 8 bits
-		let offset = this.output.length; // append data in this position
-		let output = Uint8Array(this.ouput); // get a data view for .set()
-		this.output.resize(output.length + data.length); // grow buffer
-		output.set(data, offset); // copy appended data
+		let offset = this.output.byteLength; // append data in this position
+		this.output.resize(offset + data.length); // grow buffer
+		let view = new Uint8Array(this.output); // get a data view for .set()
+		view.set(data, offset); // copy appended data
+		return view;
+	}
+
+	visitProgram(ctx) {
+		this.visitChildren(ctx);
+		return this.output;
 	}
 
 	// <Statement>
@@ -51,9 +57,23 @@ export default class Fass extends fassVisitor {
 		reference.value = reference.value ?? 0xdead;
 
 		const mnemonic = "ST" + register.toUpperCase();
-		const opcode = getOpcode(mnemonic, reference.addressing);
-		this.addOutput([opcode, ...littleEndian(reference.value)]);
-		this.assembler.store(ctx, reference, register);
+		this.addOutput([
+			getOpcode(mnemonic, reference.addressing),
+			...littleEndian(reference.value)
+		]);
+		this.assembler.ST(ctx, reference, register);
+	}
+
+	visitReg_assign_stmt(ctx) {
+		const register = this.visitRegister(ctx.register());
+		const mnemonic = "LD" + register.toUpperCase();
+
+		const literal = ctx.rhs_value()?.literal();
+		if (literal) {
+			const value = this.visitLiteral(literal)?.value;
+			this.addOutput([getOpcode(mnemonic, "IMM"), value]);
+			return;
+		}
 	}
 	// </Statement>
 
@@ -64,13 +84,13 @@ export default class Fass extends fassVisitor {
 		if (ctx.direct()) {
 			addressing = "direct";
 		} else if (ctx.indirect()) {
-			addressing = "indirect";
+			addressing = "IND";
 		} else if (ctx.indexed()) {
 			addressing = "indexed";
 		} else if (ctx.x_indirect()) {
-			addressing = "indexed indirect X";
+			addressing = "INDX";
 		} else if (ctx.indirect_y()) {
-			addressing = "indirect indexed Y";
+			addressing = "INDY";
 		} else {
 			throw new UnreachableCode(ctx);
 		}
@@ -90,12 +110,11 @@ export default class Fass extends fassVisitor {
 
 		if (addressing === "direct" || addressing === "indexed") {
 			if (addressing === "indexed") {
-				addressing = ", " + (ctx.children[0]?.X() ? "X" : "Y");
+				addressing = ctx.children[0]?.X() ? "X" : "Y";
 			} else {
 				addressing = "";
 			}
-			addressing =
-				(reference.value >= 0x100 ? "absolute" : "zero page") + addressing;
+			addressing = (reference.value >= 0x100 ? "ABS" : "ZP") + addressing;
 		}
 		reference.addressing = addressing;
 		return reference;
@@ -131,6 +150,17 @@ export default class Fass extends fassVisitor {
 	}
 
 	// <Literal>
+	visitLiteral(ctx) {
+		const literal = this.visit(ctx.children[0]);
+		if (literal.value > 0xff || literal.value < -128) {
+			throw new FassError(
+				"Literal value must be 8 bits wide, [-128..255]",
+				ctx
+			);
+		}
+		return literal;
+	}
+
 	visitDecimal(ctx) {
 		return {
 			value: parseInt(ctx.DECIMAL().getText(), 10),
@@ -162,17 +192,17 @@ export default class Fass extends fassVisitor {
 	visitOpcode_literal(ctx) {
 		if (ctx.NOP()) {
 			return {
-				value: opcode("NOP"),
+				value: getOpcode("NOP"),
 				text: ctx.NOP().getText()
 			};
 		} else if (ctx.BRK()) {
 			return {
-				value: opcode("BRK"),
+				value: getOpcode("BRK"),
 				text: ctx.BRK().getText()
 			};
 		} else if (ctx.NOP3()) {
 			return {
-				value: opcode("NOP3"),
+				value: getOpcode("NOP3"),
 				text: ctx.NOP3().getText()
 			};
 		}
@@ -190,10 +220,13 @@ export function compile(source) {
 	return parser;
 }
 
-class FassError extends Error {
+export const run = parser => new Fass().visit(parser.program());
+
+export class FassError extends Error {
 	message;
 
 	constructor(message, ctx) {
+		super();
 		if (ctx) {
 			const col = ctx.start.column;
 			const line = ctx.start.line;
@@ -222,7 +255,7 @@ class Assembler {
 	 * @param {string} reference
 	 * @returns {string}
 	 */
-	store(ctx, reference, register) {
+	ST(ctx, reference, register) {
 		const line = `ST${register.toUpperCase()} ${reference} ; line ${ctx.start.line}`;
 		return line;
 	}

@@ -1,4 +1,4 @@
-const opcodes = {
+export const opcodes = {
 	LDA: {
 		IMM: 0xa9,
 		ZP: 0xa5,
@@ -127,56 +127,10 @@ const opcodes = {
 	BRK: 0x00
 };
 
-export default function getOpcode(operation, addressing = undefined) {
-	if (addressing !== undefined) {
-		addressing = reverseAddressing[addressing];
+export function getOpcode(mnemonic, addressing = undefined) {
+	const operation = opcodes[mnemonic];
+	if (typeof operation === "number") {
+		return operation;
 	}
-
-	if (opcodes[operation] === undefined) {
-		throw new FassError(`Wrong operation ${operation}`, ctx);
-	} else if (opcodes[operation][addressing] === undefined) {
-		throw new FassError(
-			`Wrong addressing ${addressing} for operation ${operation}`,
-			ctx
-		);
-	}
-	if (typeof opcodes[operation] === "object") {
-		return opcodes[operation][addressing];
-	}
-	return opcodes[operation];
+	return operation[addressing];
 }
-
-export const addressing = {
-	IMP: `implied`,
-	ACC: `accumulator`,
-	IMM: `immediate`,
-	ZP: `zero page`,
-	ZPX: `zero page, X`,
-	ABS: `absolute`,
-	ABSX: `absolute, X`,
-	ABSY: `absolute, Y`,
-	INDX: `indexed indirect X`,
-	INDY: `indirect indexed Y`
-};
-
-const reverseAddressing = {
-	implied: "IMP",
-	accumulator: "ACC",
-	immediate: "IMM",
-	"zero page": "ZP",
-	"zero page, X": "ZPX",
-	absolute: "ABS",
-	"absolute X": "ABSX",
-	"absolute Y": "ABSY",
-	"indexed indirect X": "INDX",
-	"indirect indexed Y": "INDY"
-};
-
-export const protoAddressing = new Set([
-	`direct`,
-	`indirect`,
-	`indexed X`,
-	`indexed Y`,
-	`indexed indirect X`,
-	`indirect indexed Y`
-]);

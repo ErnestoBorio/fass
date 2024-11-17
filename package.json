@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"start": "bun ./src/fass.js ./src/program.fass",
+		"start": "bun ./src/fass.ts ./programs/program.fass",
 		"dev": "bun run build && bun run start",
 		"test": "bun test --watch",
 		"build": "nearleyc src/fass.ne -o src/fassGrammar.js"

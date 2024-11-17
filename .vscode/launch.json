@@ -9,7 +9,7 @@
 			"request": "launch",
 			"type": "bun",
 			"program": "src/main.js",
-			"args": ["src/program.fass"],
+			"args": ["programs/program.fass"],
 			"cwd": "${workspaceFolder}"
 		},
 		{

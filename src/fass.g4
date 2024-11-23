@@ -66,15 +66,18 @@ logic_stmt:
 
 register: A | X | Y;
 registers: A | X | Y | STACK;
-reg_assign_stmt: register '=' rhs_value;
+reg_assign_stmt: register '=' giver;
 ref_assign_stmt: reference '=' register;
 reg_reg_assign_stmt: registers '=' registers;
-ref_ref_assign_stmt: reference '=' register '=' rhs_value;
+ref_ref_assign_stmt: reference '=' register '=' giver;
 
 incdec_lhs: X | Y | reference;
 incdecrement: incdec_lhs sign = ('++' | '--');
 
-arithmetic: A op = ('+=' | '-=') rhs_value;
+arithmetic: A op = ('+=' | '-=') giver;
+
+giver: literal | name | reference;
+static_value: literal | name;
 
 bitmap: bmp_header bmp_body TAB* END_KWD;
 bmp_header: BITMAP bmp_width? bmp_height? bmp_bpp? NES? EOL;
@@ -93,9 +96,6 @@ condition:
 	NOT? (CARRY | OVERFLOW | EQUAL | ZERO)
 	| POSITIVE
 	| NEGATIVE;
-
-rhs_value: literal | name | reference;
-static_value: literal | name;
 
 reference:
 	direct

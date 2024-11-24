@@ -7,33 +7,55 @@ import { CharStream, InputStream, CommonTokenStream } from "antlr4";
 export default class Fass extends fassVisitor {
 	/**
 	 * 1 byte values to be used as immediate values
+	 * @type {Object<string, number>}
 	 */
-	constants = new Map();
+	constants = {};
+
 	/**
 	 * 2 byte values to be used as references
 	 * It has to be stored in little endian order (lsb msb)
+	 * @type {Object<string, number>}
 	 */
-	labels = new Map();
+	labels = {};
+
+	/**
+	 * A map of labels that are not yet resolved
+	 * @type {Object<string, number[]>}
+	 */
+	forwardRefs = {};
+
 	/**
 	 * Default byte used to fill in gaps when needed
 	 */
 	filler = 0xea; // default is NOP
+
 	/**
 	 * The binary output of the program. 64Kb are pre-allocated at start
 	 */
 	output = new ArrayBuffer(0, { maxByteLength: 0x10000 });
+
 	/**
 	 * Address corresponding to the next byte to go to the output
 	 */
 	address = 0;
+
 	/**
 	 * An assembly language logger
 	 */
 	assembler = new Assembler();
 
-	/** Returns the address pointed to by the given label */
-	getLabel = label => this.labels.get(label);
+	/**
+	 * @param {string} name
+	 */
+	getLabel(name) {
+		return this.labels[name?.toLowerCase()];
+	}
 
+	/**
+	 * Appends bytes at the end of the output buffer
+	 * @param {ArrayLike} data
+	 * @returns {Uint8Array}
+	 */
 	addOutput(data) {
 		data = new Uint8Array(data); // Cap to 8 bits
 		let offset = this.output.byteLength; // append data in this position
@@ -43,6 +65,35 @@ export default class Fass extends fassVisitor {
 		return view;
 	}
 
+	/**
+	 * Appends an operation with an optional argument to the outpout
+	 * @param {string} mnemonic
+	 * @param {Literal | Reference} [argument]
+	 */
+	outputInstruction(mnemonic, argument) {
+		if (argument === undefined) {
+			this.addOutput([getOpcode(mnemonic)]);
+			return;
+		}
+		if (argument instanceof Literal) {
+			this.addOutput([getOpcode(mnemonic, "IMM"), argument.value]);
+			return;
+		}
+		if (argument instanceof Reference) {
+			const reference = argument;
+			this.addOutput([getOpcode(mnemonic, reference.addressing)]);
+			if (!this.getLabel(reference.name)) {
+				reference.name;
+			}
+			this.addOutput(littleEndian(reference.value));
+			return;
+		}
+		throw new UnreachableCode();
+	}
+
+	/**
+	 * @returns {ArrayBuffer}
+	 */
 	visitProgram(ctx) {
 		this.visitChildren(ctx);
 		return this.output;
@@ -52,34 +103,26 @@ export default class Fass extends fassVisitor {
 	visitRef_assign_stmt(ctx) {
 		const reference = this.visitReference(ctx.reference());
 		const register = this.visitRegister(ctx.register());
-
-		// Should be overwritten with the actual label address when it's found
-		reference.value = reference.value ?? 0xdead;
-
 		const mnemonic = "ST" + register.toUpperCase();
-		this.addOutput([
-			getOpcode(mnemonic, reference.addressing),
-			...littleEndian(reference.value)
-		]);
+		this.outputInstruction(mnemonic, reference);
 		this.assembler.ST(ctx, reference, register);
 	}
 
 	visitReg_assign_stmt(ctx) {
 		const register = this.visitRegister(ctx.register());
 		const mnemonic = "LD" + register.toUpperCase();
-
-		const literal = ctx.rhs_value()?.literal();
-		if (literal) {
-			const value = this.visitLiteral(literal)?.value;
-			this.addOutput([getOpcode(mnemonic, "IMM"), value]);
-			return;
-		}
+		let giver = this.visitGiver(ctx.giver());
+		this.outputInstruction(mnemonic, giver);
+		this.assembler.LD(ctx, register, giver.text);
 	}
 	// </Statement>
 
 	// <Reference>
+	/**
+	 * @param {fassParser.ReferenceContext} ctx
+	 * @returns {Reference}
+	 */
 	visitReference(ctx) {
-		const baseRef = this.visitBaseRef(ctx.children[0]?.baseRef());
 		let addressing;
 		if (ctx.direct()) {
 			addressing = "direct";
@@ -95,16 +138,20 @@ export default class Fass extends fassVisitor {
 			throw new UnreachableCode(ctx);
 		}
 
-		// TODO si el label existe, leer la address para ver si no es ZP
-		let reference = {
-			...baseRef
-		};
+		let br = ctx.children[0]?.baseRef();
+		let br2 = this.visitBaseRef(br);
+		const reference = new Reference(br2);
 
-		let name = ctx.children[0]?.baseRef()?.name()?.getText();
+		// TODO si el label existe, leer la address para ver si no es ZP
+		const name = ctx.children[0]?.baseRef()?.name()?.getText();
 		if (name) {
-			const value = this.getLabel(name);
-			if (value !== undefined) {
-				reference.value = value;
+			reference.value = this.getLabel[name];
+			if (
+				reference.value &&
+				reference.value < 0x100 &&
+				["direct", "indexed"].contains(addressing)
+			) {
+				addressing = "ZP" + addressing;
 			}
 		}
 
@@ -120,15 +167,14 @@ export default class Fass extends fassVisitor {
 		return reference;
 	}
 
-	visitIndexed(ctx) {
-		return {
-			...this.visitBaseRef(ctx.baseRef()),
-			addressing: "indexed " + (ctx.X() ? "X" : "Y")
-		};
-	}
-
 	visitBaseRef(ctx) {
-		return { ...this.visit(ctx.children[0]) };
+		if (ctx.name()) {
+			return this.visitName(ctx.name());
+		}
+		if (ctx.literal_ref()) {
+			return this.visitLiteral_ref(ctx.literal_ref());
+		}
+		throw new UnreachableCode(ctx);
 	}
 
 	visitName(ctx) {
@@ -140,6 +186,22 @@ export default class Fass extends fassVisitor {
 	}
 	// </Reference>
 
+	/**
+	 * @returns {Reference | Literal}
+	 */
+	visitGiver(ctx) {
+		if (ctx.literal()) {
+			return this.visitLiteral(ctx.literal());
+		}
+		if (ctx.name()) {
+			return this.visitName(ctx.name());
+		}
+		if (ctx.reference()) {
+			return this.visitReference(ctx.reference());
+		}
+		throw new UnreachableCode(ctx);
+	}
+
 	visitRegister = ctx => (ctx.X() ? "x" : ctx.Y() ? "y" : ctx.A() ? "a" : "");
 
 	visitAddress(ctx) {
@@ -150,6 +212,10 @@ export default class Fass extends fassVisitor {
 	}
 
 	// <Literal>
+
+	/**
+	 * @returns {Literal}
+	 */
 	visitLiteral(ctx) {
 		const literal = this.visit(ctx.children[0]);
 		if (literal.value > 0xff || literal.value < -128) {
@@ -158,7 +224,7 @@ export default class Fass extends fassVisitor {
 				ctx
 			);
 		}
-		return literal;
+		return new Literal(literal);
 	}
 
 	visitDecimal(ctx) {
@@ -211,6 +277,11 @@ export default class Fass extends fassVisitor {
 	// </Literal>
 }
 
+/**
+ * Compiles a source code string into a Fass parser
+ * @param {string} source
+ * @returns {fassParser}
+ */
 export function compile(source) {
 	const chars = new InputStream(source);
 	const stream = new CharStream(chars.toString());
@@ -220,7 +291,31 @@ export function compile(source) {
 	return parser;
 }
 
-export const run = parser => new Fass().visit(parser.program());
+/**
+ * Runs the Fass parser and returns the output
+ * @param {fassParser} parser
+ * @returns {ArrayBuffer}
+ */
+export function run(parser) {
+	return new Fass().visit(parser);
+}
+
+/**
+ * Compiles and runs the Fass source code
+ * @param {string} source
+ * @param {string} [rule]
+ * @returns {ArrayBuffer}
+ */
+export function comparse(source, rule) {
+	const parser = compile(source);
+	let tree;
+	if (rule) {
+		tree = parser[rule]();
+	} else {
+		tree = parser.program();
+	}
+	return run(tree);
+}
 
 export class FassError extends Error {
 	message;
@@ -241,6 +336,55 @@ export class FassError extends Error {
 	}
 }
 
+class Literal {
+	/** @type {number} */
+	value;
+
+	/** @type {string} */
+	text;
+
+	/**
+	 * @param {object} params
+	 * @param {number} params.value
+	 * @param {string} params.text
+	 */
+	constructor({ value, text }) {
+		this.value = value;
+		this.text = text;
+	}
+}
+
+class Reference {
+	/** @type {string} */
+	text;
+
+	/** @type {string} */
+	addressing;
+
+	/**
+	 * If undefined, it's a forward reference
+	 * @type {number | undefined}
+	 */
+	value;
+
+	/** @type {string | undefined} */
+	name;
+
+	/**
+	 * @param {object} params
+	 * @param {string} params.text
+	 * @param {number} [params.value]
+	 * @param {string} params.addressing
+	 * @param {string} [params.name]
+	 */
+	constructor({ text, addressing, value, name }) {
+		this.text = text;
+		this.addressing = addressing;
+		this.value = value;
+		this.name = name;
+	}
+}
+
 class UnreachableCode extends FassError {
 	constructor(ctx) {
 		super(`Unreachable code`, ctx);
@@ -256,23 +400,38 @@ class Assembler {
 	 * @returns {string}
 	 */
 	ST(ctx, reference, register) {
-		const line = `ST${register.toUpperCase()} ${reference} ; line ${ctx.start.line}`;
-		return line;
+		return `ST${register.toUpperCase()} ${reference} ; line ${ctx.start.line}`;
+	}
+
+	/**
+	 * Adds a STA, STX or STY statement
+	 * @param {antlr4.ParserRuleContext} ctx
+	 * @param {string} register
+	 * @param {string} giver The value to be stored, reference or literal
+	 * @returns {string}
+	 */
+	LD(ctx, register, giver) {
+		return `LD${register.toUpperCase()} ${giver} ; line ${ctx.start.line}`;
 	}
 }
 
 /**
- * Turns a 16 bit number into a big endian array of its bytes
+ * Serializes number as an array of 1 byte or 2 bytes as little endian
+ * @param {number} data
+ * @returns {number[]}
  */
-function unpackBytes(data) {
-	return [data >> 8 && 0xff, data && 0xff];
+function serialize(data) {
+	if (data <= 0xff) {
+		return [data];
+	}
+	return littleEndian(data);
 }
 
 /**
  * Turns a 16 bit number into a little endian array of its bytes
- * @param {Array || Iterable} data
- * @returns
+ * @param {number} data
+ * @returns {[number, number]}
  */
 function littleEndian(data) {
-	return [data & 0xff, (data >> 8) & 0xff];
+	return [data & 0xff, (data & 0xff00) >> 8];
 }

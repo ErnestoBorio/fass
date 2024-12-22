@@ -80,12 +80,11 @@ giver: literal | name | reference;
 static_value: literal | name;
 
 bitmap: bmp_header bmp_body TAB* END_KWD;
-bmp_header: BITMAP bmp_width? bmp_height? bmp_bpp? NES? EOL;
+bmp_header: BITMAP bmp_width? bmp_height? EOL;
 bmp_width: WIDTH DECIMAL;
 bmp_height: HEIGHT DECIMAL;
-bmp_bpp: MONOCHROME | FOURCOLORS;
 bmp_body: bmp_line+;
-bmp_line: TAB* PIXELS? EOL;
+bmp_line: TAB* PIXELS EOL;
 
 if_stmt: if_part then_part else_part? END_KWD;
 if_part: IF_KWD condition EOL;
@@ -175,10 +174,7 @@ LSR_KWD: SHIFT_KWD '>';
 BITMAP: [bB][iI][tT][mM][aA][pP];
 WIDTH: [wW][iI][dD][tT][hH];
 HEIGHT: [hH][eE][iI][gG][hH][tT];
-MONOCHROME: [mM][oO][nN][oO][cC][hH][rR][oO][mM][eE];
-FOURCOLORS: '4' [cC][oO][lL][oO][rR][sS];
-NES: [nN][eE][sS];
-PIXELS: [.#%*0123]+;
+PIXELS: [.#01]+;
 // Keywords <--
 
 // --> Flags

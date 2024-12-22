@@ -111,3 +111,19 @@ describe("Assignments", () => {
 		expect(output[1]).toBe(0xeb);
 	});
 });
+
+test("Bitmap", () => {
+	const bin = comparse(`bitmap width 8 height 10
+					.......#
+					......#.
+					.....#..
+					....#...
+					...#....
+					..#.....
+					.#......
+					#.......
+				end`);
+	return expect(bin).toEqual(
+		Buffer.from([1, 2, 4, 8, 16, 32, 64, 128, 0, 0]).buffer
+	);
+});

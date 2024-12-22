@@ -15,18 +15,20 @@
 ~~logic_stmt~~    
 ~~assign_stmt~~    
 ~~arithmetic_stmt~~
-~~bitmap
-literal reference // I.E. @$400
+~~literal reference // I.E. @$400 ~~
+~~bitmap~~
+comments
 if then else  
+for
 while
 loop until
 forever / infinite loop
 include bin
 import source
 Self-modifying code (goto, gosub)
+Platform-specific defines (memory addresses, registers, etc. from C64, Apple2, A2600...)
 
 ## To do next
-- Setup jest and test all references and store
 
 ## Notes
 Pueden las constantes y los labels compartir el mismo espacio?
@@ -36,12 +38,12 @@ Pueden las constantes y los labels compartir el mismo espacio?
 
 
 # Must do:
-- @$400[x] Agregar referencias directas a memoria con @
 - Agregar comentarios //
 - include binary file
 - import declarations only
 - include source with output
 - Armado de proyecto con varios sources ... relocatables?
+- ~~@$400[x] Agregar referencias directas a memoria con @~~
 
 
 # To do

@@ -115,6 +115,78 @@ export default class Fass extends fassVisitor {
 		this.outputInstruction(mnemonic, giver);
 		this.assembler.LD(ctx, register, giver.text);
 	}
+
+	/**
+	 * @param {fassParser.Bmp_headerContext} ctx
+	 */
+	visitBmp_header(ctx) {
+		const width = ctx.bmp_width()?.DECIMAL()
+			? this.visitDecimal(ctx.bmp_width()?.DECIMAL()).value
+			: 24; // 24 pixels wide, as the C64
+		if (width % 8 !== 0) {
+			throw new FassError(`Bitmap width must be a multiple of 8`, ctx);
+		}
+		if (width > 64) {
+			throw new FassError(`Bitmap must be 64 pixels wide or less`, ctx);
+		}
+
+		const height = ctx.bmp_height()?.DECIMAL()
+			? this.visitDecimal(ctx.bmp_height()?.DECIMAL()).value
+			: 0; // as many lines as defined by the bitmap
+
+		return { width, height };
+	}
+
+	/**
+	 * @param {fassParser.Bmp_lineContext} ctx
+	 * @param {number} width
+	 * @returns {number}
+	 */
+	visitBmp_line(ctx, width) {
+		const charLine = ctx.PIXELS().getText();
+		let bits = "";
+		for (const char of charLine) {
+			if (".0".includes(char)) {
+				bits += "0";
+			} else if ("#1".includes(char)) {
+				bits += "1";
+			} else {
+				throw new UnreachableCode(ctx);
+			}
+			if (bits.length > width) {
+				throw new FassError(
+					`Line width ${bits.length} exceeds limit of ${width} bits`,
+					ctx
+				);
+			}
+		}
+		const line = parseInt(bits, 2);
+		return line;
+	}
+
+	/**
+	 * @param {fassParser.BitmapContext} ctx
+	 * @returns {object}
+	 */
+	visitBitmap(ctx) {
+		const header = this.visitBmp_header(ctx.bmp_header());
+		const lineContexts = ctx.bmp_body().bmp_line();
+		const bytesPerLine = Math.ceil(header.width / 8);
+		for (const lineCtx of lineContexts) {
+			const line = this.visitBmp_line(lineCtx, header.width);
+			const buffer = new ArrayBuffer(8);
+			const view = new DataView(buffer);
+			view.setBigInt64(0, BigInt(line));
+			const slice = buffer.slice(8 - bytesPerLine);
+			this.addOutput(slice);
+		}
+		if (lineContexts.length < header.height) {
+			const fill = new Uint8Array(bytesPerLine); // fill with all zeros lines
+			for (let i = 0; i < header.height - lineContexts.length; i++) {
+				this.addOutput(fill);
+			}
+		}
+	}
 	// </Statement>
 
 	// <Reference>
@@ -229,8 +301,8 @@ export default class Fass extends fassVisitor {
 
 	visitDecimal(ctx) {
 		return {
-			value: parseInt(ctx.DECIMAL().getText(), 10),
-			text: ctx.DECIMAL().getText()
+			value: parseInt(ctx.getText(), 10),
+			text: ctx.getText()
 		};
 	}
 

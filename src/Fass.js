@@ -52,7 +52,7 @@ export default class Fass extends fassVisitor {
 	}
 
 	/**
-	 * Appends bytes at the end of the output buffer
+	 * Appends bytes at the end of the output buffer. Advances address accordingly
 	 * @param {ArrayLike} data
 	 * @returns {Uint8Array}
 	 */
@@ -62,6 +62,7 @@ export default class Fass extends fassVisitor {
 		this.output.resize(offset + data.length); // grow buffer
 		let view = new Uint8Array(this.output); // get a data view for .set()
 		view.set(data, offset); // copy appended data
+		this.address += data.length;
 		return view;
 	}
 
@@ -187,6 +188,21 @@ export default class Fass extends fassVisitor {
 			}
 		}
 	}
+
+	/**
+	 * @param {fassParser.Address_stmtContext} ctx
+	 */
+	visitAddress_stmt(ctx) {
+		const address = this.visitAddress(ctx.address()).value;
+		if (address < this.address) {
+			throw new FassError(
+				`Address ${address} is lower than current address ${this.address}`,
+				ctx
+			);
+		} else {
+			this.address = address;
+		}
+	}
 	// </Statement>
 
 	// <Reference>
@@ -263,7 +279,14 @@ export default class Fass extends fassVisitor {
 	 */
 	visitGiver(ctx) {
 		if (ctx.literal()) {
-			return this.visitLiteral(ctx.literal());
+			const literal = this.visitLiteral(ctx.literal());
+			if (literal.value > 0xff || literal.value < -128) {
+				throw new FassError(
+					"Literal parameter must be 8 bits wide, [-128..255]",
+					ctx
+				);
+			}
+			return literal;
 		}
 		if (ctx.name()) {
 			return this.visitName(ctx.name());
@@ -290,12 +313,6 @@ export default class Fass extends fassVisitor {
 	 */
 	visitLiteral(ctx) {
 		const literal = this.visit(ctx.children[0]);
-		if (literal.value > 0xff || literal.value < -128) {
-			throw new FassError(
-				"Literal value must be 8 bits wide, [-128..255]",
-				ctx
-			);
-		}
 		return new Literal(literal);
 	}
 
@@ -354,7 +371,7 @@ export default class Fass extends fassVisitor {
  * @param {string} source
  * @returns {fassParser}
  */
-export function compile(source) {
+function compile(source) {
 	const chars = new InputStream(source);
 	const stream = new CharStream(chars.toString());
 	const lexer = new fassLexer(stream);
@@ -364,21 +381,12 @@ export function compile(source) {
 }
 
 /**
- * Runs the Fass parser and returns the output
- * @param {fassParser} parser
- * @returns {ArrayBuffer}
- */
-export function run(parser) {
-	return new Fass().visit(parser);
-}
-
-/**
- * Compiles and runs the Fass source code
+ * Runs the Fass source code
  * @param {string} source
  * @param {string} [rule]
- * @returns {ArrayBuffer}
+ * @returns {{fass: Fass, output: ArrayBuffer}}
  */
-export function comparse(source, rule) {
+export function run(source, rule) {
 	const parser = compile(source);
 	let tree;
 	if (rule) {
@@ -386,7 +394,11 @@ export function comparse(source, rule) {
 	} else {
 		tree = parser.program();
 	}
-	return run(tree);
+	const fass = new Fass();
+	return {
+		fass,
+		output: fass.visit(tree)
+	};
 }
 
 export class FassError extends Error {

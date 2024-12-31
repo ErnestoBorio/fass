@@ -1,103 +1,102 @@
 import { expect, test, describe } from "bun:test";
-import Fass, { comparse } from "./Fass";
+import Fass, { run } from "./Fass";
 import { opcodes } from "./opcodes";
 
 describe("Miscelaneous", () => {
 	test("addOutput()", () => {
-		const fass = new Fass();
-		const res = fass.addOutput([0x69, 0xeb]);
+		const res = new Fass().addOutput([0x69, 0xeb]);
 		expect(res.length).toBe(2);
 	});
 });
 
 describe("Data types", () => {
 	test("Decimal", () => {
-		const res = comparse("128", "decimal");
-		expect(res.value).toBe(128);
+		const { output } = run("128", "decimal");
+		expect(output.value).toBe(128);
 	});
 
 	test("Hexadecimal", () => {
-		const res = comparse("$ff", "hexadecimal");
-		expect(res.value).toBe(255);
+		const { output } = run("$ff", "hexadecimal");
+		expect(output.value).toBe(255);
 	});
 
 	test("Binary", () => {
-		const res = comparse("%11101011", "binary");
-		expect(res.value).toBe(0xeb);
+		const { output } = run("%11101011", "binary");
+		expect(output.value).toBe(0xeb);
 	});
 
 	test("Negative", () => {
-		const res = comparse("-16", "negative_number");
-		expect(res.value).toBe(240); // -16 == 240 as unsigned
+		const { output } = run("-16", "negative_number");
+		expect(output.value).toBe(240); // -16 == 240 as unsigned
 	});
 
 	test("NOP", () => {
-		const res = comparse("NOP", "opcode_literal");
-		expect(res.value).toBe(opcodes["NOP"]);
+		const { output } = run("NOP", "opcode_literal");
+		expect(output.value).toBe(opcodes["NOP"]);
 	});
 
 	test("BRK", () => {
-		const res = comparse("BRK", "opcode_literal");
-		expect(res.value).toBe(opcodes["BRK"]);
+		const { output } = run("BRK", "opcode_literal");
+		expect(output.value).toBe(opcodes["BRK"]);
 	});
 
 	test("NOP3", () => {
-		const res = comparse("NOP3", "opcode_literal");
-		expect(res.value).toBe(opcodes["NOP3"]);
+		const { output } = run("NOP3", "opcode_literal");
+		expect(output.value).toBe(opcodes["NOP3"]);
 	});
 });
 
 describe("References", () => {
 	test("Direct", () => {
-		expect(comparse("@$100", "direct")).toBeTruthy();
+		expect(run("@$100", "direct")).toBeTruthy();
 
-		let res = comparse("@$200", "reference");
-		expect(res.value).toBe(0x200);
-		expect(res.addressing).toBe("ABS");
+		const { output } = run("@$200", "reference");
+		expect(output.value).toBe(0x200);
+		expect(output.addressing).toBe("ABS");
 
-		res = comparse("@$20", "reference");
-		expect(res.value).toBe(0x20);
-		expect(res.addressing).toBe("ZP");
+		const { output: output2 } = run("@$20", "reference");
+		expect(output2.value).toBe(0x20);
+		expect(output2.addressing).toBe("ZP");
 	});
 
 	test("Indirect", () => {
-		expect(comparse("(@$300)", "indirect")).toBeTruthy();
-		const res = comparse("(@$400)", "reference");
-		expect(res.value).toBe(0x400);
-		expect(res.addressing).toBe("IND");
+		expect(run("(@$300)", "indirect")).toBeTruthy();
+		const { output } = run("(@$400)", "reference");
+		expect(output.value).toBe(0x400);
+		expect(output.addressing).toBe("IND");
 	});
 
 	test("Indexed", () => {
-		expect(comparse("@$500[X]", "indexed")).toBeTruthy();
-		expect(comparse("@$10[Y]", "indexed")).toBeTruthy();
+		expect(run("@$500[X]", "indexed")).toBeTruthy();
+		expect(run("@$10[Y]", "indexed")).toBeTruthy();
 
-		let res = comparse("@$600[X]", "reference");
-		expect(res.value).toBe(0x600);
-		expect(res.addressing).toBe("ABSX");
+		const { output } = run("@$600[X]", "reference");
+		expect(output.value).toBe(0x600);
+		expect(output.addressing).toBe("ABSX");
 
-		res = comparse("@$EB[Y]", "reference");
-		expect(res.value).toBe(0xeb);
-		expect(res.addressing).toBe("ZPY");
+		const { output: output2 } = run("@$EB[Y]", "reference");
+		expect(output2.value).toBe(0xeb);
+		expect(output2.addressing).toBe("ZPY");
 	});
 
 	test("(Indirect)[Y]", () => {
-		expect(comparse("(@$70)[Y]", "indirect_y")).toBeTruthy();
-		const res = comparse("(@$80)[Y]", "reference");
-		expect(res.value).toBe(0x80);
-		expect(res.addressing).toBe("INDY");
+		expect(run("(@$70)[Y]", "indirect_y")).toBeTruthy();
+		const { output } = run("(@$80)[Y]", "reference");
+		expect(output.value).toBe(0x80);
+		expect(output.addressing).toBe("INDY");
 	});
 
 	test("(Indexed[X])", () => {
-		expect(comparse("(@$90[X])", "x_indirect")).toBeTruthy();
-		const res = comparse("(@$AB[X])", "reference");
-		expect(res.value).toBe(0xab);
-		expect(res.addressing).toBe("INDX");
+		expect(run("(@$90[X])", "x_indirect")).toBeTruthy();
+		const { output } = run("(@$AB[X])", "reference");
+		expect(output.value).toBe(0xab);
+		expect(output.addressing).toBe("INDX");
 	});
 });
 
 describe("Assignments", () => {
 	test("Reference = register", () => {
-		const output = new Uint8Array(comparse("@$1000 = A", "program"));
+		const output = new Uint8Array(run("@$1000 = A", "program").output);
 		expect(output.length).toBe(3);
 		expect(output[0]).toBe(opcodes["STA"]["ABS"]);
 		expect(output[1]).toBe(0);
@@ -105,7 +104,7 @@ describe("Assignments", () => {
 	});
 
 	test("Register = Giver", () => {
-		const output = new Uint8Array(comparse("X = $EB", "program"));
+		const output = new Uint8Array(run("X = $EB").output);
 		expect(output.length).toBe(2);
 		expect(output[0]).toBe(opcodes["LDX"]["IMM"]);
 		expect(output[1]).toBe(0xeb);
@@ -113,7 +112,7 @@ describe("Assignments", () => {
 });
 
 test("Bitmap", () => {
-	const bin = comparse(`bitmap width 8 height 10
+	const { output } = run(`bitmap width 8 height 10
 					.......#
 					......#.
 					.....#..
@@ -123,7 +122,12 @@ test("Bitmap", () => {
 					.#......
 					#.......
 				end`);
-	return expect(bin).toEqual(
+	return expect(output).toEqual(
 		Buffer.from([1, 2, 4, 8, 16, 32, 64, 128, 0, 0]).buffer
 	);
+});
+
+test("Address", () => {
+	const { fass } = run("address $12AB");
+	return expect(fass.address).toBe(0x12ab);
 });

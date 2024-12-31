@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"start": "bun ./src/main.js ./src/program.fass",
+		"start": "bun ./src/main.js ./programs/program.fass -o output.prg",
 		"compile": "bun ./src/main.js",
 		"go": "bun run build && bun run start",
 		"test": "bun test --watch",

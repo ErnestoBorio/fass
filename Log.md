@@ -1,23 +1,28 @@
 # Implemented
 
-~~address_stmt~~  
-~~label~~  
-~~remote_label_stmt~~  
-~~filler_stmt~~  
-~~data_stmt~~  
-~~const_stmt~~  
-~~stack_stmt~~  
-~~goto_stmt~~  
-~~gosub_stmt~~  
-~~return_stmt~~  
-~~bit_shift_stmt~~  
-~~flag_set_stmt~~  
-~~logic_stmt~~    
-~~assign_stmt~~    
-~~arithmetic_stmt~~
-~~literal reference // I.E. @$400 ~~
+~~address_stmt~~
+label
+remote_label_stmt
+filler_stmt
+data_stmt
+const_stmt
+stack_stmt
+goto_stmt
+gosub_stmt
+return_stmt
+bit_shift_stmt
+flag_set_stmt
+logic_stmt  
+~~ref_assign_stmt~~
+~~reg_assign_stmt~~
+reg_reg_assign_stmt
+ref_ref_assign_stmt
+arithmetic_stmt
+increment / decrement
+literal reference // I.E. @$400 
 ~~bitmap~~
 comments
+data string & encodings
 if then else  
 for
 while
@@ -43,7 +48,7 @@ Pueden las constantes y los labels compartir el mismo espacio?
 - import declarations only
 - include source with output
 - Armado de proyecto con varios sources ... relocatables?
-- ~~@$400[x] Agregar referencias directas a memoria con @~~
+- @$400[x] Agregar referencias directas a memoria con @
 
 
 # To do

@@ -20,6 +20,8 @@ export default class Fass extends fassVisitor {
 
 	/**
 	 * A map of labels that are not yet resolved
+	 * @TODO not yet implemented
+	 * // const forwardRefPlaceholder = 0xfa55;
 	 * @type {Object<string, number[]>}
 	 */
 	forwardRefs = {};
@@ -45,10 +47,57 @@ export default class Fass extends fassVisitor {
 	assembler = new Assembler();
 
 	/**
+	 * Retrieves a label's value
 	 * @param {string} name
 	 */
 	getLabel(name) {
-		return this.labels[name?.toLowerCase()];
+		name = name?.toLowerCase();
+		if (this.labels[name] !== undefined) {
+			return this.labels[name];
+		}
+		if (this.constants[name] !== undefined) {
+			throw new FassError(`Label ${name} is defined as a constant`);
+		}
+		throw new FassError(
+			`Label ${name} is not defined. Forward references are not implemented yet`
+		);
+	}
+
+	/**
+	 * Retrieves a constant's value
+	 * @param {string} name
+	 */
+	getConst(name) {
+		name = name?.toLowerCase();
+		if (this.constants[name] !== undefined) {
+			return this.constants[name];
+		}
+		if (this.labels[name] !== undefined) {
+			throw new FassError(`Constant ${name} is defined as a label`);
+		}
+		throw new FassError(`Constant ${name} is not defined`);
+	}
+
+	/**
+	 * Retrieves a name's value whether it's a label or a constant
+	 * @param {string} name
+	 * @returns {{type: "label" | "constant", value: number}}
+	 */
+	getName(name) {
+		name = name?.toLowerCase();
+		if (this.labels[name] !== undefined) {
+			return {
+				type: "label",
+				value: this.labels[name]
+			};
+		}
+		if (this.constants[name] !== undefined) {
+			return {
+				type: "constant",
+				value: this.constants[name]
+			};
+		}
+		throw new FassError(`Name ${name} is not defined`);
 	}
 
 	/**
@@ -83,9 +132,6 @@ export default class Fass extends fassVisitor {
 		if (argument instanceof Reference) {
 			const reference = argument;
 			this.addOutput([getOpcode(mnemonic, reference.addressing)]);
-			if (!this.getLabel(reference.name)) {
-				reference.name;
-			}
 			this.addOutput(littleEndian(reference.value));
 			return;
 		}
@@ -98,6 +144,17 @@ export default class Fass extends fassVisitor {
 	visitProgram(ctx) {
 		this.visitChildren(ctx);
 		return this.output;
+	}
+
+	visitLabel(ctx) {
+		const name = ctx.IDENTIFIER().getText();
+		const nameLc = name.toLowerCase();
+		if (this.labels[nameLc] !== undefined) {
+			throw new FassError(`Label ${name} is already defined`);
+		} else if (this.constants[nameLc] !== undefined) {
+			throw new FassError(`Label ${name} is already defined as a constant`);
+		}
+		this.labels[nameLc] = this.address;
 	}
 
 	// <Statement>

@@ -131,3 +131,8 @@ test("Address", () => {
 	const { fass } = run("address $12AB");
 	return expect(fass.address).toBe(0x12ab);
 });
+
+test("Label", () => {
+	const { fass } = run("address $ABBA\nstart: A = @$DC");
+	return expect(fass.labels["start"]).toBe(0xabba);
+});

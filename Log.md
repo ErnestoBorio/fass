@@ -1,8 +1,8 @@
 # Implemented
 
 ~~address_stmt~~
-label
-remote_label_stmt
+~~label~~
+~~remote_label_stmt
 filler_stmt
 data_stmt
 const_stmt

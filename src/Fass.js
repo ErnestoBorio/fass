@@ -147,14 +147,22 @@ export default class Fass extends fassVisitor {
 	}
 
 	visitLabel(ctx) {
-		const name = ctx.IDENTIFIER().getText();
+		this.createLabel(ctx.IDENTIFIER().getText(), this.address);
+	}
+
+	visitRemote_label_stmt(ctx) {
+		const address = this.visitAddress(ctx.address()).value;
+		this.createLabel(ctx.IDENTIFIER().getText(), address);
+	}
+
+	createLabel(name, address) {
 		const nameLc = name.toLowerCase();
 		if (this.labels[nameLc] !== undefined) {
 			throw new FassError(`Label ${name} is already defined`);
 		} else if (this.constants[nameLc] !== undefined) {
 			throw new FassError(`Label ${name} is already defined as a constant`);
 		}
-		this.labels[nameLc] = this.address;
+		this.labels[nameLc] = address;
 	}
 
 	// <Statement>

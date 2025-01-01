@@ -137,6 +137,11 @@ test("Label", () => {
 	return expect(fass.labels["start"]).toBe(0xabba);
 });
 
+test("Remote label", () => {
+	const { fass } = run("labello at $C0DE");
+	return expect(fass.labels["labello"]).toBe(0xc0de);
+});
+
 test("name", () => {
 	const source = "pete.soc_oro: A = 1";
 	expect(() => run(source)).not.toThrow();

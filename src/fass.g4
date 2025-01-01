@@ -196,7 +196,7 @@ Y: [yY];
 STACK: [sS][tT][aA][cC][kK];
 
 // The dot allows a dot-notation-like syntactic sugar
-IDENTIFIER: [_a-zA-Z] [._a-zA-Z0-9]*;
+IDENTIFIER: [_a-zA-Z] ([._]? [a-zA-Z0-9]+)*;
 TAB: '\t';
 EOL: '\r'? '\n';
 WHITESPACE: ' '+ -> skip;

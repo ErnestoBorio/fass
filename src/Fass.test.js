@@ -136,3 +136,19 @@ test("Label", () => {
 	const { fass } = run("address $ABBA\nstart: A = @$DC");
 	return expect(fass.labels["start"]).toBe(0xabba);
 });
+
+test("name", () => {
+	const source = "pete.soc_oro: A = 1";
+	expect(() => run(source)).not.toThrow();
+
+	const { fass } = run(source);
+	expect(fass.labels).toContainKey("pete.soc_oro");
+
+	/**
+	 * @TODO These don't throw. See how to catch this case
+	 *
+	 * expect(() => run(".locro: X = $FF")).toThrow();
+	 * expect(() => run("loc_.ro: X = $FF")).toThrow();
+	 * expect(() => run("locro__: X = $FF")).toThrow();
+	 */
+});

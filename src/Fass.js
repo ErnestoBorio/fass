@@ -125,11 +125,11 @@ export default class Fass extends fassVisitor {
 			this.addOutput([getOpcode(mnemonic)]);
 			return;
 		}
-		if (argument instanceof Literal) {
+		if (["literal", "constant"].includes(argument.type)) {
 			this.addOutput([getOpcode(mnemonic, "IMM"), argument.value]);
 			return;
 		}
-		if (argument instanceof Reference) {
+		if (argument.type === "reference") {
 			const reference = argument;
 			this.addOutput([getOpcode(mnemonic, reference.addressing)]);
 			this.addOutput(littleEndian(reference.value));
@@ -163,6 +163,20 @@ export default class Fass extends fassVisitor {
 			throw new FassError(`Label ${name} is already defined as a constant`);
 		}
 		this.labels[nameLc] = address;
+	}
+
+	/**
+	 * @param {Filler_stmtContext} ctx
+	 */
+	visitFiller_stmt(ctx) {
+		const filler = this.visitStatic_value(ctx.static_value()).value;
+		if (filler > 0xff) {
+			throw new FassError(
+				`Filler value ${filler} has to be 8 bits wide, [-128..255]`,
+				ctx
+			);
+		}
+		this.filler = filler;
 	}
 
 	// <Statement>
@@ -264,9 +278,13 @@ export default class Fass extends fassVisitor {
 				`Address ${address} is lower than current address ${this.address}`,
 				ctx
 			);
-		} else {
-			this.address = address;
+		} else if (this.output.byteLength > 0) {
+			// Only fill if there's already some output
+			const delta = address - this.address;
+			const fill = new Uint8Array(delta).fill(this.filler);
+			this.addOutput(fill);
 		}
+		this.address = address;
 	}
 	// </Statement>
 
@@ -291,9 +309,7 @@ export default class Fass extends fassVisitor {
 			throw new UnreachableCode(ctx);
 		}
 
-		let br = ctx.children[0]?.baseRef();
-		let br2 = this.visitBaseRef(br);
-		const reference = new Reference(br2);
+		let reference = this.visitBaseRef(ctx.children[0]?.baseRef());
 
 		// TODO si el label existe, leer la address para ver si no es ZP
 		const name = ctx.children[0]?.baseRef()?.name()?.getText();
@@ -322,7 +338,11 @@ export default class Fass extends fassVisitor {
 
 	visitBaseRef(ctx) {
 		if (ctx.name()) {
-			return this.visitName(ctx.name());
+			return {
+				...this.visitName(ctx.name()),
+				value: this.getLabel(ctx.name().getText()),
+				type: "reference"
+			};
 		}
 		if (ctx.literal_ref()) {
 			return this.visitLiteral_ref(ctx.literal_ref());
@@ -335,7 +355,10 @@ export default class Fass extends fassVisitor {
 	}
 
 	visitLiteral_ref(ctx) {
-		return this.visitAddress(ctx.address());
+		return {
+			...this.visitAddress(ctx.address()),
+			type: "reference"
+		};
 	}
 	// </Reference>
 
@@ -371,14 +394,30 @@ export default class Fass extends fassVisitor {
 		return this.visitDecimal(ctx.decimal());
 	}
 
-	// <Literal>
+	// <Values>
+
+	/** @param {Static_valueContext} ctx */
+	visitStatic_value(ctx) {
+		if (ctx.literal()) {
+			return this.visitLiteral(ctx.literal());
+		}
+		const name = ctx.name().IDENTIFIER().getText();
+		const constant = this.getConst(name);
+		return {
+			value: constant,
+			text: name,
+			type: "constant"
+		};
+	}
 
 	/**
-	 * @returns {Literal}
+	 * @returns {{value: number, text: string}}
 	 */
 	visitLiteral(ctx) {
-		const literal = this.visit(ctx.children[0]);
-		return new Literal(literal);
+		return {
+			...this.visit(ctx.children[0]),
+			type: "literal"
+		};
 	}
 
 	visitDecimal(ctx) {
@@ -428,7 +467,7 @@ export default class Fass extends fassVisitor {
 		}
 		throw new UnreachableCode(ctx);
 	}
-	// </Literal>
+	// </Values>
 }
 
 /**
@@ -482,55 +521,6 @@ export class FassError extends Error {
 
 	toString() {
 		return this.message;
-	}
-}
-
-class Literal {
-	/** @type {number} */
-	value;
-
-	/** @type {string} */
-	text;
-
-	/**
-	 * @param {object} params
-	 * @param {number} params.value
-	 * @param {string} params.text
-	 */
-	constructor({ value, text }) {
-		this.value = value;
-		this.text = text;
-	}
-}
-
-class Reference {
-	/** @type {string} */
-	text;
-
-	/** @type {string} */
-	addressing;
-
-	/**
-	 * If undefined, it's a forward reference
-	 * @type {number | undefined}
-	 */
-	value;
-
-	/** @type {string | undefined} */
-	name;
-
-	/**
-	 * @param {object} params
-	 * @param {string} params.text
-	 * @param {number} [params.value]
-	 * @param {string} params.addressing
-	 * @param {string} [params.name]
-	 */
-	constructor({ text, addressing, value, name }) {
-		this.text = text;
-		this.addressing = addressing;
-		this.value = value;
-		this.name = name;
 	}
 }
 

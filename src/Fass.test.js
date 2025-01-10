@@ -96,7 +96,7 @@ describe("References", () => {
 
 describe("Assignments", () => {
 	test("Reference = register", () => {
-		const output = new Uint8Array(run("@$1000 = A", "program").output);
+		const output = new Uint8Array(run("@$1000 = A").output);
 		expect(output.length).toBe(3);
 		expect(output[0]).toBe(opcodes["STA"]["ABS"]);
 		expect(output[1]).toBe(0);
@@ -128,8 +128,9 @@ test("Bitmap", () => {
 });
 
 test("Address", () => {
-	const { fass } = run("address $12AB");
-	return expect(fass.address).toBe(0x12ab);
+	const { fass, output } = run("address $12AB");
+	expect(fass.address).toBe(0x12ab);
+	expect(output).toEqual(Buffer.from([]).buffer);
 });
 
 test("Label", () => {
@@ -156,4 +157,14 @@ test("name", () => {
 	 * expect(() => run("loc_.ro: X = $FF")).toThrow();
 	 * expect(() => run("locro__: X = $FF")).toThrow();
 	 */
+});
+
+test("filler", () => {
+	const { output } = run(
+		"X = $DE \n address 5 \n A = $1\n filler $FF \n address 9 \n Y = $AB"
+	);
+	const expected = Buffer.from([
+		162, 0xde, 0xea, 0xea, 0xea, 169, 1, 0xff, 0xff, 160, 0xab
+	]);
+	expect(output).toEqual(expected.buffer);
 });

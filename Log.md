@@ -2,10 +2,10 @@
 
 ~~address_stmt~~
 ~~label~~
-~~remote_label_stmt
-filler_stmt
+~~filler_stmt~~
+~~const_stmt~~
+remote_label_stmt
 data_stmt
-const_stmt
 stack_stmt
 goto_stmt
 gosub_stmt

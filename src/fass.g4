@@ -35,7 +35,7 @@ remote_label_stmt: IDENTIFIER AT_KWD address;
 
 address: decimal | hexadecimal;
 
-filler_stmt: FILLER_KWD (static_value | DEFAULT_KWD);
+filler_stmt: FILLER_KWD static_value;
 
 const_stmt: CONST_KWD IDENTIFIER '=' static_value;
 
@@ -146,7 +146,6 @@ BIT_KWD: [bB][iI][tT];
 COMPARE_KWD: [cC][oO][mM][pP][aA][rR][eE];
 CONST_KWD: [cC][oO][nN][sS][tT];
 DATA_KWD: [dD][aA][tT][aA];
-DEFAULT_KWD: [dD][eE][fF][aA][uU][lL][tT];
 ELSE_KWD: [eE][lL][sS][eE];
 END_KWD: [eE][nN][dD];
 FILLER_KWD: [fF][iI][lL][lL][eE][rR];

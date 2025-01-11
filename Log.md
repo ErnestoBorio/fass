@@ -5,8 +5,8 @@
 ~~filler_stmt~~
 ~~const_stmt~~
 ~~remote_label_stmt~~
-~~data_stmt~~ @WIP
-stack_stmt
+~~data_stmt~~
+~~stack_stmt~~
 goto_stmt
 gosub_stmt
 return_stmt

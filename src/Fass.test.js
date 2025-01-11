@@ -180,3 +180,8 @@ test("data", () => {
 		]).buffer
 	);
 });
+
+test("Stack", () => {
+	const { output } = run("push A \n pull A \n push flags \n pull flags");
+	expect(output).toEqual(Buffer.from([0x48, 0x68, 0x08, 0x28]).buffer);
+});

@@ -313,6 +313,23 @@ export default class Fass extends fassVisitor {
 		});
 	}
 
+	/** @param {fassParser.Stack_stmtContext} ctx */
+	visitStack_stmt(ctx) {
+		if (ctx.PUSH_KWD()) {
+			if (ctx.A()) {
+				this.addOutput([getOpcode("PHA")]);
+			} else if (ctx.FLAGS_KWD()) {
+				this.addOutput([getOpcode("PHP")]);
+			}
+		} else if (ctx.PULL_KWD()) {
+			if (ctx.A()) {
+				this.addOutput([getOpcode("PLA")]);
+			} else if (ctx.FLAGS_KWD()) {
+				this.addOutput([getOpcode("PLP")]);
+			}
+		}
+	}
+
 	// </Statement>
 
 	// <Reference>

@@ -286,6 +286,33 @@ export default class Fass extends fassVisitor {
 		}
 		this.address = address;
 	}
+
+	/** @param {fassParser.Data_stmtContext} ctx */
+	visitData_stmt(ctx) {
+		ctx.static_value().forEach(value => {
+			const data = this.visitStatic_value(value).value;
+			// @TODO datas greater than 32 bits are not supported
+			// Shrinkwrap a typed array to hold data without leading zeros
+			const buffer = new ArrayBuffer(4);
+			const array = new Uint8Array(buffer);
+			const view = new DataView(buffer);
+			view.setUint32(0, data, false);
+			let length = 4;
+			if (array[0] === 0) {
+				length = 3;
+				if (array[1] === 0) {
+					length = 2;
+					if (array[2] === 0) {
+						length = 1;
+					}
+				}
+			}
+			// Slices leading zeros out
+			const final = array.slice(4 - length, 4);
+			this.addOutput(final);
+		});
+	}
+
 	// </Statement>
 
 	// <Reference>
@@ -442,8 +469,15 @@ export default class Fass extends fassVisitor {
 	}
 
 	visitNegative_number(ctx) {
+		const value = parseInt(ctx.NEGATIVE_NUMBER().getText(), 10);
+		if (value < -128) {
+			throw new FassError(
+				`Negative number ${value} must be 8 bits wide, greater or equal than -128`,
+				ctx
+			);
+		}
 		return {
-			value: (0x100 + parseInt(ctx.NEGATIVE_NUMBER().getText(), 10)) & 0xff,
+			value: value & 0xff,
 			text: ctx.NEGATIVE_NUMBER().getText()
 		};
 	}

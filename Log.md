@@ -4,8 +4,8 @@
 ~~label~~
 ~~filler_stmt~~
 ~~const_stmt~~
-remote_label_stmt
-data_stmt
+~~remote_label_stmt~~
+~~data_stmt~~ @WIP
 stack_stmt
 goto_stmt
 gosub_stmt
@@ -33,7 +33,8 @@ import source
 Self-modifying code (goto, gosub)
 Platform-specific defines (memory addresses, registers, etc. from C64, Apple2, A2600...)
 
-## To do next
+## @TODO
+- Data elements only go up to 4 bytes. support hexadecimals of any length
 
 ## Notes
 Pueden las constantes y los labels compartir el mismo espacio?

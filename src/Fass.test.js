@@ -28,6 +28,7 @@ describe("Data types", () => {
 	test("Negative", () => {
 		const { output } = run("-16", "negative_number");
 		expect(output.value).toBe(240); // -16 == 240 as unsigned
+		expect(() => run("-129", "negative_number")).toThrow();
 	});
 
 	test("NOP", () => {
@@ -167,4 +168,15 @@ test("filler", () => {
 		162, 0xde, 0xea, 0xea, 0xea, 169, 1, 0xff, 0xff, 160, 0xab
 	]);
 	expect(output).toEqual(expected.buffer);
+});
+
+test("data", () => {
+	const { output } = run(
+		"data 1, 256, 65538, $FF, $11CD22EB, %100101, NOP, BRK, NOP3"
+	);
+	expect(output).toEqual(
+		Buffer.from([
+			1, 1, 0, 1, 0, 2, 0xff, 0x11, 0xcd, 0x22, 0xeb, 0b100101, 0xea, 0, 4
+		]).buffer
+	);
 });

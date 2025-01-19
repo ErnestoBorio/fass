@@ -46,9 +46,9 @@ flag_set_stmt:
 
 stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
-goto_stmt: GOTO_KWD (direct | indirect);
+goto_stmt: GOTO_KWD reference;
 
-gosub_stmt: GOSUB_KWD direct;
+gosub_stmt: GOSUB_KWD reference;
 
 return_stmt: RETURN_KWD | RETINT_KWD;
 

@@ -106,6 +106,9 @@ export default class Fass extends fassVisitor {
 	 * @returns {Uint8Array}
 	 */
 	addOutput(data) {
+		if (!(data instanceof ArrayBuffer) && typeof data.length !== "number") {
+			throw new FassError("addOutput(): data must be an array-like object");
+		}
 		data = new Uint8Array(data); // Cap to 8 bits
 		let offset = this.output.byteLength; // append data in this position
 		this.output.resize(offset + data.length); // grow buffer
@@ -330,6 +333,22 @@ export default class Fass extends fassVisitor {
 		}
 	}
 
+	/** @param {fassParser.Goto_stmtContext} ctx*/
+	visitGoto_stmt(ctx) {
+		const ref = this.visitReference(ctx.reference());
+		if (ref.addressing === "ABS") {
+			this.addOutput([getOpcode("JMP", "ABS")]);
+		} else if (ref.addressing === "IND") {
+			this.addOutput([getOpcode("JMP", "IND")]);
+		} else {
+			throw new FassError(
+				"GOTO statement must have direct or indirect addressing",
+				ctx
+			);
+		}
+		this.addOutput(littleEndian(ref.value));
+	}
+
 	// </Statement>
 
 	// <Reference>
@@ -354,19 +373,6 @@ export default class Fass extends fassVisitor {
 		}
 
 		let reference = this.visitBaseRef(ctx.children[0]?.baseRef());
-
-		// TODO si el label existe, leer la address para ver si no es ZP
-		const name = ctx.children[0]?.baseRef()?.name()?.getText();
-		if (name) {
-			reference.value = this.getLabel[name];
-			if (
-				reference.value &&
-				reference.value < 0x100 &&
-				["direct", "indexed"].contains(addressing)
-			) {
-				addressing = "ZP" + addressing;
-			}
-		}
 
 		if (addressing === "direct" || addressing === "indexed") {
 			if (addressing === "indexed") {

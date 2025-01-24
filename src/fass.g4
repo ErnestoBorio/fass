@@ -14,8 +14,7 @@ statement:
 	| stack_stmt
 	| bit_shift_stmt
 	| logic_stmt
-	| goto_stmt
-	| gosub_stmt
+	| gotosub_stmt
 	| return_stmt
 	| if_stmt
 	| reg_assign_stmt
@@ -46,9 +45,7 @@ flag_set_stmt:
 
 stack_stmt: (PUSH_KWD | PULL_KWD) (A | FLAGS_KWD);
 
-goto_stmt: GOTO_KWD reference;
-
-gosub_stmt: GOSUB_KWD reference;
+gotosub_stmt: (GOTO_KWD | GOSUB_KWD) reference;
 
 return_stmt: RETURN_KWD | RETINT_KWD;
 

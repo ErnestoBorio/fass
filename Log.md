@@ -7,20 +7,21 @@
 ~~remote_label_stmt~~
 ~~data_stmt~~
 ~~stack_stmt~~
-goto_stmt
-gosub_stmt
+~~goto_stmt~~
+~~literal reference // I.E. @$400 ~~
+~~bitmap~~
+~~ref_assign_stmt~~
+~~reg_assign_stmt~~
+~~gosub_stmt~~
 return_stmt
 bit_shift_stmt
 flag_set_stmt
 logic_stmt  
-~~ref_assign_stmt~~
-~~reg_assign_stmt~~
 reg_reg_assign_stmt
 ref_ref_assign_stmt
 arithmetic_stmt
 increment / decrement
-literal reference // I.E. @$400 
-~~bitmap~~
+
 comments
 data string & encodings
 if then else  

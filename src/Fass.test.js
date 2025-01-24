@@ -186,7 +186,10 @@ test("Stack", () => {
 	expect(output).toEqual(Buffer.from([0x48, 0x68, 0x08, 0x28]).buffer);
 });
 
-test("goto", () => {
+test("goto & gosub", () => {
 	const { output } = run("address $ABCD \n sola: goto sola");
 	expect(output).toEqual(Buffer.from([0x4c, 0xcd, 0xab]).buffer);
+
+	const { output: output2 } = run("address $C010 \n label: gosub label");
+	expect(output2).toEqual(Buffer.from([0x20, 0x10, 0xc0]).buffer);
 });

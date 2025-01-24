@@ -334,18 +334,30 @@ export default class Fass extends fassVisitor {
 	}
 
 	/** @param {fassParser.Goto_stmtContext} ctx*/
-	visitGoto_stmt(ctx) {
+	visitGotosub_stmt(ctx) {
 		const ref = this.visitReference(ctx.reference());
+		let addressing;
 		if (ref.addressing === "ABS") {
-			this.addOutput([getOpcode("JMP", "ABS")]);
+			addressing = "ABS";
 		} else if (ref.addressing === "IND") {
-			this.addOutput([getOpcode("JMP", "IND")]);
+			addressing = "IND";
 		} else {
 			throw new FassError(
 				"GOTO statement must have direct or indirect addressing",
 				ctx
 			);
 		}
+
+		let instruction;
+		if (ctx.GOTO_KWD()) {
+			instruction = "JMP";
+		} else if (ctx.GOSUB_KWD()) {
+			instruction = "JSR";
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+
+		this.addOutput([getOpcode(instruction, addressing)]);
 		this.addOutput(littleEndian(ref.value));
 	}
 

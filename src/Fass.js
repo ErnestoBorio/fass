@@ -361,6 +361,17 @@ export default class Fass extends fassVisitor {
 		this.addOutput(littleEndian(ref.value));
 	}
 
+	/** @param {fassParser.Return_stmtContext} ctx */
+	visitReturn_stmt(ctx) {
+		if (ctx.RETURN_KWD()) {
+			this.addOutput([getOpcode("RTS")]);
+		} else if (ctx.RETINT_KWD()) {
+			this.addOutput([getOpcode("RTI")]);
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+	}
+
 	// </Statement>
 
 	// <Reference>

@@ -193,3 +193,8 @@ test("goto & gosub", () => {
 	const { output: output2 } = run("address $C010 \n label: gosub label");
 	expect(output2).toEqual(Buffer.from([0x20, 0x10, 0xc0]).buffer);
 });
+
+test("returns", () => {
+	const { output } = run("return \n retint");
+	expect(output).toEqual(Buffer.from([0x60, 0x40]).buffer);
+});

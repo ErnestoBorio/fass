@@ -14,7 +14,7 @@
 ~~reg_assign_stmt~~
 ~~gosub_stmt~~
 ~~return_stmt~~
-bit_shift_stmt
+~~bit_shift_stmt~~
 flag_set_stmt
 logic_stmt  
 reg_reg_assign_stmt

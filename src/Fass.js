@@ -372,12 +372,43 @@ export default class Fass extends fassVisitor {
 		}
 	}
 
+	/** @param {fassParser.Bit_shift_stmtContext} ctx */
+	visitBit_shift_stmt(ctx) {
+		let mnemonic;
+		if (ctx.LSR_KWD()) {
+			mnemonic = "LSR";
+		} else if (ctx.ASL_KWD()) {
+			mnemonic = "ASL";
+		} else if (ctx.ROL_KWD()) {
+			mnemonic = "ROL";
+		} else if (ctx.ROR_KWD()) {
+			mnemonic = "ROR";
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+
+		if (ctx.A()) {
+			this.addOutput([getOpcode(mnemonic, "ACC")]);
+		} else if (ctx.reference()) {
+			const ref = this.visitReference(ctx.reference());
+			if (!["ZP", "ZPX", "ABS", "ABSX"].includes(ref.addressing)) {
+				throw new FassError(
+					`Bit shift instruction must use A or direct addressing`,
+					ctx
+				);
+			}
+			this.addOutput([getOpcode(mnemonic, ref.addressing)]);
+			this.addOutput(littleEndian(ref.value));
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+	}
+
 	// </Statement>
 
 	// <Reference>
 	/**
 	 * @param {fassParser.ReferenceContext} ctx
-	 * @returns {Reference}
 	 */
 	visitReference(ctx) {
 		let addressing;
@@ -652,5 +683,8 @@ function serialize(data) {
  * @returns {[number, number]}
  */
 function littleEndian(data) {
+	if (data <= 0xff) {
+		return [data];
+	}
 	return [data & 0xff, (data & 0xff00) >> 8];
 }

@@ -49,11 +49,8 @@ gotosub_stmt: (GOTO_KWD | GOSUB_KWD) reference;
 
 return_stmt: RETURN_KWD | RETINT_KWD;
 
-bit_shift_stmt: (ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (
-		A
-		| direct
-		| indexed
-	);
+bit_shift_stmt:
+	(ROL_KWD | ROR_KWD | ASL_KWD | LSR_KWD) (A | reference);
 
 logic_stmt:
 	A op = (AND_KWD | OR_KWD | XOR_KWD | COMPARE_KWD | BIT_KWD) (

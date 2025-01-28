@@ -198,3 +198,12 @@ test("returns", () => {
 	const { output } = run("return \n retint");
 	expect(output).toEqual(Buffer.from([0x60, 0x40]).buffer);
 });
+
+test("bit shift", () => {
+	const { output } = run(
+		"shift> A \n shift< @$FE \n here: rotate> @$ABCD \n rotate< here[X]"
+	);
+	expect(output).toEqual(
+		Buffer.from([0x4a, 0x06, 0xfe, 0x6e, 0xcd, 0xab, 0x36, 0x3]).buffer
+	);
+});

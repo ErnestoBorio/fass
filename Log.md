@@ -15,12 +15,12 @@
 ~~gosub_stmt~~
 ~~return_stmt~~
 ~~bit_shift_stmt~~
-flag_set_stmt
+~~flag_set_stmt~~
+increment / decrement
 logic_stmt  
+arithmetic_stmt
 reg_reg_assign_stmt
 ref_ref_assign_stmt
-arithmetic_stmt
-increment / decrement
 
 comments
 data string & encodings

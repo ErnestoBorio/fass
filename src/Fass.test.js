@@ -207,3 +207,10 @@ test("bit shift", () => {
 		Buffer.from([0x4a, 0x06, 0xfe, 0x6e, 0xcd, 0xab, 0x36, 0x3]).buffer
 	);
 });
+
+test("flag set", () => {
+	const { output } = run(
+		"carry = 1 \n overflow = 0 \n decimal = 1 \n interrupt = 0"
+	);
+	expect(output).toEqual(Buffer.from([0x38, 0xb8, 0xf8, 0x78]).buffer);
+});

@@ -404,6 +404,40 @@ export default class Fass extends fassVisitor {
 		}
 	}
 
+	/** 
+	 * @param {fassParser.Flag_set_stmtContext} ctx 
+	 * flag_set_stmt:
+	(CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE) '=' DECIMAL;
+	 */
+	visitFlag_set_stmt(ctx) {
+		const argument = this.visitDecimal(ctx.DECIMAL()).value;
+		let set;
+		if (argument === 0) {
+			set = false;
+		} else if (argument === 1) {
+			set = true;
+		} else {
+			throw new FassError(`Flag value must be 0 or 1`, ctx);
+		}
+
+		let mnemonic;
+		if (ctx.CARRY()) {
+			mnemonic = set ? "SEC" : "CLC";
+		} else if (ctx.OVERFLOW()) {
+			mnemonic = "CLV";
+			if (set) {
+				throw new FassError(`Can't set overflow flag`, ctx);
+			}
+		} else if (ctx.INTERRUPT()) {
+			mnemonic = set ? "CLI" : "SEI";
+		} else if (ctx.DECIMAL_MODE()) {
+			mnemonic = "SED";
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+		this.addOutput([getOpcode(mnemonic)]);
+	}
+
 	// </Statement>
 
 	// <Reference>

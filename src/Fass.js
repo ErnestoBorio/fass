@@ -404,10 +404,8 @@ export default class Fass extends fassVisitor {
 		}
 	}
 
-	/** 
-	 * @param {fassParser.Flag_set_stmtContext} ctx 
-	 * flag_set_stmt:
-	(CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE) '=' DECIMAL;
+	/**
+	 * @param {fassParser.Flag_set_stmtContext} ctx
 	 */
 	visitFlag_set_stmt(ctx) {
 		const argument = this.visitDecimal(ctx.DECIMAL()).value;
@@ -436,6 +434,49 @@ export default class Fass extends fassVisitor {
 			throw new UnreachableCode(ctx);
 		}
 		this.addOutput([getOpcode(mnemonic)]);
+	}
+
+	/**
+	 * @param {fassParser.Incdecrement_stmtContext} ctx
+	 */
+	visitIncdecrement_stmt(ctx) {
+		let receiver;
+		if (ctx.reference()) {
+			receiver = this.visitReference(ctx.reference());
+			if (!["ZP", "ZPX", "ABS", "ABSX"].includes(receiver.addressing)) {
+				throw new FassError(
+					`Increment/decrement instruction must use direct or indexed addressing`,
+					ctx
+				);
+			}
+		} else if (ctx.X()) {
+			receiver = "X";
+		} else if (ctx.Y()) {
+			receiver = "Y";
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+
+		if (ctx.sign.text === "--") {
+			if (receiver === "X") {
+				this.addOutput([getOpcode("DEX")]);
+			} else if (receiver === "Y") {
+				this.addOutput([getOpcode("DEY")]);
+			} else {
+				this.addOutput([getOpcode("DEC", receiver.addressing)]);
+				this.addOutput(littleEndian(receiver.value, receiver.addressing));
+			}
+		} else {
+			// sign === ++
+			if (receiver === "X") {
+				this.addOutput([getOpcode("INX")]);
+			} else if (receiver === "Y") {
+				this.addOutput([getOpcode("INY")]);
+			} else {
+				this.addOutput([getOpcode("INC", receiver.addressing)]);
+				this.addOutput(littleEndian(receiver.value, receiver.addressing));
+			}
+		}
 	}
 
 	// </Statement>
@@ -714,11 +755,15 @@ function serialize(data) {
 /**
  * Turns a 16 bit number into a little endian array of its bytes
  * @param {number} data
+ * @param {string | undefined} addressing
  * @returns {[number, number]}
  */
-function littleEndian(data) {
-	if (data <= 0xff) {
-		return [data];
+function littleEndian(data, addressing) {
+	if (
+		(!addressing && data >= 255) ||
+		["ABS", "ABSX", "ABSY"].includes(addressing)
+	) {
+		return [data & 0xff, (data & 0xff00) >> 8];
 	}
-	return [data & 0xff, (data & 0xff00) >> 8];
+	return [data];
 }

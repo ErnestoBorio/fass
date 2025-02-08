@@ -214,3 +214,14 @@ test("flag set", () => {
 	);
 	expect(output).toEqual(Buffer.from([0x38, 0xb8, 0xf8, 0x78]).buffer);
 });
+
+test("increment decrement", () => {
+	const { output } = run(
+		"X-- \n Y-- \n baka: X++ \n Y++ \n @$AFCF++ \n baka-- \n @$BACA[X]--"
+	);
+	expect(output).toEqual(
+		Buffer.from([
+			0xca, 0x88, 0xe8, 0xc8, 0xee, 0xcf, 0xaf, 0xc6, 0x2, 0xde, 0xca, 0xba
+		]).buffer
+	);
+});

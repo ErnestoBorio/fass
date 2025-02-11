@@ -479,6 +479,50 @@ export default class Fass extends fassVisitor {
 		}
 	}
 
+	/**
+	 * @param {fassParser.Logic_stmtContext} ctx
+	 */
+	visitLogic_stmt(ctx) {
+		let mnemonic;
+		if (ctx.AND_KWD()) {
+			mnemonic = "AND";
+		} else if (ctx.OR_KWD()) {
+			mnemonic = "ORA";
+		} else if (ctx.XOR_KWD()) {
+			mnemonic = "EOR";
+		} else if (ctx.COMPARE_KWD()) {
+			mnemonic = "CMP";
+		} else if (ctx.BIT_KWD()) {
+			mnemonic = "BIT";
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+
+		if (ctx.literal()) {
+			const literal = this.visitLiteral(ctx.literal());
+			this.addOutput([getOpcode(mnemonic, "IMM")]);
+			this.addOutput(littleEndian(literal.value));
+		} else if (ctx.reference()) {
+			const reference = this.visitReference(ctx.reference());
+			if (ctx.BIT_KWD() && !["ZP", "ABS"].includes(reference.addressing)) {
+				throw new FassError(
+					`BIT instruction must use zero page or absolute addressing`,
+					ctx
+				);
+			}
+			if (reference.addressing === "ZPY") {
+				throw new FassError(
+					`Zero_page[Y] addressing mode is not supported for logic statements`,
+					ctx
+				);
+			}
+			this.addOutput([getOpcode(mnemonic, reference.addressing)]);
+			this.addOutput(littleEndian(reference.value, reference.addressing));
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+	}
+
 	// </Statement>
 
 	// <Reference>
@@ -741,18 +785,6 @@ class Assembler {
 }
 
 /**
- * Serializes number as an array of 1 byte or 2 bytes as little endian
- * @param {number} data
- * @returns {number[]}
- */
-function serialize(data) {
-	if (data <= 0xff) {
-		return [data];
-	}
-	return littleEndian(data);
-}
-
-/**
  * Turns a 16 bit number into a little endian array of its bytes
  * @param {number} data
  * @param {string | undefined} addressing
@@ -760,7 +792,7 @@ function serialize(data) {
  */
 function littleEndian(data, addressing) {
 	if (
-		(!addressing && data >= 255) ||
+		(!addressing && data >= 0x100) ||
 		["ABS", "ABSX", "ABSY"].includes(addressing)
 	) {
 		return [data & 0xff, (data & 0xff00) >> 8];

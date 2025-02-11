@@ -17,7 +17,7 @@
 ~~bit_shift_stmt~~
 ~~flag_set_stmt~~
 ~~increment / decrement~~
-logic_stmt  
+~~logic_stmt~~  
 arithmetic_stmt
 reg_reg_assign_stmt
 ref_ref_assign_stmt

@@ -225,3 +225,17 @@ test("increment decrement", () => {
 		]).buffer
 	);
 });
+
+test("logic", () => {
+	expect(() => run("self: A bit self[X]")).toThrow();
+	expect(() => run("self: A and= self[Y]")).toThrow();
+
+	const { output } = run(
+		"A and= $FF \n A or= @$EB \n here: A xor= (here[X]) \n A compare (here)[Y] \n A bit @$ABCD"
+	);
+	expect(output).toEqual(
+		Buffer.from([
+			0x29, 0xff, 0x05, 0xeb, 0x41, 0x4, 0xd1, 0x4, 0x2c, 0xcd, 0xab
+		]).buffer
+	);
+});

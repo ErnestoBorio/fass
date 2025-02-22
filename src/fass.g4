@@ -22,7 +22,7 @@ statement:
 	| reg_reg_assign_stmt
 	| ref_ref_assign_stmt
 	| incdecrement_stmt
-	| arithmetic
+	| arithmetic_stmt
 	| bitmap
 	| label statement?;
 
@@ -67,7 +67,7 @@ ref_ref_assign_stmt: reference '=' register '=' giver;
 
 incdecrement_stmt: (X | Y | reference) sign = ('++' | '--');
 
-arithmetic: A op = ('+=' | '-=') giver;
+arithmetic_stmt: A op = ('+=' | '-=') giver;
 
 giver: literal | name | reference;
 static_value: literal | name;

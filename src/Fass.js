@@ -523,6 +523,38 @@ export default class Fass extends fassVisitor {
 		}
 	}
 
+	/**
+	 * @param {fassParser.Arithmetic_stmtContext} ctx
+	 */
+	visitArithmetic_stmt(ctx) {
+		let mnemonic;
+		if (ctx.op.text === "+=") {
+			mnemonic = "ADC";
+		} else if (ctx.op.text === "-=") {
+			mnemonic = "SBC";
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+		const giver = this.visitGiver(ctx.giver());
+		if (giver.type === "reference" && giver.addressing === "ZPY") {
+			throw new FassError(
+				`Zero_page[Y] addressing mode is not supported for arithmetic statements`,
+				ctx
+			);
+		}
+
+		if (giver.type === "literal") {
+			this.addOutput([getOpcode(mnemonic, "IMM")]);
+			this.addOutput(littleEndian(giver.value));
+		} else if (giver.type === "reference") {
+			const ref = this.visitReference(ctx.giver().reference());
+			this.addOutput([getOpcode(mnemonic, ref.addressing)]);
+			this.addOutput(littleEndian(giver.value, giver.addressing));
+		} else {
+			throw new UnreachableCode(ctx);
+		}
+	}
+
 	// </Statement>
 
 	// <Reference>
@@ -585,9 +617,6 @@ export default class Fass extends fassVisitor {
 	}
 	// </Reference>
 
-	/**
-	 * @returns {Reference | Literal}
-	 */
 	visitGiver(ctx) {
 		if (ctx.literal()) {
 			const literal = this.visitLiteral(ctx.literal());

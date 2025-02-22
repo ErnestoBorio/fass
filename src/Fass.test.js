@@ -239,3 +239,14 @@ test("logic", () => {
 		]).buffer
 	);
 });
+
+test("arithmetic", () => {
+	const { output } = run(
+		"A += $FF \n A -= @$EB \n here: A += (here[X]) \n A -= (here)[Y] \n A += @$ABCD"
+	);
+	expect(output).toEqual(
+		Buffer.from([
+			0x69, 0xff, 0xe5, 0xeb, 0x61, 0x4, 0xf1, 0x4, 0x6d, 0xcd, 0xab
+		]).buffer
+	);
+});

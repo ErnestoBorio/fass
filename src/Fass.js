@@ -555,6 +555,42 @@ export default class Fass extends fassVisitor {
 		}
 	}
 
+	/**
+	 * @param {fassParser.Reg_reg_assign_stmtContext} ctx
+	 */
+	visitReg_reg_assign_stmt(ctx) {
+		const regs = ctx.registers().map(reg => {
+			return reg.A()
+				? "A"
+				: reg.X()
+					? "X"
+					: reg.Y()
+						? "Y"
+						: reg.STACK()
+							? "STACK"
+							: (() => {
+									throw new UnreachableCode(ctx);
+								})();
+		});
+
+		if (regs[0] === "A") {
+			if (regs[1] === "X") {
+				return this.addOutput([getOpcode("TXA")]);
+			} else if (regs[1] === "Y") {
+				return this.addOutput([getOpcode("TYA")]);
+			}
+		} else if (regs[0] === "X" && regs[1] === "A") {
+			return this.addOutput([getOpcode("TAX")]);
+		} else if (regs[0] === "Y" && regs[1] === "A") {
+			return this.addOutput([getOpcode("TAY")]);
+		} else if (regs[0] === "STACK" && regs[1] === "X") {
+			return this.addOutput([getOpcode("TXS")]);
+		} else if (regs[0] === "X" && regs[1] === "STACK") {
+			return this.addOutput([getOpcode("TSX")]);
+		}
+		throw new UnreachableCode(ctx);
+	}
+
 	// </Statement>
 
 	// <Reference>

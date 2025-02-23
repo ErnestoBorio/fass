@@ -250,3 +250,17 @@ test("arithmetic", () => {
 		]).buffer
 	);
 });
+
+test("Register = register assignment", () => {
+	expect(() => run("X = Y")).toThrow();
+	expect(() => run("Y = X")).toThrow();
+	expect(() => run("Y = STACK")).toThrow();
+	expect(() => run("STACK = Y")).toThrow();
+
+	const { output } = run(
+		"A = X \n X = A \n A = Y \n Y = A \n STACK = X \n X = STACK"
+	);
+	expect(output).toEqual(
+		Buffer.from([0x8a, 0xaa, 0x98, 0xa8, 0x9a, 0xba]).buffer
+	);
+});

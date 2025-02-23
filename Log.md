@@ -19,7 +19,7 @@
 ~~increment / decrement~~
 ~~logic_stmt~~  
 ~~arithmetic_stmt~~
-reg_reg_assign_stmt
+~~reg_reg_assign_stmt~~
 ref_ref_assign_stmt
 
 comments

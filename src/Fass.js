@@ -188,7 +188,7 @@ export default class Fass extends fassVisitor {
 		const register = this.visitRegister(ctx.register());
 		const mnemonic = "ST" + register.toUpperCase();
 		this.outputInstruction(mnemonic, reference);
-		this.assembler.ST(ctx, reference, register);
+		// this.assembler.ST(ctx, reference, register);
 	}
 
 	visitReg_assign_stmt(ctx) {
@@ -196,7 +196,18 @@ export default class Fass extends fassVisitor {
 		const mnemonic = "LD" + register.toUpperCase();
 		let giver = this.visitGiver(ctx.giver());
 		this.outputInstruction(mnemonic, giver);
-		this.assembler.LD(ctx, register, giver.text);
+		// this.assembler.LD(ctx, register, giver.text);
+	}
+
+	visitRef_ref_assign_stmt(ctx) {
+		this.visitReg_assign_stmt({
+			register: () => ctx.register(),
+			giver: () => ctx.giver()
+		});
+		this.visitRef_assign_stmt({
+			reference: () => ctx.reference(),
+			register: () => ctx.register()
+		});
 	}
 
 	/**

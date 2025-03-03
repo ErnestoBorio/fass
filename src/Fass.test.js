@@ -264,3 +264,9 @@ test("Register = register assignment", () => {
 		Buffer.from([0x8a, 0xaa, 0x98, 0xa8, 0x9a, 0xba]).buffer
 	);
 });
+
+test("Reference = reference assignment", () => {
+	const { output: one } = run("here: @$1000 = X = here[Y]");
+	const { output: two } = run("here: X = here[Y] \n @$1000 = X");
+	expect(one).toEqual(two);
+});

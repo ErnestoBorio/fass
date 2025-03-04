@@ -270,3 +270,14 @@ test("Reference = reference assignment", () => {
 	const { output: two } = run("here: X = here[Y] \n @$1000 = X");
 	expect(one).toEqual(two);
 });
+
+test("Comments", () => {
+	let output;
+	const run2 = () => {
+		output = run(
+			"A = $BC // this is a comment \n A = $12 /* X = $FF */"
+		).output;
+	};
+	expect(run2).not.toThrow();
+	expect(output).toEqual(Buffer.from([0xa9, 0xbc, 0xa9, 0x12]).buffer);
+});

@@ -21,8 +21,8 @@
 ~~arithmetic_stmt~~
 ~~reg_reg_assign_stmt~~
 ~~ref_ref_assign_stmt~~
+~~single & multiline comments~~
 
-comments
 data string & encodings
 if then else  
 for

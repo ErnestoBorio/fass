@@ -191,4 +191,7 @@ STACK: [sS][tT][aA][cC][kK];
 IDENTIFIER: [_a-zA-Z] ([._]? [a-zA-Z0-9]+)*;
 TAB: '\t';
 EOL: '\r'? '\n';
+LINE_COMMENT: '//' ~[\r\n]* -> skip;
+MULTI_LINE_COMMENT:
+	'/*' (MULTI_LINE_COMMENT | .)*? '*/' -> skip;
 WHITESPACE: ' '+ -> skip;

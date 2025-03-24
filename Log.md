@@ -22,8 +22,10 @@
 ~~reg_reg_assign_stmt~~
 ~~ref_ref_assign_stmt~~
 ~~single & multiline comments~~
+~~data string & encodings~
 
-data string & encodings
+forward references
+if flag goto
 if then else  
 for
 while
@@ -50,7 +52,7 @@ Pueden las constantes y los labels compartir el mismo espacio?
 - import declarations only
 - include source with output
 - Armado de proyecto con varios sources ... relocatables?
-- @$400[x] Agregar referencias directas a memoria con @
+- ~~@$400[x] Agregar referencias directas a memoria con @~~
 
 
 # To do

@@ -303,28 +303,35 @@ export default class Fass extends fassVisitor {
 
 	/** @param {fassParser.Data_stmtContext} ctx */
 	visitData_stmt(ctx) {
-		ctx.static_value().forEach(value => {
-			const data = this.visitStatic_value(value).value;
-			// @TODO datas greater than 32 bits are not supported
-			// Shrinkwrap a typed array to hold data without leading zeros
-			const buffer = new ArrayBuffer(4);
-			const array = new Uint8Array(buffer);
-			const view = new DataView(buffer);
-			view.setUint32(0, data, false);
-			let length = 4;
-			if (array[0] === 0) {
-				length = 3;
-				if (array[1] === 0) {
-					length = 2;
-					if (array[2] === 0) {
-						length = 1;
+		for (const value of ctx.data_value()) {
+			if (value.static_value()) {
+				const data = this.visitStatic_value(value.static_value()).value;
+				// @TODO datas greater than 32 bits are not supported
+				// Shrinkwrap a typed array to hold data without leading zeros
+				const buffer = new ArrayBuffer(4);
+				const array = new Uint8Array(buffer);
+				const view = new DataView(buffer);
+				view.setUint32(0, data, false);
+				let length = 4;
+				if (array[0] === 0) {
+					length = 3;
+					if (array[1] === 0) {
+						length = 2;
+						if (array[2] === 0) {
+							length = 1;
+						}
 					}
 				}
+				// Slices leading zeros out
+				const final = array.slice(4 - length, 4);
+				this.addOutput(final);
+			} else if (value.STRING()) {
+				const string = value.STRING().getText();
+				for (const i = 0; i < string.length; i++) {
+					//
+				}
 			}
-			// Slices leading zeros out
-			const final = array.slice(4 - length, 4);
-			this.addOutput(final);
-		});
+		}
 	}
 
 	/** @param {fassParser.Stack_stmtContext} ctx */

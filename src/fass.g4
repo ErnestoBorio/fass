@@ -38,7 +38,8 @@ filler_stmt: FILLER_KWD static_value;
 
 const_stmt: CONST_KWD IDENTIFIER '=' static_value;
 
-data_stmt: DATA_KWD ( datas += static_value ','?)+;
+data_stmt: DATA_KWD ( datas += data_value ','?)+;
+data_value: static_value | STRING;
 
 flag_set_stmt:
 	(CARRY | OVERFLOW | INTERRUPT | DECIMAL_MODE) '=' DECIMAL;
@@ -191,6 +192,10 @@ STACK: [sS][tT][aA][cC][kK];
 IDENTIFIER: [_a-zA-Z] ([._]? [a-zA-Z0-9]+)*;
 TAB: '\t';
 EOL: '\r'? '\n';
+
+STRING: '"' (ESCAPE | ~["\\])* '"';
+fragment ESCAPE: '\\' [0-9A-Fa-f] [0-9A-Fa-f];
+
 LINE_COMMENT: '//' ~[\r\n]* -> skip;
 MULTI_LINE_COMMENT:
 	'/*' (MULTI_LINE_COMMENT | .)*? '*/' -> skip;

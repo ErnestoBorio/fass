@@ -24,12 +24,17 @@ export default class Fass extends fassVisitor {
 	 * // const forwardRefPlaceholder = 0xfa55;
 	 * @type {Object<string, number[]>}
 	 */
-	forwardRefs = {};
+	forwardReferences = {};
 
 	/**
 	 * Default byte used to fill in gaps when needed
 	 */
 	filler = 0xea; // default is NOP
+
+	/**
+	 * Output placeholder for forward references
+	 */
+	forwardReferencePlaceholder = 0xfa55;
 
 	/**
 	 * The binary output of the program. 64Kb are pre-allocated at start
@@ -58,9 +63,8 @@ export default class Fass extends fassVisitor {
 		if (this.constants[name] !== undefined) {
 			throw new FassError(`Label ${name} is defined as a constant`);
 		}
-		throw new FassError(
-			`Label ${name} is not defined. Forward references are not implemented yet`
-		);
+		// At this point name is either a forward reference or not defined at all
+		return undefined;
 	}
 
 	/**
@@ -134,8 +138,19 @@ export default class Fass extends fassVisitor {
 		}
 		if (argument.type === "reference") {
 			const reference = argument;
-			this.addOutput([getOpcode(mnemonic, reference.addressing)]);
-			this.addOutput(littleEndian(reference.value));
+			const debug = this.addOutput([
+				getOpcode(mnemonic, reference.addressing)
+			]);
+			if (reference.value !== undefined) {
+				this.addOutput(littleEndian(reference.value));
+			} else {
+				const name = reference.name.toLowerCase();
+				if (this.forwardReferences[name] === undefined) {
+					this.forwardReferences[name] = [];
+				}
+				this.forwardReferences[name].push(this.address);
+				this.addOutput(littleEndian(this.forwardReferencePlaceholder));
+			}
 			return;
 		}
 		throw new UnreachableCode();
@@ -368,8 +383,7 @@ export default class Fass extends fassVisitor {
 			throw new UnreachableCode(ctx);
 		}
 
-		this.addOutput([getOpcode(instruction, addressing)]);
-		this.addOutput(littleEndian(ref.value));
+		this.outputInstruction(instruction, ref);
 	}
 
 	/** @param {fassParser.Return_stmtContext} ctx */
@@ -408,8 +422,7 @@ export default class Fass extends fassVisitor {
 					ctx
 				);
 			}
-			this.addOutput([getOpcode(mnemonic, ref.addressing)]);
-			this.addOutput(littleEndian(ref.value));
+			this.outputInstruction(mnemonic, ref);
 		} else {
 			throw new UnreachableCode(ctx);
 		}
@@ -624,11 +637,12 @@ export default class Fass extends fassVisitor {
 			throw new UnreachableCode(ctx);
 		}
 
-		let reference = this.visitBaseRef(ctx.children[0]?.baseRef());
+		const childRef = ctx.children[0];
+		let reference = this.visitBaseRef(childRef.baseRef());
 
 		if (addressing === "direct" || addressing === "indexed") {
 			if (addressing === "indexed") {
-				addressing = ctx.children[0]?.X() ? "X" : "Y";
+				addressing = childRef.X() ? "X" : "Y";
 			} else {
 				addressing = "";
 			}
@@ -638,11 +652,15 @@ export default class Fass extends fassVisitor {
 		return reference;
 	}
 
+	/**
+	 * @param {fassParser.BaseRefContext} ctx
+	 */
 	visitBaseRef(ctx) {
 		if (ctx.name()) {
+			const name = this.visitName(ctx.name()).name;
 			return {
-				...this.visitName(ctx.name()),
-				value: this.getLabel(ctx.name().getText()),
+				name: name,
+				value: this.getLabel(name),
 				type: "reference"
 			};
 		}
@@ -652,6 +670,10 @@ export default class Fass extends fassVisitor {
 		throw new UnreachableCode(ctx);
 	}
 
+	/**
+	 * @param {fassParser.NameContext} ctx
+	 * @returns {{name: string}}
+	 */
 	visitName(ctx) {
 		return { name: ctx.IDENTIFIER().getText() };
 	}
@@ -676,7 +698,9 @@ export default class Fass extends fassVisitor {
 			return literal;
 		}
 		if (ctx.name()) {
-			return this.visitName(ctx.name());
+			const { name } = this.visitName(ctx.name());
+			const con = this.getConst(name);
+			return { name: name, value: con, type: "constant" };
 		}
 		if (ctx.reference()) {
 			return this.visitReference(ctx.reference());

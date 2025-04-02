@@ -1,38 +1,39 @@
 # Implemented
 
-~~address_stmt~~
-~~label~~
-~~filler_stmt~~
-~~const_stmt~~
-~~remote_label_stmt~~
-~~data_stmt~~
+~~address_stmt~~  
+~~label~~  
+~~filler_stmt~~  
+~~const_stmt~~  
+~~remote_label_stmt~~  
+~~data_stmt~~  
 ~~stack_stmt~~
-~~goto_stmt~~
-~~literal reference // I.E. @$400 ~~
-~~bitmap~~
-~~ref_assign_stmt~~
-~~reg_assign_stmt~~
-~~gosub_stmt~~
-~~return_stmt~~
-~~bit_shift_stmt~~
-~~flag_set_stmt~~
-~~increment / decrement~~
-~~logic_stmt~~  
-~~arithmetic_stmt~~
-~~reg_reg_assign_stmt~~
-~~ref_ref_assign_stmt~~
-~~single & multiline comments~~
+~~goto_stmt~~  
+~~literal reference // I.E. @$400~~  
+~~bitmap~~  
+~~ref_assign_stmt~~  
+~~reg_assign_stmt~~  
+~~gosub_stmt~~  
+~~return_stmt~~  
+~~bit_shift_stmt~~  
+~~flag_set_stmt~~  
+~~increment / decrement~~  
+~~logic_stmt~~    
+~~arithmetic_stmt~~  
+~~reg_reg_assign_stmt~~  
+~~ref_ref_assign_stmt~~  
+~~single & multiline comments~~  
+~~forward references  
 
-data string & encodings
+data string & encodings  
 if then else  
-for
-while
-loop until
-forever / infinite loop
-include bin
-import source
-Self-modifying code (goto, gosub)
-Platform-specific defines (memory addresses, registers, etc. from C64, Apple2, A2600...)
+for  
+while  
+loop until  
+forever / infinite loop  
+include bin  
+import source  
+Self-modifying code (goto, gosub)  
+Platform-specific defines (memory addresses, registers, etc. from C64, Apple2, A2600...)  
 
 ## @TODO
 - Data elements only go up to 4 bytes. support hexadecimals of any length
@@ -45,12 +46,12 @@ Pueden las constantes y los labels compartir el mismo espacio?
 
 
 # Must do:
-- Agregar comentarios //
 - include binary file
 - import declarations only
 - include source with output
 - Armado de proyecto con varios sources ... relocatables?
-- @$400[x] Agregar referencias directas a memoria con @
+- _(done)_ Agregar comentarios //
+- _(done)_ @$400[x] Agregar referencias directas a memoria con @ 
 
 
 # To do
@@ -84,6 +85,9 @@ Pueden las constantes y los labels compartir el mismo espacio?
 <!----------------------------------------------------------------------------->
 # Log:
 
+## 2025-03-24
+About to re-implement forward references.
+
 ## 2024-09-15
 Removed Dart code because it was all already implemented in Typescript.
 
@@ -100,7 +104,7 @@ Mejor volver a la idea original, hacer una sola pasada, dejar el espacio y luego
 ## 2023-08-31
 We have a problem. Assembler distinguishes immediate values from addresses with the # sign.
 We don't want that verbosity in FASS, that's why names are treated equally, when possible, whether they are a constant or a label.
-So, instead of having both constants and direct label addressing defined as IDENFTIFIER, they'll be both integrated into a single rule called `name`, to prevent ambiguity for Antlr.
+So, instead of having both constants and direct label addressing defined as IDENTIFIER, they'll be both integrated into a single rule called `name`, to prevent ambiguity for Antlr.
 Then we determine if the name refers to a constant or a label.
 
 We also need to implement a way to use the individual bytes of a label's address as literals, like assembler does with < and >.

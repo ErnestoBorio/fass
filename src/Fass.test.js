@@ -272,12 +272,17 @@ test("Reference = reference assignment", () => {
 });
 
 test("Comments", () => {
-	let output;
-	const run2 = () => {
-		output = run(
-			"A = $BC // this is a comment \n A = $12 /* X = $FF */"
-		).output;
-	};
+	const run2 = () =>
+		run("A = $BC // this is a comment \n A = $12 /* X = $FF */");
+
 	expect(run2).not.toThrow();
+	const { output } = run2();
 	expect(output).toEqual(Buffer.from([0xa9, 0xbc, 0xa9, 0x12]).buffer);
+});
+
+test("Forward references", () => {
+	const run2 = () => run("A = label \n label:");
+	expect(run2).not.toThrow();
+	const { fass, output } = run2();
+	expect(output).toEqual(Buffer.from([0xad, 0x55, 0xfa]).buffer);
 });

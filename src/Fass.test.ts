@@ -1,6 +1,6 @@
 import { expect, test, describe } from "bun:test";
-import Fass, { run } from "./Fass";
-import { opcodes } from "./opcodes";
+import Fass, { run } from "./Fass.js";
+import { opcodes } from "./opcodes.js";
 
 describe("Miscelaneous", () => {
 	test("addOutput()", () => {

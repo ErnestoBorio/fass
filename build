@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
-FASS_PATH="/Users/petruza/Source/Drean64/fass"
+FASS_PATH="$(cd "$(dirname "$0")" && pwd)"
 ANTLR_FILES="$FASS_PATH/src/parser"
-antlr -visitor -no-listener -Dlanguage=JavaScript -o $ANTLR_FILES $FASS_PATH/src/fass.g4
+antlr -visitor -no-listener -Dlanguage=TypeScript -Xexact-output-dir -o $ANTLR_FILES $FASS_PATH/src/fass.g4
+perl -pi -e 's/^\t(visit[A-Z][A-Za-z0-9_]*)\?: \(ctx: ([^)]+)\) => Result;/\t$1?(ctx: $2): Result;/' "$ANTLR_FILES/fassVisitor.ts"

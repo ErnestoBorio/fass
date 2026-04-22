@@ -1,6 +1,6 @@
 import { writeFile, readFile } from "fs/promises";
 import parseArgv from "minimist";
-import { run } from "./Fass";
+import { run } from "./Fass.js";
 
 const argv = parseArgv(process.argv.slice(2));
 const source = (await readFile(argv["_"][0])).toString();

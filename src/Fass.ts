@@ -1,22 +1,25 @@
-import { getOpcode } from "./opcodes";
-import fassLexer from "./parser/fassLexer";
-import fassParser from "./parser/fassParser";
-import fassVisitor from "./parser/fassVisitor";
+import { getOpcode } from "./opcodes.js";
+import fassLexer from "./parser/fassLexer.js";
+import fassParser from "./parser/fassParser.js";
+import fassVisitor from "./parser/fassVisitor.js";
 import { CharStream, InputStream, CommonTokenStream } from "antlr4";
 
-export default class Fass extends fassVisitor {
+type AnyContext = any;
+type AnyValue = any;
+
+export default class Fass extends fassVisitor<AnyValue> {
 	/**
 	 * 1 byte values to be used as immediate values
 	 * @type {Object<string, number>}
 	 */
-	constants = {};
+	constants: Record<string, number> = {};
 
 	/**
 	 * 2 byte values to be used as references
 	 * It has to be stored in little endian order (lsb msb)
 	 * @type {Object<string, number>}
 	 */
-	labels = {};
+	labels: Record<string, number> = {};
 
 	/**
 	 * A map of labels that are not yet resolved
@@ -24,7 +27,7 @@ export default class Fass extends fassVisitor {
 	 * // const forwardRefPlaceholder = 0xfa55;
 	 * @type {Object<string, number[]>}
 	 */
-	forwardReferences = {};
+	forwardReferences: Record<string, number[]> = {};
 
 	/**
 	 * Default byte used to fill in gaps when needed
@@ -55,7 +58,7 @@ export default class Fass extends fassVisitor {
 	 * Retrieves a label's value
 	 * @param {string} name
 	 */
-	getLabel(name) {
+	getLabel(name: string): number | undefined {
 		name = name?.toLowerCase();
 		if (this.labels[name] !== undefined) {
 			return this.labels[name];
@@ -71,7 +74,7 @@ export default class Fass extends fassVisitor {
 	 * Retrieves a constant's value
 	 * @param {string} name
 	 */
-	getConst(name) {
+	getConst(name: string): number {
 		name = name?.toLowerCase();
 		if (this.constants[name] !== undefined) {
 			return this.constants[name];
@@ -87,7 +90,7 @@ export default class Fass extends fassVisitor {
 	 * @param {string} name
 	 * @returns {{type: "label" | "constant", value: number}}
 	 */
-	getName(name) {
+	getName(name: string): { type: "label" | "constant"; value: number } {
 		name = name?.toLowerCase();
 		if (this.labels[name] !== undefined) {
 			return {
@@ -109,7 +112,7 @@ export default class Fass extends fassVisitor {
 	 * @param {ArrayLike} data
 	 * @returns {Uint8Array}
 	 */
-	addOutput(data) {
+	addOutput(data: ArrayBuffer | ArrayLike<number>): Uint8Array {
 		if (!(data instanceof ArrayBuffer) && typeof data.length !== "number") {
 			throw new FassError("addOutput(): data must be an array-like object");
 		}
@@ -127,7 +130,7 @@ export default class Fass extends fassVisitor {
 	 * @param {string} mnemonic
 	 * @param {Literal | Reference} [argument]
 	 */
-	outputInstruction(mnemonic, argument) {
+	outputInstruction(mnemonic: string, argument?: AnyValue): void {
 		if (argument === undefined) {
 			this.addOutput([getOpcode(mnemonic)]);
 			return;
@@ -159,21 +162,21 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @returns {ArrayBuffer}
 	 */
-	visitProgram(ctx) {
+	visitProgram(ctx: AnyContext): ArrayBuffer {
 		this.visitChildren(ctx);
 		return this.output;
 	}
 
-	visitLabel(ctx) {
+	visitLabel(ctx: AnyContext): void {
 		this.createLabel(ctx.IDENTIFIER().getText(), this.address);
 	}
 
-	visitRemote_label_stmt(ctx) {
+	visitRemote_label_stmt(ctx: AnyContext): void {
 		const address = this.visitAddress(ctx.address()).value;
 		this.createLabel(ctx.IDENTIFIER().getText(), address);
 	}
 
-	createLabel(name, address) {
+	createLabel(name: string, address: number): void {
 		const nameLc = name.toLowerCase();
 		if (this.labels[nameLc] !== undefined) {
 			throw new FassError(`Label ${name} is already defined`);
@@ -186,7 +189,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {Filler_stmtContext} ctx
 	 */
-	visitFiller_stmt(ctx) {
+	visitFiller_stmt(ctx: AnyContext): void {
 		const filler = this.visitStatic_value(ctx.static_value()).value;
 		if (filler > 0xff) {
 			throw new FassError(
@@ -198,7 +201,7 @@ export default class Fass extends fassVisitor {
 	}
 
 	// <Statement>
-	visitRef_assign_stmt(ctx) {
+	visitRef_assign_stmt(ctx: AnyContext): void {
 		const reference = this.visitReference(ctx.reference());
 		const register = this.visitRegister(ctx.register());
 		const mnemonic = "ST" + register.toUpperCase();
@@ -206,7 +209,7 @@ export default class Fass extends fassVisitor {
 		// this.assembler.ST(ctx, reference, register);
 	}
 
-	visitReg_assign_stmt(ctx) {
+	visitReg_assign_stmt(ctx: AnyContext): void {
 		const register = this.visitRegister(ctx.register());
 		const mnemonic = "LD" + register.toUpperCase();
 		let giver = this.visitGiver(ctx.giver());
@@ -214,7 +217,7 @@ export default class Fass extends fassVisitor {
 		// this.assembler.LD(ctx, register, giver.text);
 	}
 
-	visitRef_ref_assign_stmt(ctx) {
+	visitRef_ref_assign_stmt(ctx: AnyContext): void {
 		this.visitReg_assign_stmt({
 			register: () => ctx.register(),
 			giver: () => ctx.giver()
@@ -228,7 +231,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.Bmp_headerContext} ctx
 	 */
-	visitBmp_header(ctx) {
+	visitBmp_header(ctx: AnyContext): AnyValue {
 		const width = ctx.bmp_width()?.DECIMAL()
 			? this.visitDecimal(ctx.bmp_width()?.DECIMAL()).value
 			: 24; // 24 pixels wide, as the C64
@@ -251,7 +254,7 @@ export default class Fass extends fassVisitor {
 	 * @param {number} width
 	 * @returns {number}
 	 */
-	visitBmp_line(ctx, width) {
+	visitBmp_line(ctx: AnyContext, width = 8): number {
 		const charLine = ctx.PIXELS().getText();
 		let bits = "";
 		for (const char of charLine) {
@@ -277,9 +280,9 @@ export default class Fass extends fassVisitor {
 	 * @param {fassParser.BitmapContext} ctx
 	 * @returns {object}
 	 */
-	visitBitmap(ctx) {
+	visitBitmap(ctx: AnyContext): void {
 		const header = this.visitBmp_header(ctx.bmp_header());
-		const lineContexts = ctx.bmp_body().bmp_line();
+		const lineContexts = ctx.bmp_body().bmp_line_list();
 		const bytesPerLine = Math.ceil(header.width / 8);
 		for (const lineCtx of lineContexts) {
 			const line = this.visitBmp_line(lineCtx, header.width);
@@ -300,7 +303,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.Address_stmtContext} ctx
 	 */
-	visitAddress_stmt(ctx) {
+	visitAddress_stmt(ctx: AnyContext): void {
 		const address = this.visitAddress(ctx.address()).value;
 		if (address < this.address) {
 			throw new FassError(
@@ -317,8 +320,8 @@ export default class Fass extends fassVisitor {
 	}
 
 	/** @param {fassParser.Data_stmtContext} ctx */
-	visitData_stmt(ctx) {
-		ctx.static_value().forEach(value => {
+	visitData_stmt(ctx: AnyContext): void {
+		ctx.static_value_list().forEach(value => {
 			const data = this.visitStatic_value(value).value;
 			// @TODO datas greater than 32 bits are not supported
 			// Shrinkwrap a typed array to hold data without leading zeros
@@ -343,7 +346,7 @@ export default class Fass extends fassVisitor {
 	}
 
 	/** @param {fassParser.Stack_stmtContext} ctx */
-	visitStack_stmt(ctx) {
+	visitStack_stmt(ctx: AnyContext): void {
 		if (ctx.PUSH_KWD()) {
 			if (ctx.A()) {
 				this.addOutput([getOpcode("PHA")]);
@@ -360,7 +363,7 @@ export default class Fass extends fassVisitor {
 	}
 
 	/** @param {fassParser.Goto_stmtContext} ctx*/
-	visitGotosub_stmt(ctx) {
+	visitGotosub_stmt(ctx: AnyContext): void {
 		const ref = this.visitReference(ctx.reference());
 		let addressing;
 		if (ref.addressing === "ABS") {
@@ -387,7 +390,7 @@ export default class Fass extends fassVisitor {
 	}
 
 	/** @param {fassParser.Return_stmtContext} ctx */
-	visitReturn_stmt(ctx) {
+	visitReturn_stmt(ctx: AnyContext): void {
 		if (ctx.RETURN_KWD()) {
 			this.addOutput([getOpcode("RTS")]);
 		} else if (ctx.RETINT_KWD()) {
@@ -398,7 +401,7 @@ export default class Fass extends fassVisitor {
 	}
 
 	/** @param {fassParser.Bit_shift_stmtContext} ctx */
-	visitBit_shift_stmt(ctx) {
+	visitBit_shift_stmt(ctx: AnyContext): void {
 		let mnemonic;
 		if (ctx.LSR_KWD()) {
 			mnemonic = "LSR";
@@ -431,7 +434,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.Flag_set_stmtContext} ctx
 	 */
-	visitFlag_set_stmt(ctx) {
+	visitFlag_set_stmt(ctx: AnyContext): void {
 		const argument = this.visitDecimal(ctx.DECIMAL()).value;
 		let set;
 		if (argument === 0) {
@@ -463,7 +466,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.Incdecrement_stmtContext} ctx
 	 */
-	visitIncdecrement_stmt(ctx) {
+	visitIncdecrement_stmt(ctx: AnyContext): void {
 		let receiver;
 		if (ctx.reference()) {
 			receiver = this.visitReference(ctx.reference());
@@ -481,7 +484,7 @@ export default class Fass extends fassVisitor {
 			throw new UnreachableCode(ctx);
 		}
 
-		if (ctx.sign.text === "--") {
+		if (ctx._sign.text === "--") {
 			if (receiver === "X") {
 				this.addOutput([getOpcode("DEX")]);
 			} else if (receiver === "Y") {
@@ -506,7 +509,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.Logic_stmtContext} ctx
 	 */
-	visitLogic_stmt(ctx) {
+	visitLogic_stmt(ctx: AnyContext): void {
 		let mnemonic;
 		if (ctx.AND_KWD()) {
 			mnemonic = "AND";
@@ -550,11 +553,11 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.Arithmetic_stmtContext} ctx
 	 */
-	visitArithmetic_stmt(ctx) {
+	visitArithmetic_stmt(ctx: AnyContext): void {
 		let mnemonic;
-		if (ctx.op.text === "+=") {
+		if (ctx._op.text === "+=") {
 			mnemonic = "ADC";
-		} else if (ctx.op.text === "-=") {
+		} else if (ctx._op.text === "-=") {
 			mnemonic = "SBC";
 		} else {
 			throw new UnreachableCode(ctx);
@@ -582,8 +585,8 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.Reg_reg_assign_stmtContext} ctx
 	 */
-	visitReg_reg_assign_stmt(ctx) {
-		const regs = ctx.registers().map(reg => {
+	visitReg_reg_assign_stmt(ctx: AnyContext): AnyValue {
+		const regs = ctx.registers_list().map(reg => {
 			return reg.A()
 				? "A"
 				: reg.X()
@@ -621,7 +624,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.ReferenceContext} ctx
 	 */
-	visitReference(ctx) {
+	visitReference(ctx: AnyContext): AnyValue {
 		let addressing;
 		if (ctx.direct()) {
 			addressing = "direct";
@@ -655,7 +658,7 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @param {fassParser.BaseRefContext} ctx
 	 */
-	visitBaseRef(ctx) {
+	visitBaseRef(ctx: AnyContext): AnyValue {
 		if (ctx.name()) {
 			const name = this.visitName(ctx.name()).name;
 			return {
@@ -674,11 +677,11 @@ export default class Fass extends fassVisitor {
 	 * @param {fassParser.NameContext} ctx
 	 * @returns {{name: string}}
 	 */
-	visitName(ctx) {
+	visitName(ctx: AnyContext): { name: string } {
 		return { name: ctx.IDENTIFIER().getText() };
 	}
 
-	visitLiteral_ref(ctx) {
+	visitLiteral_ref(ctx: AnyContext): AnyValue {
 		return {
 			...this.visitAddress(ctx.address()),
 			type: "reference"
@@ -686,7 +689,7 @@ export default class Fass extends fassVisitor {
 	}
 	// </Reference>
 
-	visitGiver(ctx) {
+	visitGiver(ctx: AnyContext): AnyValue {
 		if (ctx.literal()) {
 			const literal = this.visitLiteral(ctx.literal());
 			if (literal.value > 0xff || literal.value < -128) {
@@ -699,8 +702,21 @@ export default class Fass extends fassVisitor {
 		}
 		if (ctx.name()) {
 			const { name } = this.visitName(ctx.name());
-			const con = this.getConst(name);
-			return { name: name, value: con, type: "constant" };
+			const nameLc = name.toLowerCase();
+			if (this.constants[nameLc] !== undefined) {
+				return {
+					name: name,
+					value: this.constants[nameLc],
+					type: "constant"
+				};
+			}
+			const value = this.getLabel(name);
+			return {
+				name,
+				value,
+				type: "reference",
+				addressing: value !== undefined && value < 0x100 ? "ZP" : "ABS"
+			};
 		}
 		if (ctx.reference()) {
 			return this.visitReference(ctx.reference());
@@ -710,7 +726,7 @@ export default class Fass extends fassVisitor {
 
 	visitRegister = ctx => (ctx.X() ? "x" : ctx.Y() ? "y" : ctx.A() ? "a" : "");
 
-	visitAddress(ctx) {
+	visitAddress(ctx: AnyContext): AnyValue {
 		if (ctx.hexadecimal()) {
 			return this.visitHexadecimal(ctx.hexadecimal());
 		}
@@ -720,7 +736,7 @@ export default class Fass extends fassVisitor {
 	// <Values>
 
 	/** @param {Static_valueContext} ctx */
-	visitStatic_value(ctx) {
+	visitStatic_value(ctx: AnyContext): AnyValue {
 		if (ctx.literal()) {
 			return this.visitLiteral(ctx.literal());
 		}
@@ -736,35 +752,35 @@ export default class Fass extends fassVisitor {
 	/**
 	 * @returns {{value: number, text: string}}
 	 */
-	visitLiteral(ctx) {
+	visitLiteral(ctx: AnyContext): AnyValue {
 		return {
 			...this.visit(ctx.children[0]),
 			type: "literal"
 		};
 	}
 
-	visitDecimal(ctx) {
+	visitDecimal(ctx: AnyContext): AnyValue {
 		return {
 			value: parseInt(ctx.getText(), 10),
 			text: ctx.getText()
 		};
 	}
 
-	visitHexadecimal(ctx) {
+	visitHexadecimal(ctx: AnyContext): AnyValue {
 		return {
 			value: parseInt(ctx.HEXADECIMAL().getText().slice(1), 16),
 			text: ctx.HEXADECIMAL().getText()
 		};
 	}
 
-	visitBinary(ctx) {
+	visitBinary(ctx: AnyContext): AnyValue {
 		return {
 			value: parseInt(ctx.BINARY().getText().slice(1), 2),
 			text: ctx.BINARY().getText()
 		};
 	}
 
-	visitNegative_number(ctx) {
+	visitNegative_number(ctx: AnyContext): AnyValue {
 		const value = parseInt(ctx.NEGATIVE_NUMBER().getText(), 10);
 		if (value < -128) {
 			throw new FassError(
@@ -778,7 +794,7 @@ export default class Fass extends fassVisitor {
 		};
 	}
 
-	visitOpcode_literal(ctx) {
+	visitOpcode_literal(ctx: AnyContext): AnyValue {
 		if (ctx.NOP()) {
 			return {
 				value: getOpcode("NOP"),
@@ -805,7 +821,7 @@ export default class Fass extends fassVisitor {
  * @param {string} source
  * @returns {fassParser}
  */
-function compile(source) {
+function compile(source: string): fassParser {
 	const chars = new InputStream(source);
 	const stream = new CharStream(chars.toString());
 	const lexer = new fassLexer(stream);
@@ -820,11 +836,14 @@ function compile(source) {
  * @param {string} [rule]
  * @returns {{fass: Fass, output: ArrayBuffer}}
  */
-export function run(source, rule) {
+export function run(
+	source: string,
+	rule?: string
+): { fass: Fass; output: AnyValue } {
 	const parser = compile(source);
-	let tree;
+	let tree: AnyValue;
 	if (rule) {
-		tree = parser[rule]();
+		tree = (parser as AnyValue)[rule]();
 	} else {
 		tree = parser.program();
 	}
@@ -836,10 +855,10 @@ export function run(source, rule) {
 }
 
 export class FassError extends Error {
-	message;
+	message: string;
 
-	constructor(message, ctx) {
-		super();
+	constructor(message: string, ctx?: AnyContext) {
+		super(message);
 		if (ctx) {
 			const col = ctx.start.column;
 			const line = ctx.start.line;
@@ -855,7 +874,7 @@ export class FassError extends Error {
 }
 
 class UnreachableCode extends FassError {
-	constructor(ctx) {
+	constructor(ctx?: AnyContext) {
 		super(`Unreachable code`, ctx);
 	}
 }
@@ -868,7 +887,7 @@ class Assembler {
 	 * @param {string} reference
 	 * @returns {string}
 	 */
-	ST(ctx, reference, register) {
+	ST(ctx: AnyContext, reference: string, register: string): string {
 		return `ST${register.toUpperCase()} ${reference} ; line ${ctx.start.line}`;
 	}
 
@@ -879,7 +898,7 @@ class Assembler {
 	 * @param {string} giver The value to be stored, reference or literal
 	 * @returns {string}
 	 */
-	LD(ctx, register, giver) {
+	LD(ctx: AnyContext, register: string, giver: string): string {
 		return `LD${register.toUpperCase()} ${giver} ; line ${ctx.start.line}`;
 	}
 }
@@ -890,7 +909,7 @@ class Assembler {
  * @param {string | undefined} addressing
  * @returns {[number, number]}
  */
-function littleEndian(data, addressing) {
+function littleEndian(data: number, addressing?: string): number[] {
 	if (
 		(!addressing && data >= 0x100) ||
 		["ABS", "ABSX", "ABSY"].includes(addressing)

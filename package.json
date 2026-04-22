@@ -3,16 +3,19 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"start": "bun ./src/main.js ./programs/program.fass -o output.prg",
-		"compile": "bun ./src/main.js",
+		"start": "bun ./src/main.ts ./programs/program.fass -o output.prg",
+		"compile": "bun ./src/main.ts",
 		"go": "bun run build && bun run start",
 		"test": "bun test --watch",
+		"test:once": "bun test",
+		"typecheck": "tsc --noEmit",
 		"build": "./build",
-		"keygen": "bun ./src/keygen.js"
+		"keygen": "bun ./src/keygen.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "^1.1.13",
-		"@types/antlr4": "^4.11.6"
+		"@types/antlr4": "^4.11.6",
+		"typescript": "^5.4.2"
 	},
 	"dependencies": {
 		"antlr4": "^4.13.2",
